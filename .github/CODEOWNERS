@@ -1,0 +1,12 @@
+# Default: the human reviews everything until the reviewer agent is trusted.
+*                       @kourob-maintainers
+
+# Decisions and rails need a human on them, always.
+/docs/adr/              @kourob-maintainers
+/docs/DEFAULTS.md       @kourob-maintainers
+/AGENTS.md              @kourob-maintainers
+/GOAL.md                @kourob-maintainers
+/.github/               @kourob-maintainers
+/src/kourob/gate.py     @kourob-maintainers
+/src/kourob/ledger/     @kourob-maintainers
+/src/kourob/identity.py @kourob-maintainers

@@ -1,0 +1,56 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Sync
+        run: uv sync --all-extras --dev
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Format check
+        run: uv run ruff format --check .
+
+      - name: CLI is honest
+        run: uv run kourob --help
+
+      - name: Tests
+        run: uv run pytest -q
+
+      # The rails from AGENTS.md section 4 are enforced as tests in tests/test_rails.py:
+      #   - only gate.py writes data/silver and data/gold
+      #   - training code reaches data/gold only through evals/
+      #   - vendor SDKs are imported only in runner/adapters/
+      #   - every port handler returns {data, rendered, citations, receipt_id}
+      # They run in the step above. Keeping them as tests means they are runnable locally.
+
+      - name: Contract lint
+        if: hashFiles('examples/**/schemas/*.odcs.yaml') != ''
+        run: uv run datacontract lint examples/*/schemas/*.odcs.yaml
+
+      - name: Ledger verify
+        if: hashFiles('examples/kourob-node/ledger/receipts.parquet') != ''
+        run: uv run kourob ledger verify --node examples/kourob-node

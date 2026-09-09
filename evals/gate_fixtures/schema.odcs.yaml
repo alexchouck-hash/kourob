@@ -1,0 +1,49 @@
+# ODCS data contract used by the gate fixtures. Brief section 9, Schemas.
+apiVersion: v3.0.0
+kind: DataContract
+id: shot.v1
+version: 1.0.0
+status: active
+name: Tennis shot
+description: One shot within one point of one match.
+schema:
+  - name: shot
+    logicalType: object
+    physicalType: table
+    properties:
+      - name: match_id
+        logicalType: string
+        required: true
+        pattern: "^[a-z0-9-]{4,64}$"
+      - name: point_id
+        logicalType: string
+        required: true
+      - name: shot_index
+        logicalType: integer
+        required: true
+        minimum: 1
+        maximum: 60
+      - name: player
+        logicalType: string
+        required: true
+      - name: shot_type
+        logicalType: string
+        required: true
+        enum: [serve, forehand, backhand, volley, overhead, slice]
+      - name: direction
+        logicalType: string
+        required: false
+        enum: [crosscourt, down_the_line, middle, inside_out, inside_in]
+      - name: outcome
+        logicalType: string
+        required: true
+        enum: [in, winner, forced_error, unforced_error, let, fault]
+      - name: ts
+        logicalType: date
+        required: true
+        description: ISO 8601 UTC. Must not be in the future.
+quality:
+  - rule: no_future_timestamps
+    description: ts must not be later than ingestion time.
+  - rule: unique_shot
+    description: (match_id, point_id, shot_index) is unique.

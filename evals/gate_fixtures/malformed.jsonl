@@ -1,0 +1,4 @@
+{"schema_ref":"shot.v1","match_id":"ao-2026-f-01","point_id":"p015","shot_index":1,
+not json at all
+{"schema_ref": "shot.v1", "match_id": 'single-quoted', "point_id": "p016"}
+{"schema_ref":"shot.v1","match_id":"ao-2026-f-01",,"point_id":"p017"}

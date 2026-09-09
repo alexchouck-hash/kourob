@@ -1,0 +1,58 @@
+name: loops
+
+# The scheduled loops from brief section 6.1. Each loop has a budget and produces a PR or
+# an event as its only output.
+#
+# continue-on-error is set until the loops land in M2 and M4: `kourob loop run` currently
+# exits 2 with the milestone that implements it. Remove it loop by loop as each ships.
+
+on:
+  schedule:
+    - cron: "17 3 * * *"    # nightly: lint
+    - cron: "41 4 * * 1"    # weekly, Monday: evolve, prune, reflect
+  workflow_dispatch:
+    inputs:
+      loop:
+        description: Which loop to run
+        required: true
+        type: choice
+        options: [ingest, compile, lint, evolve, prune, reflect]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  nightly:
+    if: github.event.schedule == '17 3 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --dev
+      - name: lint loop
+        continue-on-error: true
+        run: uv run kourob loop run lint --node examples/kourob-node
+
+  weekly:
+    if: github.event.schedule == '41 4 * * 1'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        loop: [evolve, prune, reflect]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --dev
+      - name: ${{ matrix.loop }} loop
+        continue-on-error: true
+        run: uv run kourob loop run ${{ matrix.loop }} --node examples/kourob-node
+
+  manual:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --dev
+      - run: uv run kourob loop run ${{ inputs.loop }} --node examples/kourob-node

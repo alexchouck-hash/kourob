@@ -1,0 +1,91 @@
+[project]
+name = "kourob"
+version = "0.1.0"
+description = "Metered, provenance-tracked, self-specializing nodes that agents attach to"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "KouroB contributors" }]
+keywords = ["agents", "mcp", "a2a", "provenance", "event-sourcing", "distillation"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
+dependencies = [
+  "typer>=0.12",
+  "pydantic>=2.7",
+  "pyyaml>=6.0",
+  "python-ulid>=2.7",
+  "cryptography>=42.0",
+  "duckdb>=1.0",
+  "pyarrow>=16.0",
+]
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.0"]
+a2a = ["a2a-sdk>=0.2"]
+rest = ["fastapi>=0.111", "uvicorn>=0.30", "sse-starlette>=2.1"]
+contracts = ["datacontract-cli>=0.10"]
+distill = ["torch>=2.3", "transformers>=4.42", "peft>=0.11", "scikit-learn>=1.5", "onnx>=1.16"]
+docs = ["mkdocs-material>=9.5"]
+all = ["kourob[mcp,a2a,rest,contracts,docs]"]
+
+[project.scripts]
+kourob = "kourob.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/kourob/kourob"
+Documentation = "https://github.com/kourob/kourob/tree/main/docs"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/kourob"]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.2",
+  "pytest-cov>=5.0",
+  "ruff>=0.5",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests", "evals"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "SIM", "RUF"]
+ignore = [
+  "A003",   # class attribute shadowing a builtin: `id`, `hash` are correct domain names here
+  "B008",   # typer uses function calls in argument defaults by design
+]
+
+[tool.ruff.lint.per-file-ignores]
+"src/kourob/loops/compile.py" = ["A005"]
+"src/kourob/schema/__init__.py" = ["A005"]
+"src/kourob/tools/__init__.py" = ["A005"]
+"src/kourob/types.py" = ["A005"]
+"tests/*" = ["S101"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests", "evals"]
+addopts = "-ra --strict-markers --strict-config"
+markers = [
+  "m1: acceptance criteria for milestone M1 (brief section 12)",
+  "m2: acceptance criteria for milestone M2",
+  "m3: acceptance criteria for milestone M3",
+  "m4: acceptance criteria for milestone M4",
+  "m5: acceptance criteria for milestone M5",
+  "eval: a milestone-gating eval, not a unit test",
+]
+xfail_strict = true
+
+[tool.coverage.run]
+source = ["src/kourob"]
