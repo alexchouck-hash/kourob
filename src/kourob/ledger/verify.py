@@ -5,7 +5,6 @@ Brief reference: sections 4.2 and 4.3. KNP-2 sections 3 and 4.
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -174,14 +173,11 @@ def tamper_for_test(node_dir: Path | str, *, index: int, field: str, value: Any)
     receipts_dir = node_dir / "ledger" / "receipts"
     for part in receipts_dir.glob("*/*.parquet"):
         part.unlink()
-    rows = []
-    for record in records:
-        row = dict(record)
-        for col in ("citations", "upstream", "hops", "evidence"):
-            if isinstance(row.get(col), list):
-                row[col] = json.dumps(row[col])
-        rows.append(row)
-    ledger.store.append("receipts", rows)
+    # Re-append the decoded records as they are. The store encodes what needs encoding;
+    # pre-serialising list columns here turned them into text on the way back out, and
+    # `Receipt` and `Outcome` then refused to validate the ledger this helper had just
+    # "tampered with" — which is a different failure from the one the tests want.
+    ledger.store.append("receipts", [dict(record) for record in records])
 
 
 __all__ = ["Chain", "read_receipts", "tamper_for_test", "trace", "verify"]

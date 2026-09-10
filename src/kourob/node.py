@@ -29,6 +29,11 @@ TEMPLATE_DIR = Path(__file__).resolve().parents[2] / "template"
 #: is gitignored inside the template itself (KNP-8: the membrane includes the key material).
 _RUNTIME_DIRS = (".kourob/gen", ".kourob/cache", ".kourob/keys", "logs", "ledger/receipts")
 
+#: Contracts every cell carries for its own bookkeeping. They are written, never served,
+#: and they do not count against the cell's schema ceiling (KNP-8 section 2.3): the ceiling
+#: is about how much *world* a cell owns, and a change log is not world.
+INFRASTRUCTURE_SCHEMAS = frozenset({"node_change.v1"})
+
 
 @dataclass
 class Node:
@@ -89,12 +94,13 @@ class Node:
             ("identity", self.did.startswith("did:key:z"), self.did),
         ]
         contracts = self.contracts
+        served = [c for c in contracts if c not in INFRASTRUCTURE_SCHEMAS]
         checks.append(
             (
                 "schemas",
-                len(contracts) <= self.manifest.cell.max_schemas,
-                f"{len(contracts)} of {self.manifest.cell.max_schemas} allowed: "
-                f"{', '.join(sorted(contracts)) or 'none'}",
+                len(served) <= self.manifest.cell.max_schemas,
+                f"{len(served)} of {self.manifest.cell.max_schemas} allowed: "
+                f"{', '.join(sorted(served)) or 'none'}",
             )
         )
         try:
@@ -208,7 +214,10 @@ def cell_size(node: Node) -> dict[str, Any]:
     measured = {
         "source_files": (len(sources), budget.max_source_files),
         "source_lines": (lines, budget.max_source_lines),
-        "schemas": (len(node.contracts), budget.max_schemas),
+        "schemas": (
+            len([c for c in node.contracts if c not in INFRASTRUCTURE_SCHEMAS]),
+            budget.max_schemas,
+        ),
         "tiers": (sum(1 for t in node.manifest.tiers.values() if t.enabled), budget.max_tiers),
         "hot_storage_mb": (round(hot_bytes / 1_000_000, 2), budget.max_hot_storage_mb),
         "tools": (len(list((node.dir / "tools").glob("*.yaml"))), budget.max_tools),

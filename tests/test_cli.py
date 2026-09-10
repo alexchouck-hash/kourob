@@ -83,8 +83,6 @@ def test_version_prints_version() -> None:
         ["attach", "claude-code"],
         ["run", "hello"],
         ["train", "."],
-        ["tend"],
-        ["rollback", "evt_01J"],
         ["meter", "report"],
         ["loop", "run", "lint"],  # evolve is implemented; lint is not
         ["distill", "train"],

@@ -11,7 +11,7 @@ identity:
 scope:
   # What this node answers. Rules first, T1 classifier second (brief section 2).
   summary: "{{ scope_summary }}"
-  schemas: [note.v1, note_check.v1]   # ODCS contract ids this node owns
+  schemas: [note.v1, note_check.v1, node_change.v1]   # ODCS contract ids this node owns
   entities: []                 # entity kinds this node is authoritative for
   capabilities: []             # tool names this node offers
   max_hops: 4                  # loop prevention (brief section 7)

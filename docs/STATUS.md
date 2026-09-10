@@ -14,7 +14,7 @@ handoffs say how it got there.
 |---|---|---|---|
 | create a node in one command | **met** | `kourob init` lays down a working cell that ingests and answers with a citation in seconds | — |
 | connect it to other nodes | **met on disk** | `kourob connect`, route table with Hebbian strength, scope check with declared exclusions, referral with route hints, bridge with chained receipts, hop-list refusal, cross-node `trace`; the M3 router eval passes | only the local transport: no A2A card, no HTTP. A remote route is refused rather than guessed at |
-| become cheaper | **mechanism met** | evolve mines a T0 rule from a cluster that has always been a function of one event, replays it over every settled request, promotes only on exact match, and disables it on one correction — proven by `evals/promotion_test.py` | nothing *applies* a promotion yet (`tend`); no T1; no measured cost curve; v1 mines single-event lookups only |
+| become cheaper | **met, unmeasured** | evolve mines a T0 rule by exact replay; `kourob tend` at A2 installs it as a `node_change.v1` event carrying its inverse, and the node answers from it on the next request; one correction disables it; `kourob rollback` restores the prior state — proven by `tests/test_tend.py` and `evals/promotion_test.py` | no T1; no replayed 30-day cost curve; v1 mines single-event lookups only |
 | become better | **met in mechanism** | outcomes, settlement from reality, quality multiplier | only `note.v1` settles; no comparator for probabilistic answers |
 | traced back to its sources | **met for one node** | receipts, hash chain, `trace`, tamper detection | upstream receipts across nodes untested because there are no chains yet; no PROV export |
 | metered along the whole chain | **half** | measured token cost, priced receipts, call log | no accounts, no quotes, no price function, no meter report |
@@ -25,7 +25,7 @@ handoffs say how it got there.
 |---|---|---|---|---|
 | 1 | `init` to a cited answer over MCP | < 10 min | ~5 s to a cited answer — but **over the CLI**, not MCP; `handle()` exists, no stdio server | **not met** on the letter |
 | 2 | T0+T1 share after 30 days | ≥ 80 % | T0 share on the demo is 100 % of answered; T1 does not exist; no 30-day run | **not measurable** |
-| 3 | cost/request day 30 vs day 1 | ≥ 5× down | rule mining exists and is exact-gated; the curve itself has never been replayed because nothing applies a promotion (`tend`) and no T1 exists | **mechanism only** |
+| 3 | cost/request day 30 vs day 1 | ≥ 5× down | mining, promotion and installation all work end to end; the curve has never been replayed over 30 days, and without T1 the T3-to-T0 drop is the only step that exists | **unmeasured** |
 | 4 | provenance reconstructible | 100 % | 100 % for one node, proven by tests | **met** (single node) |
 | 5 | referral learning | second call goes direct | first call bridges and hands back a route with an evidence receipt; the caller's route table then points at the neighbour; the second call is referred, and a direct call works — proven by `evals/router_test.py` | **met** (local transport) |
 | 6 | split proposed within one evolve cycle | yes | yes, with a child manifest, proven by eval | **met** |
@@ -41,7 +41,7 @@ until rule mining exists.
 | **M1** | manifest, identity, store, gate (P 1.0 / R 1.0), events, ledger, T0, T3, cascade, MCP handler, init, trace | MCP stdio server; PROV export; schema codegen and diff |
 | **M2** | nothing | compile loop, lint loop, packs, attach, the dogfood node |
 | **M3** | scope check with declared exclusions, referral, bridge, routes, connect, hop lists, cross-node trace, router eval — all on the local transport | A2A card and HTTP transport, T1 scope classifier, tennis node |
-| **M4** | outcomes, clustering, evolve, split | accounts, price function, quotes, meter report, Merkle, ADR-0003/4/5, `tend` |
+| **M4** | outcomes, clustering, evolve, split, `tend` with rollback, halts and autonomy demotion | accounts, price function, quotes, meter report, Merkle, ADR-0003/4/5 |
 | **M5** | nothing | rule mining, T1, distill, cost curve, UI, publish |
 
 ## Where the design is stronger than the brief
@@ -62,7 +62,9 @@ Honest list, in the order they bite:
 1. **Nodes talk only on disk.** KNP-1, 4 and 9 are now exercised against a second party,
    but over a path, not a wire. The A2A card and HTTP transport are the gap between "works"
    and "works between operators".
-2. **Evolution is advisory.** The loop proposes; nothing applies, rolls back, or graduates.
+2. **Autonomy is exercised only by tests.** `tend` applies, rolls back, halts and demotes,
+   and suggests graduation — but no real cell has run at A2 for long enough to say whether
+   the ladder's evidence gates are set right.
    KNP-7 exists only as a document.
 3. **The cost curve is a claim.** The headline 5× has never been measured because nothing
    mines rules.
@@ -83,7 +85,8 @@ Kept in Beads (`bd ready`), ordered by what moves the sentence, not by milestone
 2. ~~**Rule mining by exact replay**~~ — done for single-event lookups (`kb-24l`). The
    proposal now carries the rule; `tend` is what installs it.
 3. **MCP stdio server** — metric 1 on the letter, and the first agent attaching.
-4. **`kourob tend`** — apply within autonomy, with recorded inverses and rollback.
+4. ~~**`kourob tend`**~~ — done (`kb-2ff`). Decide by autonomy, budget and recorded
+   inverse; apply as change events through the gate; halt and demote on breach; rollback.
 5. **Price function, quotes, accounts, meter report** — the economics half of metering.
 6. **Compile and lint** — pages with citations, and the dogfood node.
 7. **T1 and the cost-curve eval** — the headline number, measured.

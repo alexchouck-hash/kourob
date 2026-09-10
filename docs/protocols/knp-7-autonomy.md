@@ -157,6 +157,24 @@ discipline, cited by the same receipts as everything else. `kourob trace` on an 
 came from an auto-promoted rule reaches the change event that promoted it, and from there to
 the evidence. **A node can explain not just what it answered but why it is the shape it is.**
 
+### 4.1.1 How this is implemented
+
+- A change is a `node_change.v1` event **pushed through the gate** like any other fact. The
+  gate is the only silver writer, and a change the node made to itself is a fact.
+- The inverse is written by the code that made the change, at the time it made it.
+  `kourob rollback <evt>` is a lookup, not a reconstruction, and it records a `rollback`
+  change of its own that points at what it undid.
+- Nothing in the apply path deletes. A demoted rule is renamed `.yaml.disabled`; a shed
+  schema leaves the declaration and keeps its data.
+- Two things a proposal may not become a change: a **split** (it creates a cell) and any
+  **scope widening** (§1). They are proposals at every level, and `decide` says so.
+- **Graduation is suggested, never set.** `tend` reports the next level after
+  `graduation_window` clean cycles; the operator writes it into the manifest. Demotion is
+  automatic and immediate, and is itself recorded as an `autonomy` change with its inverse.
+- One change is made by `evolve` rather than by `tend`: disabling a T0 rule on its first
+  `corrected` outcome. That is a withdrawal, not an addition — the same mechanism as a
+  demotion — and `tend` records it with its inverse on the next cycle.
+
 ### 4.2 Halt conditions
 
 `tend` stops, applies nothing further, and reports, on any of:

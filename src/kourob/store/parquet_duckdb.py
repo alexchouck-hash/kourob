@@ -111,7 +111,11 @@ class ParquetDuckDBStore(Store):
             encoded = dict(row)
             for col, value in row.items():
                 nested = isinstance(value, list) and value and isinstance(value[0], dict)
-                if col in _JSON_COLUMNS or isinstance(value, dict) or nested:
+                already_text = isinstance(value, str)
+                if (col in _JSON_COLUMNS and not already_text) or isinstance(value, dict) or nested:
+                    # A JSON column handed in as text is stored as-is. Encoding it again
+                    # would wrap it in a second layer that `_decode` unwraps only once,
+                    # and the caller gets back a string where it wrote a list.
                     encoded[col] = json.dumps(value, sort_keys=True, default=str)
             encoded_rows.append(encoded)
 

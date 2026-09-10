@@ -186,8 +186,17 @@ def tend(
     autonomy_max: Annotated[str, typer.Option(help="Cap the autonomy level: A0..A4.")] = "A0",
     dry_run: Annotated[bool, typer.Option(help="Decide and report, apply nothing.")] = False,
 ) -> None:
-    """Run one self-development cycle: ingest, compile, lint, evolve, decide, apply, reflect."""
-    _todo("tend", "M4", "docs/protocols/knp-7-autonomy.md section 4")
+    """Run one self-development cycle: ingest, evolve, decide, apply within autonomy, report."""
+    from kourob.loops.tend import TendError, render, tend
+
+    try:
+        report = tend(node, budget=budget, autonomy_max=autonomy_max, dry_run=dry_run)
+    except TendError as exc:
+        _fail(str(exc))
+        return
+    typer.echo(render(report))
+    if report.halted:
+        raise typer.Exit(4)
 
 
 @app.command()
@@ -196,7 +205,15 @@ def rollback(
     node: Annotated[Path, typer.Option(help="Cell directory.")] = Path("."),
 ) -> None:
     """Apply the recorded inverse of an auto-applied change."""
-    _todo("rollback", "M4", "docs/protocols/knp-7-autonomy.md section 4")
+    from kourob.loops.tend import TendError
+    from kourob.loops.tend import rollback as roll
+
+    try:
+        event_id = roll(node, change)
+    except TendError as exc:
+        _fail(str(exc))
+        return
+    typer.secho(f"rolled back {change} -> {event_id}", fg=typer.colors.GREEN)
 
 
 @app.command()
