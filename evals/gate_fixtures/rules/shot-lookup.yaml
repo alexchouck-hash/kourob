@@ -1,0 +1,24 @@
+# A T0 rule: a regex over the question and a SQL query over silver.
+#
+# This is the shape KNP-5 section 3.3 mines from a cluster whose answer has always been a
+# function of its inputs, so a hand-written rule and a promoted one are the same artefact.
+# Bindings come from named capture groups and are passed to DuckDB as named parameters.
+id: shot-lookup
+description: One shot of one point of one match, looked up directly.
+match: 'shot (?P<shot_index>\d+) of point (?P<point_id>[\w-]+) in match (?P<match_id>[a-z0-9-]+)'
+confidence: 1.0
+sql: |
+  SELECT
+    id,
+    json_extract_string(payload, '$.player')    AS player,
+    json_extract_string(payload, '$.shot_type') AS shot_type,
+    json_extract_string(payload, '$.direction') AS direction,
+    json_extract_string(payload, '$.outcome')   AS outcome,
+    json_extract_string(payload, '$.point_id')  AS point_id,
+    CAST(json_extract(payload, '$.shot_index') AS INTEGER) AS shot_index
+  FROM silver
+  WHERE schema_ref = 'shot.v1'
+    AND json_extract_string(payload, '$.match_id') = $match_id
+    AND json_extract_string(payload, '$.point_id') = $point_id
+    AND CAST(json_extract(payload, '$.shot_index') AS INTEGER) = CAST($shot_index AS INTEGER)
+render: "Shot {shot_index} of point {point_id}: {player} hit a {shot_type} {direction}, outcome {outcome}."

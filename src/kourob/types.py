@@ -48,6 +48,7 @@ class Determinism(StrEnum):
     DERIVED = "derived"  # T0: re-runnable by anyone holding the events
     ATTESTED = "attested"  # T1-T3: proves the node said it, not that it follows
     ADJUDICATED = "adjudicated"  # T4: attested, plus a named human accepted it
+    DECLARED = "declared"  # the node's own self-description, checkable against its card
 
 
 #: Which determinism class each tier produces. T4 is adjudicated; everything between
@@ -112,12 +113,22 @@ class Answer(BaseModel):
     )
 
     def is_grounded(self) -> bool:
-        """An answer must cite events unless it refused.
+        """An answer must cite events unless it refused, or unless it is describing itself.
 
-        KNP-0 I1: empty citations are legal only for a referral or a reject. Anywhere else
-        an empty list means the node produced a claim it cannot source.
+        KNP-0 I2: every claim cites an event. Two things are not claims about the world and
+        so have nothing to cite:
+
+        - a **refusal** — a referral or a reject asserts nothing;
+        - an **introspection** — a node listing its own schemas, scope, price or autonomy
+          level is reciting its own declaration, which is signed in its agent card rather
+          than derived from events. That is `Determinism.DECLARED`.
+
+        Anywhere else, empty citations mean the node produced a claim it cannot source, and
+        that is the failure this method exists to catch.
         """
         if self.scope_result in (ScopeResult.REFERRAL, ScopeResult.REJECT):
+            return True
+        if self.determinism is Determinism.DECLARED:
             return True
         return bool(self.citations)
 

@@ -73,20 +73,22 @@ def test_version_prints_version() -> None:
 @pytest.mark.parametrize(
     "argv",
     [
-        ["init", "demo"],
-        ["ingest", "events.jsonl"],
-        ["query", "what is a bridge"],
-        ["trace", "rcpt_01J"],
-        ["ledger", "verify"],
-        ["meter", "report"],
-        ["schema", "list"],
-        ["routes", "list"],
-        ["keys", "show"],
-        ["loop", "run", "lint"],
-        ["scope", "check", "anything"],
+        # Only commands that are still stubs. As each lands, it moves out of this list and
+        # into a test that exercises it — the list shrinking is the milestone progressing.
+        ["pack", "kb-1"],
+        ["publish"],
+        ["attach", "claude-code"],
+        ["run", "hello"],
+        ["train", "."],
         ["tend"],
         ["rollback", "evt_01J"],
-        ["cell", "size"],
+        ["meter", "report"],
+        ["routes", "list"],
+        ["loop", "run", "lint"],
+        ["scope", "check", "anything"],
+        ["distill", "train"],
+        ["cell", "seams"],
+        ["schema", "gen"],
     ],
 )
 def test_stubs_exit_two_and_name_their_milestone(argv: list[str]) -> None:

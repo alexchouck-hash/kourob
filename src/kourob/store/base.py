@@ -14,7 +14,7 @@ Logical tables: ``silver``, ``quarantine``, ``requests``, ``receipts``, ``routes
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from typing import Any
 
 __milestone__ = "M1"
@@ -45,8 +45,12 @@ class Store(ABC):
         """
 
     @abstractmethod
-    def query(self, sql: str, params: Sequence[Any] | None = None) -> Any:
+    def query(self, sql: str, params: Sequence[Any] | Mapping[str, Any] | None = None) -> Any:
         """Run read-only SQL against the logical tables. Returns an Arrow table.
+
+        `params` may be positional or named. Named is what a mined T0 rule produces, since
+        its bindings come from named capture groups, and positional order is not something a
+        generated rule should have to be careful about.
 
         Implementations must reject statements that write.
         """

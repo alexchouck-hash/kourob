@@ -18,6 +18,12 @@ from kourob import __version__
 
 __milestone__ = "M0"
 
+
+def _fail(message: str) -> None:
+    typer.secho(message, fg=typer.colors.RED, err=True)
+    raise typer.Exit(1)
+
+
 app = typer.Typer(
     name="kourob",
     help="Metered, provenance-tracked, self-specializing nodes that agents attach to.",
@@ -47,7 +53,23 @@ def init(
     scope: Annotated[str, typer.Option(help="One-line description of what the node answers.")] = "",
 ) -> None:
     """Lay down a new node from the template: manifest, schemas, data zones, ledger, keys."""
-    _todo("init", "M1", "section 8")
+    from kourob import node as node_mod
+
+    try:
+        created = node_mod.init(name, scope=scope)
+    except FileExistsError as exc:
+        _fail(str(exc))
+        return
+    typer.secho(
+        f"created cell {created.manifest.identity.name} at {created.dir}", fg=typer.colors.GREEN
+    )
+    typer.echo(f"  identity  {created.did}")
+    typer.echo(f"  scope     {created.manifest.scope.summary}")
+    typer.echo(
+        f"  autonomy  {created.manifest.autonomy.level} (observe: every change is a proposal)"
+    )
+    typer.echo("")
+    typer.echo("Next: write GOAL.md, add a contract to schemas/, then `kourob ingest`.")
 
 
 @app.command()
@@ -56,7 +78,17 @@ def ingest(
     node: Annotated[Path, typer.Option(help="Node directory.")] = Path("."),
 ) -> None:
     """Push data through the gate into silver, or into quarantine with a reason."""
-    _todo("ingest", "M1", "section 3.1 step 3")
+    from kourob.node import open_node
+
+    cell = open_node(node)
+    if not cell.contracts:
+        _fail(f"{node} declares no contracts. Add one to schemas/ before ingesting.")
+    report = cell.gate.ingest_file(path)
+    typer.secho(f"accepted {report.accepted}", fg=typer.colors.GREEN, nl=False)
+    typer.echo("   ", nl=False)
+    typer.secho(f"quarantined {report.rejected}", fg=typer.colors.YELLOW)
+    for step, count in sorted(report.reasons.items(), key=lambda kv: -kv[1]):
+        typer.echo(f"  {count:>4}  {step}")
 
 
 @app.command()
@@ -65,7 +97,17 @@ def query(
     node: Annotated[Path, typer.Option(help="Node directory.")] = Path("."),
 ) -> None:
     """Ask the node a question through the tier cascade. Prints data, rendered, citations."""
-    _todo("query", "M1", "section 3.1 step 4")
+    from kourob import serve
+    from kourob.node import open_node
+
+    result = serve.answer(open_node(node), question)
+    typer.echo(result.rendered)
+    typer.echo("")
+    typer.echo(f"  tier        {result.tier_used or '-'} ({result.determinism or 'n/a'})")
+    typer.echo(f"  citations   {', '.join(result.citations) or 'none'}")
+    typer.echo(f"  receipt     {result.receipt_id}")
+    if result.scope_result.value != "in_scope":
+        raise typer.Exit(3)
 
 
 @app.command()
@@ -103,7 +145,12 @@ def trace(
     node: Annotated[Path, typer.Option(help="Node directory.")] = Path("."),
 ) -> None:
     """Render the full provenance chain behind an answer: nodes, receipts, events, sources."""
-    _todo("trace", "M1", "section 4.3")
+    from kourob.ledger.verify import trace as trace_chain
+
+    chain = trace_chain(node, receipt_id)
+    if not chain.receipts:
+        _fail(f"no receipt {receipt_id} in this ledger")
+    typer.echo(chain.render())
 
 
 @app.command()
@@ -119,7 +166,17 @@ def doctor(
     node: Annotated[Path, typer.Option(help="Node directory.")] = Path("."),
 ) -> None:
     """Check a node: manifest valid, keys present, store readable, ledger verifies."""
-    _todo("doctor", "M1", "section 8")
+    from kourob.node import open_node
+
+    failures = 0
+    for name, ok, detail in open_node(node).health():
+        mark = "ok  " if ok else "FAIL"
+        colour = typer.colors.GREEN if ok else typer.colors.RED
+        typer.secho(f"[{mark}] ", fg=colour, nl=False)
+        typer.echo(f"{name:<9} {detail}")
+        failures += not ok
+    if failures:
+        raise typer.Exit(1)
 
 
 @app.command()
@@ -199,7 +256,13 @@ app.add_typer(cell_app, name="cell")
 @ledger_app.command("verify")
 def ledger_verify(node: Annotated[Path, typer.Option()] = Path(".")) -> None:
     """Walk the hash chain and check every signature. Non-zero exit on any break."""
-    _todo("ledger verify", "M1", "section 4.2")
+    from kourob.ledger.verify import verify as verify_ledger
+
+    report = verify_ledger(node)
+    colour = typer.colors.GREEN if report.ok else typer.colors.RED
+    typer.secho(str(report), fg=colour)
+    if not report.ok:
+        raise typer.Exit(1)
 
 
 @ledger_app.command("export")
@@ -232,7 +295,18 @@ def meter_price(node: Annotated[Path, typer.Option()] = Path(".")) -> None:
 @schema_app.command("list")
 def schema_list(node: Annotated[Path, typer.Option()] = Path(".")) -> None:
     """List the ODCS contracts this node declares."""
-    _todo("schema list", "M1", "section 9, Schemas")
+    from kourob.node import open_node
+
+    contracts = open_node(node).contracts
+    if not contracts:
+        typer.secho("no contracts. Add one to schemas/*.odcs.yaml", fg=typer.colors.YELLOW)
+        return
+    for contract in contracts.values():
+        required = sum(1 for f in contract.fields if f.required)
+        typer.echo(
+            f"{contract.id:<20} v{contract.version:<8} "
+            f"{len(contract.fields)} fields ({required} required)  {contract.name}"
+        )
 
 
 @schema_app.command("gen")
@@ -272,13 +346,23 @@ def tools_list(node: Annotated[Path, typer.Option()] = Path(".")) -> None:
 @keys_app.command("init")
 def keys_init(node: Annotated[Path, typer.Option()] = Path(".")) -> None:
     """Generate this node's ed25519 keypair and did:key id into .kourob/ (gitignored)."""
-    _todo("keys init", "M1", "section 9, identity and signing")
+    from kourob import identity
+
+    try:
+        typer.echo(identity.generate(node))
+    except FileExistsError as exc:
+        _fail(str(exc))
 
 
 @keys_app.command("show")
 def keys_show(node: Annotated[Path, typer.Option()] = Path(".")) -> None:
     """Print this node's did:key. Never prints the private key."""
-    _todo("keys show", "M1", "section 9, identity and signing")
+    from kourob import identity
+
+    try:
+        typer.echo(identity.load_did(node))
+    except FileNotFoundError as exc:
+        _fail(str(exc))
 
 
 @loop_app.command("run")
@@ -327,7 +411,21 @@ def scope_check(
 @cell_app.command("size")
 def cell_size(node: Annotated[Path, typer.Option()] = Path(".")) -> None:
     """Measure this cell against its declared ceiling. Non-zero exit when over budget."""
-    _todo("cell size", "M2", "docs/protocols/knp-8-cells.md section 2.3")
+    from kourob.node import cell_size, open_node
+
+    report = cell_size(open_node(node))
+    for name, (value, limit) in report["measured"].items():
+        over = value > limit
+        colour = typer.colors.RED if over else typer.colors.GREEN
+        typer.secho(f"{'OVER' if over else '  ok'}  ", fg=colour, nl=False)
+        typer.echo(f"{name:<16} {value} / {limit}")
+    if report["over"]:
+        typer.secho(
+            f"over budget: {', '.join(report['over'])}. "
+            "A cell does not grow past its ceiling: shed or divide.",
+            fg=typer.colors.RED,
+        )
+        raise typer.Exit(1)
 
 
 @cell_app.command("seams")

@@ -38,6 +38,13 @@ Consequence: a node cannot answer from its model's parametric memory. If T1 or T
 a claim with no supporting event, the cascade MUST either find supporting events, lower
 the claim to an explicitly-marked inference, or refuse. See KNP-2 §4.
 
+**Two things are not claims about the world and so have nothing to cite**: a refusal, which
+asserts nothing; and an **introspection** — a node listing its own schemas, scope, price or
+autonomy level. Those are the node reciting its own declaration, which is signed in its
+agent card rather than derived from events, and they carry `determinism: declared`. Any
+other empty-citation answer is a violation. This exemption is narrow on purpose: it covers
+the node describing *itself*, never the node describing *anything else*.
+
 ### I3. Scope is closed
 
 A node answers what it declares and refuses everything else. "Refuses" is a first-class,
@@ -57,6 +64,7 @@ the receipt.
 | `derived` | T0: a rule or SQL view over silver events | **Re-run it.** Given the same events, any party computes the same answer and checks the response hash themselves |
 | `attested` | T1–T3: a model produced it | **Attest only.** The receipt proves *this node said this*, at this time, from these events, at this model version. It does not prove the answer follows |
 | `adjudicated` | T4: a human accepted it | Attest, plus the reviewer identity is in the receipt |
+| `declared` | The node describing **itself** — its schemas, scope, price, autonomy level | Check it against the node's signed agent card. Nothing to re-run, and nothing to cite |
 
 The brief's tier ladder is a cost ordering. This is a *trust* ordering, and it does not map
 one-to-one onto cost: a cheap T0 answer is more verifiable than an expensive T3 one. Both

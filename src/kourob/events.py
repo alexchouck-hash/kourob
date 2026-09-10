@@ -9,12 +9,36 @@ so.
 
 from __future__ import annotations
 
-from datetime import datetime
+import hashlib
+from datetime import UTC, datetime
 from typing import Any
 
 from pydantic import BaseModel, Field
+from ulid import ULID
+
+from kourob.identity import canonical
 
 __milestone__ = "M1"
+
+EVENT_PREFIX = "evt_"
+RECEIPT_PREFIX = "rcpt_"
+OUTCOME_PREFIX = "outc_"
+REQUEST_PREFIX = "req_"
+
+
+def new_id(prefix: str = EVENT_PREFIX) -> str:
+    """A ULID with a kind prefix. Sorts by creation time, which the ledger relies on."""
+    return f"{prefix}{ULID()}"
+
+
+def sha256(payload: Any) -> str:
+    """`sha256:<hex>` over the canonical JSON form. The only hash this project uses."""
+    return "sha256:" + hashlib.sha256(canonical(payload)).hexdigest()
+
+
+def now() -> datetime:
+    """UTC, always. DEFAULTS.md: never local time, never a naive datetime."""
+    return datetime.now(UTC)
 
 
 class Provenance(BaseModel):
@@ -67,4 +91,26 @@ class QuarantinedEvent(BaseModel):
     provenance: Provenance
 
 
-__all__ = ["Event", "Provenance", "QuarantinedEvent"]
+def dedupe_key(schema_ref: str, payload: dict[str, Any], key_fields: tuple[str, ...]) -> str:
+    """The identity of a fact, independent of how it was worded.
+
+    Two pushes with the same dedupe key are claims about the same thing. If their payloads
+    differ, that is a contradiction, not a new fact, and the gate rejects it rather than
+    letting the store hold both.
+    """
+    return sha256({"schema_ref": schema_ref, **{f: payload.get(f) for f in key_fields}})
+
+
+__all__ = [
+    "EVENT_PREFIX",
+    "OUTCOME_PREFIX",
+    "RECEIPT_PREFIX",
+    "REQUEST_PREFIX",
+    "Event",
+    "Provenance",
+    "QuarantinedEvent",
+    "dedupe_key",
+    "new_id",
+    "now",
+    "sha256",
+]

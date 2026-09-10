@@ -1,0 +1,23 @@
+# A T0 rule: a regex over the question, a SQL query over silver.
+#
+# This is the shape KNP-5 section 3.3 mines from a cluster whose answer has always been a
+# function of its inputs, so a hand-written rule and a promoted one are the same artefact
+# and run down the same path. Bindings come from named capture groups.
+id: note-lookup
+description: Every note held on one topic.
+# Takes the trailing token as the topic, so "what is a bridge", "tell me about
+# pruning" and "notes on determinism" all bind the same way. Articles and filler are
+# skipped by construction rather than enumerated.
+match: '(?:what|whats|tell me|notes?|explain|about)\b.*?(?P<topic>[a-z0-9-]{2,64})\s*\??$'
+confidence: 1.0
+sql: |
+  SELECT
+    id,
+    json_extract_string(payload, '$.topic')  AS topic,
+    json_extract_string(payload, '$.body')   AS body,
+    json_extract_string(payload, '$.source') AS source
+  FROM silver
+  WHERE schema_ref = 'note.v1'
+    AND json_extract_string(payload, '$.topic') = $topic
+  ORDER BY ts
+render: "{body}"

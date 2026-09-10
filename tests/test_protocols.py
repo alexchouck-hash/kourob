@@ -100,6 +100,34 @@ def test_every_tier_has_a_determinism_class() -> None:
     assert set(TIER_DETERMINISM) == set(Tier)
 
 
+def test_declared_belongs_to_no_tier() -> None:
+    """KNP-0 section 2: `declared` is introspection, not an execution path.
+
+    A node reciting its own schemas is not answering from any tier, so nothing in
+    TIER_DETERMINISM maps to it. If a tier ever produces `declared`, something is
+    describing the node as though it were the world.
+    """
+    assert Determinism.DECLARED not in set(TIER_DETERMINISM.values())
+
+
+def test_introspection_needs_no_citation_but_nothing_else_does() -> None:
+    introspection = Answer(
+        data=[{"id": "note.v1"}],
+        rendered="- note.v1",
+        receipt_id="rcpt_1",
+        determinism=Determinism.DECLARED,
+    )
+    assert introspection.is_grounded()
+
+    about_the_world = Answer(
+        data={"winners": 3},
+        rendered="3 winners",
+        receipt_id="rcpt_2",
+        determinism=Determinism.ATTESTED,
+    )
+    assert not about_the_world.is_grounded()
+
+
 # -------------------------------------------------------------------------- outcomes
 
 

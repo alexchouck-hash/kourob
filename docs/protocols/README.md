@@ -15,6 +15,7 @@ someone can implement a KouroB node without reading our source.
 | [KNP-6](knp-6-tap.md) | The tap: subscribing to a cell's flow | `https://kourob.org/ext/tap/v1` | M3–M5 |
 | [KNP-7](knp-7-autonomy.md) | Autonomy ladder, budget, `kourob tend` | — | M4–M6 |
 | [KNP-8](knp-8-cells.md) | Cells: containment, membrane, division | — | M2–M5 |
+| [KNP-9](knp-9-synapses.md) | Connecting, Hebbian routing, pruning and GC | — | M3–M5 |
 
 ## Reading order
 

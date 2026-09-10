@@ -1,0 +1,37 @@
+# A starter contract, so `kourob init` produces a cell that can actually answer something.
+# Replace it with the contract your cell owns; it is an example, not a foundation.
+apiVersion: v3.0.0
+kind: DataContract
+id: note.v1
+version: 1.0.0
+status: active
+name: Note
+description: A dated, topical note. The smallest thing worth having provenance for.
+schema:
+  - name: note
+    logicalType: object
+    physicalType: table
+    properties:
+      - name: topic
+        logicalType: string
+        required: true
+        pattern: "^[a-z0-9-]{2,64}$"
+        description: What this note is about. Lower-case and hyphenated so it can be looked up.
+      - name: body
+        logicalType: string
+        required: true
+        description: The claim itself, in one or two sentences.
+      - name: source
+        logicalType: string
+        required: false
+        description: Where it came from, if anywhere.
+      - name: ts
+        logicalType: date
+        required: true
+        description: ISO 8601 UTC. Must not be in the future.
+quality:
+  - rule: no_future_timestamps
+    description: ts must not be later than ingestion time.
+kourob:
+  key_fields: [topic, ts]
+  outcome_window: 30d

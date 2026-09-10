@@ -27,7 +27,7 @@ response_hash: sha256:1a02...
 scope_result: in_scope | referral | bridge | reject
 reason: null | out_of_scope | loop | insufficient_credit | hops_exhausted | policy | unavailable
 tier_used: T0 | T1 | T2 | T3 | T4 | null
-determinism: derived | attested | adjudicated | null
+determinism: derived | attested | adjudicated | declared | null
 model_version: rule:agg-014 | student-s@0.4.2 | frontier:<vendor>:<model>
 
 citations: [evt_01J..., evt_01J...]
@@ -48,9 +48,10 @@ JCS (RFC 8785), so two implementations agree byte-for-byte.
 
 ### 2.1 Fields the brief did not have, and why
 
-- **`determinism`** — KNP-0 §2. A verifier needs to know whether it can re-run the answer
-  or only attest that the node said it. Without this field every receipt is treated as
-  merely attested, which throws away the main benefit of the cost curve.
+- **`determinism`** — KNP-0 §2. A verifier needs to know whether it can re-run the answer,
+  only attest that the node said it, or check it against the node's signed card. Without
+  this field every receipt is treated as merely attested, which throws away the main
+  benefit of the cost curve.
 - **`reason`** — KNP-1 §6. Refusals are the majority of traffic at the edge of a scope, and
   a refusal without a reason is not analysable.
 - **`hops`** — KNP-0 §5. Needed to detect and prove cycles after the fact.

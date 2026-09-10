@@ -40,19 +40,28 @@ def _rel(path: Path) -> str:
     return path.relative_to(SRC).as_posix()
 
 
-@pytest.mark.parametrize("zone", ["data/silver", "data/gold"])
-def test_only_gate_touches_the_written_zones(zone: str) -> None:
-    """Nothing writes data/silver or data/gold except gate.py.
+#: The one module allowed to name a zone path: the Store backend defines the mapping from
+#: logical table to directory, which is the whole point of ADR-0001. Everything else,
+#: gate.py included, reaches those rows through the Store by logical table name.
+ZONE_PATH_OWNER = "store/parquet_duckdb.py"
 
-    Enforced as "nothing else even names the path", which is stricter and easier to see.
-    Code that needs those rows reads them through the Store interface by logical table.
+
+@pytest.mark.parametrize("zone", ["data/silver", "data/gold"])
+def test_only_the_store_backend_names_a_zone_path(zone: str) -> None:
+    """Nothing reaches around the Store to a zone directory.
+
+    AGENTS.md section 4 says only gate.py writes silver and gold. This is the stricter
+    form: nothing outside the Store backend even *names* the path, so a different backend
+    (Dolt, Postgres) can replace it without any caller changing. gate.py stays the only
+    writer because it is the only caller that appends to those tables, which is checked by
+    the gate's own tests rather than by grep.
     """
     offenders = [
         _rel(p)
         for p in _py_files()
-        if zone in p.read_text(encoding="utf-8") and p.name != "gate.py"
+        if zone in p.read_text(encoding="utf-8") and _rel(p) != ZONE_PATH_OWNER
     ]
-    assert not offenders, f"{zone} named outside gate.py: {offenders}"
+    assert not offenders, f"{zone} named outside {ZONE_PATH_OWNER}: {offenders}"
 
 
 def test_training_code_reaches_gold_only_through_evals() -> None:
