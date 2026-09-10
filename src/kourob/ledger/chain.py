@@ -141,6 +141,40 @@ class Ledger:
         self.store.append("receipts", [record])
         return record
 
+    def extend(self, entries: list[tuple[str, dict[str, Any]]]) -> list[dict[str, Any]]:
+        """Append many records in one pass, chaining them to each other.
+
+        `append` re-reads the chain to find its predecessor, which is fine for one record
+        and quadratic for a thousand. This reads once and links the batch internally, so a
+        node settling a hundred answers from one arriving fact — or a fixture simulating a
+        month of traffic — costs one scan rather than a hundred.
+
+        The result is the same chain: each record still carries the hash of the one before
+        it, and `verify` cannot tell how they were written.
+        """
+        if not entries:
+            return []
+        existing = self.records()
+        prev = (
+            record_hash(existing[-1], fields_for(existing[-1]["kind"]))
+            if existing
+            else genesis_prev(self.did)
+        )
+        seq = len(existing)
+        private_key = identity.load_private_key(self.node_dir)
+
+        written: list[dict[str, Any]] = []
+        for kind, body in entries:
+            fields = fields_for(kind)
+            record = {**body, "kind": kind, "node": self.did, "seq": seq, "prev": prev}
+            record["sig"] = identity.sign(private_key, signed_view(record, fields))
+            written.append(record)
+            prev = record_hash(record, fields)
+            seq += 1
+
+        self.store.append("receipts", written)
+        return written
+
     # --------------------------------------------------------------------- verifying
 
     def verify(self) -> VerifyReport:

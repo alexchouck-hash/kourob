@@ -85,7 +85,7 @@ def test_version_prints_version() -> None:
         ["rollback", "evt_01J"],
         ["meter", "report"],
         ["routes", "list"],
-        ["loop", "run", "lint"],
+        ["loop", "run", "lint"],  # evolve is implemented; lint is not
         ["scope", "check", "anything"],
         ["distill", "train"],
         ["cell", "seams"],

@@ -97,19 +97,28 @@ class ParquetDuckDBStore(Store):
 
     @staticmethod
     def _encode(rows: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
-        """Flatten nested values to canonical JSON so parts share a stable schema."""
-        out = []
-        for row in rows:
+        """Flatten nested values to canonical JSON, and give every row the same columns.
+
+        The second half is not tidiness. `pa.Table.from_pylist` infers its schema from the
+        first record, so appending a batch whose later rows carry columns the first one
+        lacks **silently drops them**. That is how a batch of receipts followed by outcomes
+        lost every outcome field, leaving signatures over data that was no longer there.
+        Padding to the union of keys makes the loss impossible rather than unlikely.
+        """
+        materialised = list(rows)
+        encoded_rows: list[dict[str, Any]] = []
+        for row in materialised:
             encoded = dict(row)
             for col, value in row.items():
-                if (
-                    col in _JSON_COLUMNS
-                    or isinstance(value, dict)
-                    or (isinstance(value, list) and value and isinstance(value[0], dict))
-                ):
+                nested = isinstance(value, list) and value and isinstance(value[0], dict)
+                if col in _JSON_COLUMNS or isinstance(value, dict) or nested:
                     encoded[col] = json.dumps(value, sort_keys=True, default=str)
-            out.append(encoded)
-        return out
+            encoded_rows.append(encoded)
+
+        columns: dict[str, None] = {}
+        for row in encoded_rows:
+            columns.update(dict.fromkeys(row))
+        return [{col: row.get(col) for col in columns} for row in encoded_rows]
 
     # -------------------------------------------------------------------- Store API
 

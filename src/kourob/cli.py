@@ -374,13 +374,39 @@ def loop_run(
     budget: Annotated[float, typer.Option(help="Credit budget for this run.")] = 1.0,
 ) -> None:
     """Run one loop once. Each loop outputs a PR or an event, nothing else."""
-    _todo("loop run", "M2", "section 6.1")
+    if name != "evolve":
+        _todo(f"loop run {name}", "M2", "section 6.1")
+        return
+
+    from kourob.loops.evolve import evolve, render
+
+    report = evolve(node)
+    typer.echo(render(report))
+    if not report.constraints_held():
+        typer.secho(
+            "constraints broken: cost may fall only if verifiability and "
+            "quality did not (KNP-5 section 1)",
+            fg=typer.colors.RED,
+        )
+        raise typer.Exit(1)
 
 
 @loop_app.command("list")
 def loop_list(node: Annotated[Path, typer.Option()] = Path(".")) -> None:
     """List loops, their triggers, their budgets, and when each last ran."""
-    _todo("loop list", "M2", "section 6.1")
+    from kourob.loops.evolve import past_reports
+    from kourob.manifest import load as load_manifest
+
+    manifest = load_manifest(node)
+    runs = {"evolve": len(past_reports(node))}
+    for loop_name, config in manifest.loops.items():
+        trigger = (config or {}).get("trigger", "-")
+        budget = (config or {}).get("budget_credits", "-")
+        status = "implemented" if loop_name == "evolve" else "stub (M2)"
+        typer.echo(
+            f"{loop_name:<9} {trigger:<10} budget {budget!s:<6} "
+            f"runs {runs.get(loop_name, 0):<4} {status}"
+        )
 
 
 @distill_app.command("train")

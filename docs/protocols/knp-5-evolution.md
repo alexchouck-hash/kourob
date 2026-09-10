@@ -49,6 +49,16 @@ Each cluster carries, per window:
 | `event_fanout` | distinct events cited per request |
 | `answer_entropy` | distinct answers per distinct (question, event-set) |
 
+A cluster key is built from the **decision path** for an answered request — the rule or tier
+that decided, the schemas touched, the tools called, the answer shape — and from the
+**question frame** for a refused one, because a refusal has no decision path and refusals
+are exactly where declared scope and real demand disagree.
+
+The frame is the part of a question that survives changing its subject: "what is a bridge"
+and "what is a cell" share one; "who wins wimbledon" does not. Keeping the *subject*
+instead is the obvious mistake and it is worth naming, because it looks like clustering and
+is not: every topic becomes its own cluster, which is the same as not clustering at all.
+
 `answer_entropy` is the promotion signal. A cluster where the same events and question
 always produce the same answer is a **function**, and functions belong in T0.
 
@@ -169,6 +179,18 @@ A declared schema with zero served requests over the window and a non-trivial ca
 produces a **shed proposal**: drop the schema from the declaration, delete its tiers and
 derived data, move its silver to cold storage, and add an `excludes` entry pointing at
 whoever should own it.
+
+Three ways a schema earns its place, and only the first is obvious:
+
+1. **requests cite it** — it is being read;
+2. **events arrive under it** — it is being written, and a write nobody reads today may be
+   what settles an answer tomorrow;
+3. **another contract names it in `settles_against`** — it is load-bearing for settlement,
+   and shedding it would quietly stop the node ever learning again.
+
+The third was found by running the loop and watching it propose shedding the schema that
+settles everything else. A shed rule that only counts reads will eventually delete a node's
+ability to improve.
 
 Shedding is what keeps a node small. A node's size should track its *demand*, not its
 history, and without an explicit mechanism it will only ever grow. Like a split, a shed is a

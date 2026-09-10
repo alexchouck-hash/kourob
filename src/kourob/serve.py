@@ -8,9 +8,12 @@ enforced: no answer without a receipt, no in-scope answer without citations.
 
 from __future__ import annotations
 
+import time
+
 from kourob import events as ev
 from kourob.ledger.chain import RECORD_RECEIPT
 from kourob.node import Node
+from kourob.request_log import RequestRecord, answer_shape, new_request_id, question_shape
 from kourob.runner.run import Runner
 from kourob.store.parquet_duckdb import ParquetDuckDBStore
 from kourob.tiers.base import Request
@@ -47,7 +50,9 @@ def answer(
 ) -> Answer:
     """Answer one question and receipt it. Never returns without a receipt id."""
     request = Request(question=question, caller=caller)
+    started = time.perf_counter()
     run = build_cascade(node, runner=runner).run(request)
+    latency_ms = (time.perf_counter() - started) * 1000
 
     if run.answered and run.result is not None:
         result = run.result
@@ -58,6 +63,7 @@ def answer(
             scope_result=ScopeResult.IN_SCOPE,
             response={"data": result.data, "rendered": result.rendered},
         )
+        _log_request(node, request, run, receipt, latency_ms)
         return Answer(
             data=result.data,
             rendered=result.rendered,
@@ -81,6 +87,7 @@ def answer(
         response={"data": None, "rendered": rendered},
         reason=RefusalReason.OUT_OF_SCOPE,
     )
+    _log_request(node, request, run, receipt, latency_ms)
     return Answer(
         data=None,
         rendered=rendered,
@@ -89,6 +96,50 @@ def answer(
         scope_result=ScopeResult.REJECT,
         reason=RefusalReason.OUT_OF_SCOPE,
     )
+
+
+def _log_request(
+    node: Node, request: Request, run: CascadeResult, receipt: dict, latency_ms: float
+) -> None:
+    """Write the row the evolve loop reads (brief section 3.1 step 7).
+
+    Every request, whatever happened to it. Refusals are the most informative rows in the
+    log: they are where a node's declared scope and its real demand disagree.
+    """
+    result = run.result
+    schemas = sorted(
+        {
+            str(row.get("schema_ref"))
+            for cite in (result.citations if result else [])
+            if (row := node.store.get("silver", cite))
+        }
+    )
+    record = RequestRecord(
+        id=new_request_id(),
+        ts=ev.now().isoformat(),
+        question=request.question,
+        shape=question_shape(request.question),
+        caller=request.caller,
+        scope_result=str(receipt["scope_result"]),
+        reason=receipt.get("reason"),
+        decided_by=result.model_version if result else "refused",
+        tier_used=result.tier.value if result else None,
+        tiers_tried=[a.tier.value for a in run.attempts],
+        determinism=result.determinism.value if result else None,
+        schemas=schemas,
+        tools=[],
+        answer_shape=answer_shape(result.data if result else None),
+        citations=list(result.citations) if result else [],
+        citations_n=len(result.citations) if result else 0,
+        latency_ms=latency_ms,
+        cost_credits=run.total_cost,
+        price_credits=float(receipt.get("price_credits") or 0.0),
+        receipt_id=str(receipt["id"]),
+        settle_key=receipt.get("settle_key"),
+        request_hash=str(receipt["request_hash"]),
+        response_hash=str(receipt["response_hash"]),
+    )
+    node.store.append("requests", [record.as_row()])
 
 
 def _receipt(

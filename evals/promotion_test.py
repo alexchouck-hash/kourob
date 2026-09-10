@@ -27,7 +27,7 @@ def test_a_promoted_t0_rule_is_never_corrected_in_the_replay_window(tmp_path) ->
     the replay window comes back `corrected`, the replay gate let a non-function through and
     ADR-0008 is wrong.
     """
-    from kourob.ledger.outcome import Verdict  # noqa
+    from kourob.ledger.outcome import Verdict
     from kourob.loops.evolve import evolve
     from kourob.testing import replay_synthetic_traffic, tennis_node_fixture
     from kourob.types import Tier
@@ -50,10 +50,9 @@ def test_a_promoted_t0_rule_is_never_corrected_in_the_replay_window(tmp_path) ->
     )
 
 
-@pytest.mark.xfail(reason=M5)
 def test_an_unsettled_cluster_never_promotes_past_t2(tmp_path) -> None:
     """KNP-5 section 10, claim 5. Unverifiable work does not get to be cheap (ADR-0007)."""
-    from kourob.loops.evolve import evolve  # noqa
+    from kourob.loops.evolve import evolve
     from kourob.testing import synthetic_request_log
     from kourob.types import Tier
 
@@ -72,7 +71,7 @@ def test_an_unsettled_cluster_never_promotes_past_t2(tmp_path) -> None:
 @pytest.mark.xfail(reason=M5)
 def test_one_corrected_outcome_disables_a_t0_rule(tmp_path) -> None:
     """KNP-5 section 5. No grace period: one counter-example disproves a function."""
-    from kourob.loops.evolve import ProposalKind, evolve  # noqa
+    from kourob.loops.evolve import ProposalKind, evolve
     from kourob.testing import correct_one_t0_answer, node_with_promoted_rule
 
     node, rule_id = node_with_promoted_rule(tmp_path)
@@ -90,7 +89,7 @@ def test_one_corrected_outcome_disables_a_t0_rule(tmp_path) -> None:
 @pytest.mark.xfail(reason=M5)
 def test_partial_coverage_is_allowed_but_partial_correctness_is_not(tmp_path) -> None:
     """ADR-0008: a rule may decline requests. It may not get them wrong."""
-    from kourob.loops.distill.calibrate import mine_rule  # noqa
+    from kourob.loops.distill.calibrate import mine_rule
     from kourob.testing import cluster_with_an_edge_case
 
     cluster = cluster_with_an_edge_case(tmp_path)
@@ -104,7 +103,7 @@ def test_partial_coverage_is_allowed_but_partial_correctness_is_not(tmp_path) ->
 @pytest.mark.xfail(reason=M5)
 def test_scope_shedding_drops_a_schema_nobody_pulls(tmp_path) -> None:
     """KNP-5 section 6. A node's size should track demand, not history."""
-    from kourob.loops.evolve import ProposalKind, evolve  # noqa
+    from kourob.loops.evolve import ProposalKind, evolve
     from kourob.testing import synthetic_request_log
 
     node = synthetic_request_log(
