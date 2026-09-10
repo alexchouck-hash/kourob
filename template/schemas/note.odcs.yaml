@@ -34,4 +34,9 @@ quality:
     description: ts must not be later than ingestion time.
 kourob:
   key_fields: [topic, ts]
+  # An answer about a topic stays provisional for this long. Past it with nothing said, the
+  # receipt reads `unresolved` — which is information, not silence (KNP-3 section 3).
   outcome_window: 30d
+  settles_against: note_check.v1
+  settle_key: [topic]
+  settle_verdict_field: verdict

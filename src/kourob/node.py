@@ -51,6 +51,33 @@ class Node:
     def ledger(self) -> Ledger:
         return Ledger(self.dir, self.store, self.did)
 
+    def ingest(self, path: Path | str) -> tuple[Any, list[Any]]:
+        """Push a file through the gate, then let the new facts settle old answers.
+
+        Settlement lives here rather than in the gate because the gate writes silver and
+        settlement writes the ledger, and the module that does both is the assembly point,
+        not either half. Returns the ingest report and whatever it settled.
+        """
+        from kourob.ledger.outcomes import settle_from_event
+
+        report = self.gate.ingest_file(path)
+        if not report.event_ids:
+            return report, []
+
+        ledger, contracts = self.ledger, self.contracts
+        if not any(c.settles for c in contracts.values()):
+            return report, []
+
+        settlements = []
+        for event_id in report.event_ids:
+            event = self.store.get("silver", event_id)
+            if event is None:
+                continue
+            settled = settle_from_event(ledger, contracts, event)
+            if settled.outcomes:
+                settlements.append(settled)
+        return report, settlements
+
     def health(self) -> list[tuple[str, bool, str]]:
         """What `kourob doctor` reports: (check, ok, detail)."""
         checks: list[tuple[str, bool, str]] = [
@@ -77,6 +104,20 @@ class Node:
             checks.append(("store", False, str(exc)))
         report = self.ledger.verify()
         checks.append(("ledger", report.ok, str(report)))
+
+        from kourob.ledger.outcomes import settlement_status
+
+        status = settlement_status(self.ledger, contracts)
+        settleable = any(c.settles for c in contracts.values())
+        checks.append(
+            (
+                "outcomes",
+                settleable or status.total == 0,
+                f"{status.settled}/{status.total} settled, {status.unresolved} unresolved, "
+                f"quality {status.quality_multiplier():.2f}"
+                + ("" if settleable else "  (no contract declares settles_against)"),
+            )
+        )
         return checks
 
 

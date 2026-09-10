@@ -34,6 +34,7 @@ citations: [evt_01J..., evt_01J...]
 upstream:  [rcpt_01J...]
 hops: [did:key:z6MkAsk..., did:key:z6MkShot...]
 
+settle_key: sha256:2380f5...   # what this answer is *about*, hashed
 cost_credits: 0.0031
 price_credits: 0.0050
 
@@ -55,6 +56,13 @@ JCS (RFC 8785), so two implementations agree byte-for-byte.
 - **`reason`** — KNP-1 §6. Refusals are the majority of traffic at the edge of a scope, and
   a refusal without a reason is not analysable.
 - **`hops`** — KNP-0 §5. Needed to detect and prove cycles after the fact.
+- **`settle_key`** — §6.2. Without it a later fact cannot find the answers it settles, and
+  settlement is the whole labelling mechanism. Hashed rather than stored in the clear
+  because a receipt may be published and its subject may not be publishable; two parties
+  computing it from the same fields agree without either learning the other's data.
+  A tier with no structured subject — a T3 answer to a free-text question — leaves it null,
+  and those receipts are simply never settled. That is a real limit of the design, and it
+  is why a domain that settles itself is a better node candidate than one that does not.
 
 ## 3. The hash chain
 
@@ -62,10 +70,15 @@ Each node keeps one append-only chain. `prev` is the sha256 of the previous rece
 canonical form. The genesis receipt has `prev: sha256:` of the node's `did:key`, so a chain
 cannot be silently re-parented onto another node's history.
 
-`kourob ledger verify` walks the chain and checks, for every receipt: the signature against
-the node's public key, `prev` against the actual predecessor, and monotonic `ts`. It reports
-the **first** break, because everything after a break is unverifiable and reporting all of
-them is noise.
+Receipts and outcomes share one chain, so a chain is read in **insertion order**, carried in
+an explicit `seq` on every record. Not by id: ids are `<prefix>_<ULID>` and `outc_` sorts
+before `rcpt_`, so id order interleaves the chain wrongly the moment a node records its
+first outcome. `seq` is not signed and does not need to be — reordering breaks `prev`, and
+`prev` is the integrity mechanism; `seq` only says how to read it.
+
+`kourob ledger verify` walks the chain and checks, for every record: the signature against
+the node's public key, and `prev` against the actual predecessor. It reports the **first**
+break, because everything after a break is unverifiable and reporting all of them is noise.
 
 What this catches: a node operator editing history after the fact. What it does not catch:
 a compromised node signing false receipts *going forward*. That needs a transparency log —

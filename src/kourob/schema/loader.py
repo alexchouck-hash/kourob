@@ -69,7 +69,15 @@ class Contract:
     quality: tuple[str, ...] = ()
     outcome_window: str | None = None
     settles_against: str | None = None
+    settle_key: tuple[str, ...] = ()
+    settle_verdict_field: str | None = None
+    settle_default: str | None = None
     extras: dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def settles(self) -> bool:
+        """Whether answers about this contract can ever be settled by a later event."""
+        return bool(self.settles_against and self.settle_key)
 
     def field_by_name(self, name: str) -> ContractField | None:
         return next((f for f in self.fields if f.name == name), None)
@@ -154,6 +162,9 @@ def parse(raw: dict[str, Any]) -> Contract:
         quality=tuple(rule.get("rule", "") for rule in raw.get("quality", []) or []),
         outcome_window=kourob.get("outcome_window"),
         settles_against=kourob.get("settles_against"),
+        settle_key=tuple(kourob.get("settle_key", ())),
+        settle_verdict_field=kourob.get("settle_verdict_field"),
+        settle_default=kourob.get("settle_default"),
         extras=kourob,
     )
 

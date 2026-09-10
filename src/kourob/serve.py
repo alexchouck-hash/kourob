@@ -11,28 +11,43 @@ from __future__ import annotations
 from kourob import events as ev
 from kourob.ledger.chain import RECORD_RECEIPT
 from kourob.node import Node
+from kourob.runner.run import Runner
 from kourob.store.parquet_duckdb import ParquetDuckDBStore
 from kourob.tiers.base import Request
 from kourob.tiers.cascade import Cascade, CascadeResult
 from kourob.tiers.t0_rules import T0Rules
+from kourob.tiers.t3_frontier import T3Frontier
 from kourob.types import Answer, RefusalReason, ScopeResult, Tier
 
 __milestone__ = "M1"
 
 
-def build_cascade(node: Node) -> Cascade:
-    """M1 ships T0 only. T1 to T4 attach here as they land, and nothing else changes."""
+def build_cascade(node: Node, *, runner: Runner | None = None) -> Cascade:
+    """T0 and T3. T1, T2 and T4 attach here as they land, and nothing else changes.
+
+    A caller may pass its own `runner` — that is how a test scripts the model without any
+    part of the serving path knowing it is being tested (DEFAULTS.md).
+    """
     store = node.store
     if not isinstance(store, ParquetDuckDBStore):  # pragma: no cover - one backend in v1
         raise TypeError("v1 serves from the Parquet backend")
     base = node.manifest.pricing.base_cost
-    return Cascade(node.manifest, {Tier.T0: T0Rules(node.dir, store, base_cost=base[Tier.T0])})
+    runner = runner or Runner(node.manifest, store=store)
+    return Cascade(
+        node.manifest,
+        {
+            Tier.T0: T0Rules(node.dir, store, base_cost=base[Tier.T0]),
+            Tier.T3: T3Frontier(node.dir, store, runner, node.manifest),
+        },
+    )
 
 
-def answer(node: Node, question: str, *, caller: str = "user:local") -> Answer:
+def answer(
+    node: Node, question: str, *, caller: str = "user:local", runner: Runner | None = None
+) -> Answer:
     """Answer one question and receipt it. Never returns without a receipt id."""
     request = Request(question=question, caller=caller)
-    run = build_cascade(node).run(request)
+    run = build_cascade(node, runner=runner).run(request)
 
     if run.answered and run.result is not None:
         result = run.result
@@ -103,6 +118,7 @@ def _receipt(
             "citations": list(result.citations) if result else [],
             "upstream": [],
             "hops": [*request.hops, node.did],
+            "settle_key": result.settle_key if result else None,
             "cost_credits": run.total_cost,
             "price_credits": price,
             "ts": ev.now().isoformat(),

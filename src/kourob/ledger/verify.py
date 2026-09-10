@@ -50,6 +50,7 @@ class Chain:
     receipts: list[dict[str, Any]] = field(default_factory=list)
     events: list[dict[str, Any]] = field(default_factory=list)
     nodes: list[str] = field(default_factory=list)
+    outcomes: list[dict[str, Any]] = field(default_factory=list)
 
     def render(self) -> str:
         lines = [f"chain for {self.receipts[0]['id']}" if self.receipts else "empty chain"]
@@ -60,6 +61,10 @@ class Chain:
             )
             for cite in r.get("citations") or []:
                 lines.append(f"      cites {cite}")
+            for o in self.outcomes:
+                if o.get("about") == r["id"]:
+                    note = f" - {o['note']}" if o.get("note") else ""
+                    lines.append(f"      {o['verdict']} by {o['source']} ({o['id']}){note}")
         for e in self.events:
             prov = e.get("provenance") or {}
             lines.append(f"  {e['id']}  {e.get('schema_ref')}  from {prov.get('source', '?')}")
@@ -83,6 +88,12 @@ def trace(node_dir: Path | str, receipt_id: str) -> Chain:
         if record.get("node") and record["node"] not in chain.nodes:
             chain.nodes.append(record["node"])
         frontier.extend(record.get("upstream") or [])
+    receipt_ids = {r["id"] for r in chain.receipts}
+    chain.outcomes = [
+        record
+        for record in by_id.values()
+        if record.get("kind") == "outcome" and record.get("about") in receipt_ids
+    ]
     cited = {c for r in chain.receipts for c in (r.get("citations") or [])}
     if cited:
         for event_id in sorted(cited):

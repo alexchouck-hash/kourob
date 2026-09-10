@@ -19,6 +19,7 @@ from typing import Any
 
 import yaml
 
+from kourob.ledger.outcomes import settle_key
 from kourob.store import Store
 from kourob.tiers.base import Request, TierHandler, TierResult
 from kourob.types import Tier
@@ -39,9 +40,12 @@ class Rule:
     description: str = ""
     confidence: float = 1.0
     usage_count: int = 0
+    settles_schema: str | None = None
+    settles_key: tuple[str, ...] = ()
 
     @classmethod
     def from_dict(cls, raw: dict[str, Any]) -> Rule:
+        settles = raw.get("settles") or {}
         return cls(
             id=raw["id"],
             pattern=re.compile(raw["match"], re.IGNORECASE),
@@ -50,7 +54,17 @@ class Rule:
             description=raw.get("description", ""),
             confidence=float(raw.get("confidence", 1.0)),
             usage_count=int(raw.get("usage_count", 0)),
+            settles_schema=settles.get("schema"),
+            settles_key=tuple(settles.get("key", ())),
         )
+
+    def settle_key_for(self, params: dict[str, str]) -> str | None:
+        """The hashed subject of an answer this rule produced, if it declared one."""
+        if not self.settles_schema or not self.settles_key:
+            return None
+        if any(k not in params for k in self.settles_key):
+            return None
+        return settle_key(self.settles_schema, {k: params[k] for k in self.settles_key})
 
     def bind(self, question: str) -> dict[str, str] | None:
         match = self.pattern.search(question)
@@ -102,6 +116,7 @@ class T0Rules(TierHandler):
                 model_version=f"rule:{rule.id}",
                 cost_credits=self.base_cost,
                 detail=rule.description,
+                settle_key=rule.settle_key_for(params),
             )
         return TierResult.miss(Tier.T0, "no rule matched")
 

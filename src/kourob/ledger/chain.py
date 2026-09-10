@@ -31,6 +31,10 @@ __milestone__ = "M1"
 RECORD_RECEIPT = "receipt"
 RECORD_OUTCOME = "outcome"
 
+#: Both record kinds share one table, so a row read back carries null columns belonging to
+#: the other kind. That is storage, not content: `signed_view` is what a record *is*, and it
+#: is what the signature covers.
+
 
 def genesis_prev(did: str) -> str:
     """The anchor. Binding it to the did stops a chain being re-parented."""
@@ -90,8 +94,17 @@ class Ledger:
     # ---------------------------------------------------------------------- reading
 
     def records(self) -> list[dict[str, Any]]:
-        """Every record, oldest first. ULID ids sort by creation time, so id order is time order."""
-        return self.store.scan("receipts", order_by="id")
+        """Every record, oldest first, by explicit sequence.
+
+        **Not** by id. Ids are `<prefix>_<ULID>`, and `outc_` sorts before `rcpt_`, so id
+        order interleaves the chain wrongly the moment a node records its first outcome.
+        `seq` is written on append and is unambiguous. It is not signed, because it does not
+        need to be: reordering the chain breaks `prev`, and `prev` is the integrity
+        mechanism. `seq` only says how to read it.
+        """
+        if self.store.stats("receipts")["rows"] == 0:
+            return []
+        return self.store.scan("receipts", order_by="seq")
 
     def head(self) -> dict[str, Any] | None:
         records = self.records()
@@ -110,7 +123,19 @@ class Ledger:
         one (KNP-0 I1). That is why this raises rather than returning a status.
         """
         fields = fields_for(kind)
-        record = {**body, "kind": kind, "node": self.did, "prev": self.next_prev()}
+        existing = self.records()
+        prev = (
+            record_hash(existing[-1], fields_for(existing[-1]["kind"]))
+            if existing
+            else genesis_prev(self.did)
+        )
+        record = {
+            **body,
+            "kind": kind,
+            "node": self.did,
+            "seq": len(existing),
+            "prev": prev,
+        }
         private_key = identity.load_private_key(self.node_dir)
         record["sig"] = identity.sign(private_key, signed_view(record, fields))
         self.store.append("receipts", [record])

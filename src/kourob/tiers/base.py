@@ -40,6 +40,12 @@ class TierResult:
     model_version: str = ""
     cost_credits: float = 0.0
     detail: str = ""
+    settle_key: str | None = None
+    """What this answer is *about*, hashed, when the tier can say (KNP-2 section 6.2).
+
+    Only tiers with a structured subject can produce one. A T3 answer to a free-text
+    question has no subject the node can name, so it stays None and the receipt is simply
+    never settled by a later event. That is a real limit, not an oversight."""
 
     @property
     def determinism(self) -> Determinism:

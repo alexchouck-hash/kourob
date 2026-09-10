@@ -21,3 +21,8 @@ sql: |
     AND json_extract_string(payload, '$.topic') = $topic
   ORDER BY ts
 render: "{body}"
+
+# What answers from this rule are *about*, so a later note_check.v1 can settle them.
+settles:
+  schema: note.v1
+  key: [topic]

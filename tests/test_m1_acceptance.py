@@ -140,7 +140,7 @@ def test_every_mcp_answer_carries_the_full_envelope(node_dir: Path) -> None:
     assert answered.data is not None
     assert answered.citations, "an in-scope answer cites the events behind it"
 
-    assert set(TOOLS) == {"query", "ingest", "get_page", "list_schemas"}
+    assert set(TOOLS) == {"query", "ingest", "get_page", "list_schemas", "submit_outcome"}
 
 
 def test_ledger_verify_passes_and_tampering_breaks_it(node_dir: Path) -> None:

@@ -23,7 +23,7 @@ from kourob.types import Answer, Determinism, RefusalReason, ScopeResult
 
 __milestone__ = "M1"
 
-TOOLS = ("query", "ingest", "get_page", "list_schemas")
+TOOLS = ("query", "ingest", "get_page", "list_schemas", "submit_outcome")
 
 
 def handle(node_dir: Path | str | Node, tool: str, args: dict[str, Any]) -> Answer:
@@ -39,6 +39,8 @@ def handle(node_dir: Path | str | Node, tool: str, args: dict[str, Any]) -> Answ
         return _get_page(node, args)
     if tool == "list_schemas":
         return _list_schemas(node)
+    if tool == "submit_outcome":
+        return _submit_outcome(node, args)
     return _refuse(node, f"no such tool {tool!r}; this node offers {', '.join(TOOLS)}")
 
 
@@ -83,6 +85,37 @@ def _list_schemas(node: Node) -> Answer:
     return _envelope(
         node, data, rendered or "this node declares no contracts", [], Determinism.DECLARED
     )
+
+
+def _submit_outcome(node: Node, args: dict[str, Any]) -> Answer:
+    """KNP-2 section 6.3. The submission surface for `ext/outcome/v1`.
+
+    A submitter who is not the receipt's caller is recorded at the lowest weight, never
+    refused: a third party noticing an error is useful even when it cannot be trusted.
+    """
+    from kourob.ledger.outcome import OutcomeSource, Verdict
+    from kourob.ledger.outcomes import OutcomeError, submit
+
+    try:
+        outcome = submit(
+            node.ledger,
+            str(args["receipt_id"]),
+            verdict=Verdict(str(args.get("verdict", "accepted"))),
+            source=OutcomeSource(str(args.get("source", "caller"))),
+            evidence=list(args.get("evidence") or []),
+            by=args.get("by"),
+            note=args.get("note"),
+        )
+    except (KeyError, OutcomeError, ValueError) as exc:
+        return _refuse(node, f"outcome not recorded: {exc}")
+
+    data = outcome.model_dump(mode="json")
+    rendered = (
+        f"recorded {outcome.verdict.value} on {outcome.about} "
+        f"from {outcome.source.value} (weight {outcome.weight})"
+    )
+    # The outcome is a fact this node now holds, and its evidence is what supports it.
+    return _envelope(node, data, rendered, list(outcome.evidence) or [], Determinism.DECLARED)
 
 
 def _envelope(

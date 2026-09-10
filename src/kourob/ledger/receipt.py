@@ -35,6 +35,7 @@ SIGNED_FIELDS = (
     "hops",
     "cost_credits",
     "price_credits",
+    "settle_key",
     "ts",
     "prev",
 )
@@ -70,6 +71,12 @@ class Receipt(BaseModel):
     hops: list[str] = Field(
         default_factory=list,
         description="did:keys already involved, in order. Loop prevention (KNP-0 section 5).",
+    )
+    settle_key: str | None = Field(
+        default=None,
+        description="sha256: over the subject this answer is about, so a later event can "
+        "find the receipts it settles (KNP-2 section 6.2). Hashed, not stored in the clear: "
+        "a receipt may be published and the subject may not be publishable.",
     )
     cost_credits: float = Field(description="measured, not estimated: what it cost the node")
     price_credits: float = Field(description="what the caller was charged")

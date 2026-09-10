@@ -11,7 +11,7 @@ identity:
 scope:
   # What this node answers. Rules first, T1 classifier second (brief section 2).
   summary: "{{ scope_summary }}"
-  schemas: []                  # ODCS contract ids this node owns, e.g. [shot.v1]
+  schemas: [note.v1, note_check.v1]   # ODCS contract ids this node owns
   entities: []                 # entity kinds this node is authoritative for
   capabilities: []             # tool names this node offers
   max_hops: 4                  # loop prevention (brief section 7)
@@ -40,6 +40,12 @@ pricing:
   max_surge: 3.0
   quality_multiplier: 1.0
   free_allowance: 100          # requests per caller per window
+  q_floor: 0.8                 # a node below this cannot earn a quality premium
+  # Credits per 1000 tokens, resolved by model, then adapter, then default. Cost is
+  # measured from the counts an adapter reports, never estimated (KNP-3 section 1).
+  token_rates:
+    default:  { prompt: 0.001, completion: 0.003 }
+    local:    { prompt: 0.0,   completion: 0.0 }
 
 cell:
   # The size ceiling (KNP-8 section 2.3). Exceeding it does not raise it: the cell sheds

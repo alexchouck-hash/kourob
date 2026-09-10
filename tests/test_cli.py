@@ -31,6 +31,7 @@ EXPECTED_COMMANDS = {
     "tend",
     "rollback",
     "cell",
+    "outcome",
     "ledger",
     "meter",
     "schema",

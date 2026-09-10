@@ -54,6 +54,14 @@ class TierConfig(BaseModel):
     model: str | None = None
 
 
+class TokenRate(BaseModel):
+    """Credits per 1000 tokens. Prompt and completion differ enough on frontier models
+    that a blended rate hides where the money went."""
+
+    prompt: float
+    completion: float
+
+
 class Pricing(BaseModel):
     base_cost: dict[Tier, float]
     capacity_window: int = 1000
@@ -62,6 +70,18 @@ class Pricing(BaseModel):
     quality_multiplier: float = 1.0
     free_allowance: int = 100
     q_floor: float = 0.8
+    token_rates: dict[str, TokenRate] = Field(
+        default_factory=lambda: {"default": TokenRate(prompt=0.001, completion=0.003)},
+        description="Keyed by model, then adapter, then 'default'. The runner resolves in "
+        "that order so a node can price one model precisely without listing every model.",
+    )
+
+    def token_rate(self, model: str, adapter: str) -> TokenRate:
+        for key in (model, adapter, "default"):
+            rate = self.token_rates.get(key)
+            if rate is not None:
+                return rate
+        return TokenRate(prompt=0.001, completion=0.003)
 
 
 class CellBudget(BaseModel):
@@ -183,4 +203,4 @@ def save(node_dir: Path | str, manifest: Manifest) -> Path:
     return path
 
 
-__all__ = ["MANIFEST_FILE", "Manifest", "ManifestError", "load", "save"]
+__all__ = ["MANIFEST_FILE", "Manifest", "ManifestError", "TokenRate", "load", "save"]

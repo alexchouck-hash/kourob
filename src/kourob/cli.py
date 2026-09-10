@@ -240,6 +240,7 @@ loop_app = typer.Typer(help="Scheduled loops: ingest, compile, lint, evolve, pru
 distill_app = typer.Typer(help="Train and calibrate the T1 student.")
 scope_app = typer.Typer(help="Scope declaration and classification.")
 cell_app = typer.Typer(help="The cell as a unit of work: size budget, seams, division.")
+outcome_app = typer.Typer(help="Outcomes: whether what this node said held up.")
 
 app.add_typer(ledger_app, name="ledger")
 app.add_typer(meter_app, name="meter")
@@ -251,6 +252,7 @@ app.add_typer(loop_app, name="loop")
 app.add_typer(distill_app, name="distill")
 app.add_typer(scope_app, name="scope")
 app.add_typer(cell_app, name="cell")
+app.add_typer(outcome_app, name="outcome")
 
 
 @ledger_app.command("verify")
@@ -441,6 +443,85 @@ def cell_divide(
 ) -> None:
     """Propose a division along a seam: child manifest, narrowed parent, referral rule."""
     _todo("cell divide", "M4", "docs/protocols/knp-8-cells.md section 3")
+
+
+@outcome_app.command("submit")
+def outcome_submit(
+    receipt_id: Annotated[str, typer.Argument(help="The receipt being judged.")],
+    verdict: Annotated[
+        str, typer.Option(help="accepted|corrected|rejected|superseded")
+    ] = "accepted",
+    evidence: Annotated[
+        list[str] | None, typer.Option(help="Event id(s) that say what was true.")
+    ] = None,
+    by: Annotated[str, typer.Option(help="did:key or user:<id> reporting it.")] = "",
+    note: Annotated[str, typer.Option(help="One line of context.")] = "",
+    node: Annotated[Path, typer.Option()] = Path("."),
+) -> None:
+    """Record whether an answer held up. Never edits the receipt it judges."""
+    from kourob.ledger.outcome import OutcomeSource, Verdict
+    from kourob.ledger.outcomes import OutcomeError, submit
+    from kourob.node import open_node
+
+    cell = open_node(node)
+    try:
+        outcome = submit(
+            cell.ledger,
+            receipt_id,
+            verdict=Verdict(verdict),
+            source=OutcomeSource.HUMAN if by.startswith("user:") else OutcomeSource.CALLER,
+            evidence=list(evidence),
+            by=by or None,
+            note=note or None,
+        )
+    except (OutcomeError, ValueError) as exc:
+        _fail(str(exc))
+        return
+    typer.secho(
+        f"{outcome.id}  {outcome.verdict.value} by {outcome.source.value}", fg=typer.colors.GREEN
+    )
+
+
+@outcome_app.command("list")
+def outcome_list(
+    receipt_id: Annotated[str, typer.Option(help="Only outcomes about this receipt.")] = "",
+    node: Annotated[Path, typer.Option()] = Path("."),
+) -> None:
+    """Show what has been said about this node's answers."""
+    from kourob.ledger.outcomes import outcomes_for, read_outcomes
+    from kourob.node import open_node
+
+    cell = open_node(node)
+    found = outcomes_for(cell.ledger, receipt_id) if receipt_id else read_outcomes(cell.ledger)
+    if not found:
+        typer.secho("no outcomes yet", fg=typer.colors.YELLOW)
+        return
+    for outcome in found:
+        typer.echo(
+            f"{outcome.id}  {outcome.verdict.value:<10} {outcome.source.value:<10} "
+            f"about={outcome.about}  {outcome.note or ''}"
+        )
+
+
+@outcome_app.command("status")
+def outcome_status(node: Annotated[Path, typer.Option()] = Path(".")) -> None:
+    """How much of what this node said has been checked, and how much held up."""
+    from kourob.ledger.outcomes import settlement_status
+    from kourob.node import open_node
+
+    cell = open_node(node)
+    status = settlement_status(cell.ledger, cell.contracts)
+    typer.echo(f"  receipts     {status.total}")
+    typer.echo(
+        f"  settled      {status.settled}  (accepted {status.accepted}, "
+        f"corrected {status.corrected}, rejected {status.rejected})"
+    )
+    typer.echo(f"  pending      {status.pending}   still inside their outcome window")
+    typer.echo(f"  unresolved   {status.unresolved}   window passed with nothing said")
+    typer.echo(f"  settle rate  {status.settle_rate:.2f}")
+    accept = "n/a" if status.accept_rate is None else f"{status.accept_rate:.2f}"
+    typer.echo(f"  accept rate  {accept}")
+    typer.echo(f"  quality      {status.quality_multiplier():.2f}   (unresolved counts against it)")
 
 
 def main() -> None:
