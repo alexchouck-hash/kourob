@@ -200,6 +200,47 @@ def rollback(
 
 
 @app.command()
+def connect(
+    target: Annotated[
+        str, typer.Argument(help="Path to a cell on disk (URLs come with the A2A port).")
+    ],
+    node: Annotated[Path, typer.Option(help="Cell directory.")] = Path("."),
+) -> None:
+    """Make a neighbour of another cell. One command, one route row, never an import."""
+    from kourob.node import connect as connect_cell
+    from kourob.node import open_node
+
+    if target.startswith(("http://", "https://")):
+        _fail("HTTP neighbours arrive with the A2A port (kb-imt). Connect a path for now.")
+    try:
+        route = connect_cell(open_node(node), target)
+    except (FileNotFoundError, ValueError) as exc:
+        _fail(str(exc))
+        return
+    typer.secho(f"connected {route.name} ({route.node[:28]}...)", fg=typer.colors.GREEN)
+    typer.echo(f"  scope    {route.summary}")
+    typer.echo(f"  schemas  {', '.join(route.schemas) or 'none declared'}")
+
+
+@app.command()
+def disconnect(
+    did: Annotated[str, typer.Argument(help="did:key of the neighbour to forget.")],
+    node: Annotated[Path, typer.Option(help="Cell directory.")] = Path("."),
+) -> None:
+    """Drop a route. Receipts either side wrote stay verifiable forever."""
+    from kourob.routes import RouteTable
+
+    table = RouteTable.load(node)
+    route = table.get(did)
+    if route is None:
+        _fail(f"no route to {did}")
+        return
+    route.strength = 0.0
+    table.save(route)
+    typer.echo(f"forgot {route.name or did}")
+
+
+@app.command()
 def version() -> None:
     """Print the kourob version."""
     typer.echo(__version__)
@@ -325,8 +366,21 @@ def schema_diff(node: Annotated[Path, typer.Option()] = Path(".")) -> None:
 
 @routes_app.command("list")
 def routes_list(node: Annotated[Path, typer.Option()] = Path(".")) -> None:
-    """Show the route table: scope pattern, node, price, latency, last success."""
-    _todo("routes list", "M3", "section 7")
+    """Show the route table: neighbour, scope, strength, observed price and latency."""
+    from kourob.routes import RouteTable
+
+    routes = RouteTable.load(node).all()
+    if not routes:
+        typer.secho("no routes. Try `kourob connect <path-to-cell>`.", fg=typer.colors.YELLOW)
+        return
+    for route in routes:
+        price = "-" if route.observed_price is None else f"{route.observed_price:.5f}"
+        latency = "-" if route.observed_latency_ms is None else f"{route.observed_latency_ms:.0f}ms"
+        typer.echo(
+            f"{route.name or '?':<16} {route.node[:24]}...  strength {route.strength:.2f}  "
+            f"price {price:<9} latency {latency:<8} {route.successes}/{route.failures} "
+            f"{route.source}  {route.summary[:40]}"
+        )
 
 
 @routes_app.command("add")
@@ -423,8 +477,15 @@ def distill_calibrate(node: Annotated[Path, typer.Option()] = Path(".")) -> None
 
 @scope_app.command("show")
 def scope_show(node: Annotated[Path, typer.Option()] = Path(".")) -> None:
-    """Print what this node claims to answer."""
-    _todo("scope show", "M3", "section 2, Scope")
+    """Print what this node claims to answer, and what it declares out of scope."""
+    from kourob.node import open_node
+
+    scope = open_node(node).manifest.scope
+    typer.echo(scope.summary)
+    typer.echo(f"  schemas   {', '.join(scope.schemas) or 'none'}")
+    typer.echo(f"  max hops  {scope.max_hops}")
+    for exclusion in scope.excludes:
+        typer.echo(f"  excludes  {exclusion.pattern!r} -> {exclusion.refer_to or 'nobody known'}")
 
 
 @scope_app.command("check")
@@ -432,8 +493,24 @@ def scope_check(
     question: Annotated[str, typer.Argument(help="Request to classify.")],
     node: Annotated[Path, typer.Option()] = Path("."),
 ) -> None:
-    """Classify a request: in_scope, referral, or reject."""
-    _todo("scope check", "M3", "section 3.1 step 2")
+    """Classify a request: in_scope, referral, or reject. Runs no tier."""
+    from kourob import scope as scope_mod
+    from kourob.node import open_node
+    from kourob.routes import RouteTable
+
+    cell = open_node(node)
+    decision = scope_mod.check(
+        cell.manifest,
+        RouteTable(cell.store, cell.manifest.prune),
+        question,
+        own_did=cell.did,
+        hops=[],
+    )
+    typer.echo(f"{decision.result.value}  decided by {decision.decided_by}")
+    if decision.reason:
+        typer.echo(f"  reason   {decision.reason.value}")
+    for hint in decision.hints:
+        typer.echo(f"  route    {hint.name or hint.node}  {hint.scope[:50]}")
 
 
 @cell_app.command("size")

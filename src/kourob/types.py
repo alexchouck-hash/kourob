@@ -86,8 +86,16 @@ class RouteHint(BaseModel):
 
     node: str = Field(description="did:key of the node that can answer directly")
     scope: str = Field(description="the scope pattern this node claims")
+    endpoint: str = Field(default="", description="where to reach it: a URL, or a path")
+    name: str = ""
+    schemas: list[str] = Field(default_factory=list)
     cost_credits: float | None = Field(default=None, description="observed price")
     latency_ms: float | None = Field(default=None, description="observed latency")
+    evidence: str | None = Field(
+        default=None,
+        description="the receipt proving this route worked. A hint with no evidence is "
+        "hearsay, and a caller is entitled to weight it lower (KNP-1 section 4).",
+    )
 
 
 class Answer(BaseModel):

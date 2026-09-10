@@ -167,6 +167,31 @@ def init(target: Path | str, *, name: str | None = None, scope: str = "") -> Nod
     return open_node(target)
 
 
+def connect(node: Node, target: Path | str, *, source: str = "connect") -> Any:
+    """Make a neighbour of a node on disk. One command, one row, never an import.
+
+    KNP-9 section 1: fetch the neighbour's identity and declared scope, write a route, and
+    emit nothing else. No config file, no generated stub, no restart. Disconnecting is
+    `RouteTable.forget`, and the receipts either side wrote stay verifiable forever.
+    """
+    from kourob.routes import Route, RouteTable, keywords_of
+
+    other = open_node(target)
+    if other.did == node.did:
+        raise ValueError("a cell cannot connect to itself")
+    route = Route(
+        node=other.did,
+        endpoint=str(Path(target).resolve()),
+        name=other.manifest.identity.name,
+        summary=other.manifest.scope.summary,
+        schemas=list(other.manifest.scope.schemas),
+        keywords=keywords_of(other.manifest.scope.summary),
+        source=source,
+    )
+    RouteTable(node.store, node.manifest.prune).save(route)
+    return route
+
+
 def cell_size(node: Node) -> dict[str, Any]:
     """Measure a cell against its ceiling (KNP-8 section 2.3).
 
@@ -192,4 +217,4 @@ def cell_size(node: Node) -> dict[str, Any]:
     return {"measured": measured, "over": over, "on_exceed": budget.on_exceed}
 
 
-__all__ = ["Node", "cell_size", "init", "open_node"]
+__all__ = ["Node", "cell_size", "connect", "init", "open_node"]

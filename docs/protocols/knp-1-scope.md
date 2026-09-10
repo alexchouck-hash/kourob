@@ -179,6 +179,23 @@ A node MUST NOT collapse these into a single "no". The distinction between "not 
 "mine but I can't right now" is the difference between the caller re-routing and the caller
 retrying, and getting it wrong wastes the network's money.
 
+## 6.1 Transports
+
+The mechanism above is transport-independent, and the first transport is a **path**:
+`kourob connect ./sibling-cell` writes a route whose endpoint is a directory, and a bridge
+opens that directory and asks it over the same `serve.answer` a remote caller would reach
+over the wire. Even locally, nothing crosses by import: the neighbour writes its own receipt
+in its own ledger, signed with its own key, and `kourob trace` follows the `upstream` id
+into that ledger.
+
+This is deliberate ordering, not a shortcut. The whole loop — scope check, referral,
+bridge, chained receipts, route learning, hop refusal — was untested against a second party
+until it could be tested with two directories and no server. HTTP over A2A attaches behind
+the same `Neighbour` contract (`ports/local.py`) and changes nothing above it. Until it
+lands, a route whose endpoint is a URL is **refused, not guessed at**: the failure mode of
+guessing a transport is a request that goes nowhere and a receipt that says it went
+somewhere.
+
 ## 7. Scope drift
 
 A node's declared scope and its served scope diverge over time. Two named failure modes,

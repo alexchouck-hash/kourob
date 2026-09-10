@@ -30,6 +30,8 @@ EXPECTED_COMMANDS = {
     "train",
     "tend",
     "rollback",
+    "connect",
+    "disconnect",
     "cell",
     "outcome",
     "ledger",
@@ -84,9 +86,7 @@ def test_version_prints_version() -> None:
         ["tend"],
         ["rollback", "evt_01J"],
         ["meter", "report"],
-        ["routes", "list"],
         ["loop", "run", "lint"],  # evolve is implemented; lint is not
-        ["scope", "check", "anything"],
         ["distill", "train"],
         ["cell", "seams"],
         ["schema", "gen"],

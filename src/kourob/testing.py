@@ -11,6 +11,7 @@ would prove nothing about the node.
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -206,4 +207,84 @@ def note_check(node_dir: Path | str, topic: str, verdict: str, *, minutes_ago: i
     return path
 
 
-__all__ = ["node_with_events", "note_check", "synthetic_request_log"]
+FIXTURES = Path(__file__).resolve().parents[2] / "evals" / "gate_fixtures"
+
+
+@dataclass
+class Peer:
+    """A cell that can ask other cells and learn from what comes back.
+
+    `ask` is what any caller does: send the question with its own did and hop list, then
+    adopt whatever route hints the answer carried. That second step is the whole mechanism
+    by which the network finds short paths (KNP-1 section 5.2).
+    """
+
+    dir: Path
+    did: str
+
+    def ask(self, target: Peer, question: str, *, hops: list[str] | None = None) -> Any:
+        from kourob import serve
+        from kourob.routes import RouteTable
+
+        answer = serve.answer(
+            node_mod.open_node(target.dir), question, caller=self.did, hops=list(hops or [])
+        )
+        if answer.route_hints:
+            RouteTable.load(self.dir).learn(answer.route_hints)
+        return answer
+
+
+def tennis_cell(tmp_path: Path | str, *, name: str = "tennis") -> Path:
+    """A cell owning shot.v1, with the gate fixtures ingested and the lookup rule installed."""
+    import shutil
+
+    target = Path(tmp_path) / name
+    node = node_mod.init(target, scope="tennis shot events for charted matches")
+    shutil.copy(FIXTURES / "schema.odcs.yaml", target / "schemas" / "shot.odcs.yaml")
+    shutil.copy(
+        FIXTURES / "rules" / "shot-lookup.yaml",
+        target / "tiers" / "t0" / "rules" / "shot-lookup.yaml",
+    )
+    node.manifest.scope.schemas = ["shot.v1", "note.v1", "note_check.v1"]
+    manifest_mod.save(target, node.manifest)
+    node_mod.open_node(target).ingest(FIXTURES / "events.jsonl")
+    return target
+
+
+def two_node_fixture(tmp_path: Path | str, *, bridge_limit: int = 3) -> tuple[Peer, Peer, Peer]:
+    """kourob-node, tennis-node, and a caller connected only to kourob-node.
+
+    kourob-node declares tennis out of scope and names tennis-node; the caller does not know
+    tennis-node exists. That is exactly the situation a bridge is for.
+    """
+    base = Path(tmp_path)
+    tennis_dir = tennis_cell(base)
+    tennis = node_mod.open_node(tennis_dir)
+
+    kourob_dir = node_with_events(base, name="kourob-node", scope="the KouroB design, as notes")
+    kourob = node_mod.open_node(kourob_dir)
+    kourob.manifest.scope.excludes = [
+        manifest_mod.Exclusion(pattern=r"tennis|shot|match|serve|rally", refer_to=tennis.did)
+    ]
+    kourob.manifest.bridge.bridge_limit = bridge_limit
+    manifest_mod.save(kourob_dir, kourob.manifest)
+    node_mod.connect(node_mod.open_node(kourob_dir), tennis_dir)
+
+    caller_dir = node_with_events(base, name="caller", scope="a caller that only knows kourob-node")
+    node_mod.connect(node_mod.open_node(caller_dir), kourob_dir)
+
+    return (
+        Peer(kourob_dir, kourob.did),
+        Peer(tennis_dir, tennis.did),
+        Peer(caller_dir, node_mod.open_node(caller_dir).did),
+    )
+
+
+__all__ = [
+    "Peer",
+    "node_with_events",
+    "note_check",
+    "synthetic_request_log",
+    "tennis_cell",
+    "two_node_fixture",
+]

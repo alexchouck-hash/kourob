@@ -45,20 +45,25 @@ def read_receipts(node_dir: Path | str) -> list[Receipt]:
 
 @dataclass
 class Chain:
-    """What `kourob trace` renders: the nodes, receipts and events behind one answer."""
+    """What `kourob trace` renders: the nodes, receipts, outcomes and events behind one
+    answer — across every node the answer passed through."""
 
     receipts: list[dict[str, Any]] = field(default_factory=list)
     events: list[dict[str, Any]] = field(default_factory=list)
     nodes: list[str] = field(default_factory=list)
     outcomes: list[dict[str, Any]] = field(default_factory=list)
+    unreachable: list[str] = field(default_factory=list)
 
     def render(self) -> str:
         lines = [f"chain for {self.receipts[0]['id']}" if self.receipts else "empty chain"]
         for r in self.receipts:
             lines.append(
-                f"  {r['id']}  node={r.get('node', '?')[:24]}...  tier={r.get('tier_used')}  "
-                f"determinism={r.get('determinism')}  price={r.get('price_credits')}"
+                f"  {r['id']}  node={r.get('node', '?')[:24]}...  scope={r.get('scope_result')}  "
+                f"tier={r.get('tier_used')}  determinism={r.get('determinism')}  "
+                f"price={r.get('price_credits')}"
             )
+            for up in r.get("upstream") or []:
+                lines.append(f"      upstream {up}")
             for cite in r.get("citations") or []:
                 lines.append(f"      cites {cite}")
             for o in self.outcomes:
@@ -68,37 +73,86 @@ class Chain:
         for e in self.events:
             prov = e.get("provenance") or {}
             lines.append(f"  {e['id']}  {e.get('schema_ref')}  from {prov.get('source', '?')}")
+        for up in self.unreachable:
+            lines.append(f"  {up}  (upstream receipt in a ledger this node cannot reach)")
         return "\n".join(lines)
 
 
+def _reachable_ledgers(node_dir: Path) -> dict[str, Path]:
+    """Every ledger a trace may need: this node's, and each neighbour's on disk.
+
+    A bridged answer's upstream receipt lives in the *neighbour's* ledger, in its own chain,
+    signed with its own key. Following it means opening that ledger, which the route table
+    knows how to find. A remote neighbour (HTTP) is reported as unreachable rather than
+    guessed at.
+    """
+    from kourob.routes import RouteTable
+
+    ledgers: dict[str, Path] = {}
+    try:
+        node_did = identity.load_did(node_dir)
+    except FileNotFoundError:
+        node_did = manifest.load(node_dir).identity.did
+    ledgers[node_did] = node_dir
+    m = manifest.load(node_dir)
+    store = ParquetDuckDBStore(node_dir, partition_by=m.store.partition_by)
+    for route in RouteTable(store, m.prune).all():
+        endpoint = Path(route.endpoint) if route.endpoint else None
+        if endpoint and endpoint.exists() and (endpoint / manifest.MANIFEST_FILE).exists():
+            ledgers[route.node] = endpoint
+    return ledgers
+
+
 def trace(node_dir: Path | str, receipt_id: str) -> Chain:
-    """Walk one receipt to its events, its sources, and any upstream receipts."""
-    ledger = _ledger(node_dir)
-    by_id = {r["id"]: r for r in ledger.records()}
+    """Walk one receipt to its events, its sources, and any upstream receipts — following a
+    bridge into the neighbour's ledger where the route table can reach it."""
+    node_dir = Path(node_dir)
+    ledgers = _reachable_ledgers(node_dir)
+    loaded: dict[str, Ledger] = {}
+    by_id: dict[str, tuple[dict[str, Any], str]] = {}
+
+    def load(did: str) -> None:
+        if did in loaded or did not in ledgers:
+            return
+        ledger = _ledger(ledgers[did])
+        loaded[did] = ledger
+        for record in ledger.records():
+            by_id.setdefault(record["id"], (record, did))
+
+    for did in ledgers:
+        load(did)
+
     chain = Chain()
     frontier = [receipt_id]
     seen: set[str] = set()
     while frontier:
         rid = frontier.pop(0)
-        record = by_id.get(rid)
-        if record is None or rid in seen:
+        if rid in seen:
             continue
         seen.add(rid)
+        found = by_id.get(rid)
+        if found is None:
+            chain.unreachable.append(rid)
+            continue
+        record, did = found
         chain.receipts.append(record)
-        if record.get("node") and record["node"] not in chain.nodes:
-            chain.nodes.append(record["node"])
+        if did not in chain.nodes:
+            chain.nodes.append(did)
         frontier.extend(record.get("upstream") or [])
+
     receipt_ids = {r["id"] for r in chain.receipts}
     chain.outcomes = [
         record
-        for record in by_id.values()
+        for record, _ in by_id.values()
         if record.get("kind") == "outcome" and record.get("about") in receipt_ids
     ]
-    cited = {c for r in chain.receipts for c in (r.get("citations") or [])}
-    if cited:
-        for event_id in sorted(cited):
-            event = ledger.store.get("silver", event_id)
-            if event:
+
+    for r in chain.receipts:
+        owner = loaded.get(r.get("node", ""))
+        for cite in r.get("citations") or []:
+            store = owner.store if owner else loaded[next(iter(loaded))].store
+            event = store.get("silver", cite)
+            if event and event["id"] not in {e["id"] for e in chain.events}:
                 chain.events.append(event)
     return chain
 
