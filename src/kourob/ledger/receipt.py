@@ -13,7 +13,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from kourob.types import ScopeResult, Tier
+from kourob.types import Determinism, RefusalReason, ScopeResult, Tier
 
 __milestone__ = "M1"
 
@@ -26,10 +26,13 @@ SIGNED_FIELDS = (
     "request_hash",
     "response_hash",
     "scope_result",
+    "reason",
     "tier_used",
+    "determinism",
     "model_version",
     "citations",
     "upstream",
+    "hops",
     "cost_credits",
     "price_credits",
     "ts",
@@ -46,8 +49,16 @@ class Receipt(BaseModel):
     request_hash: str = Field(description="sha256: of the canonical request")
     response_hash: str = Field(description="sha256: of the canonical response")
     scope_result: ScopeResult
+    reason: RefusalReason | None = Field(
+        default=None, description="Why, when scope_result is reject (KNP-1 section 6)"
+    )
     tier_used: Tier | None = Field(
         default=None, description="None when the request was referred or rejected"
+    )
+    determinism: Determinism | None = Field(
+        default=None,
+        description="What a verifier can do with this answer (KNP-0 section 2). None for "
+        "referrals and rejects, which assert nothing about the world.",
     )
     model_version: str = Field(
         description="student-s@0.4.2 | frontier:<vendor>:<model> | rule:<id>"
@@ -55,6 +66,10 @@ class Receipt(BaseModel):
     citations: list[str] = Field(default_factory=list, description="event ids")
     upstream: list[str] = Field(
         default_factory=list, description="receipt ids from other nodes this answer used"
+    )
+    hops: list[str] = Field(
+        default_factory=list,
+        description="did:keys already involved, in order. Loop prevention (KNP-0 section 5).",
     )
     cost_credits: float = Field(description="measured, not estimated: what it cost the node")
     price_credits: float = Field(description="what the caller was charged")
