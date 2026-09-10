@@ -23,6 +23,7 @@ class Ext(StrEnum):
     METER = "https://kourob.org/ext/meter/v1"
     REGISTRY = "https://kourob.org/ext/registry/v1"
     OUTCOME = "https://kourob.org/ext/outcome/v1"
+    TAP = "https://kourob.org/ext/tap/v1"
 
 
 #: Which KNP spec documents each extension, for `kourob doctor` and the agent card.
@@ -32,6 +33,7 @@ EXT_SPEC = {
     Ext.METER: "KNP-3",
     Ext.REGISTRY: "KNP-4",
     Ext.OUTCOME: "KNP-5",
+    Ext.TAP: "KNP-6",
 }
 
 #: A2A header a client uses to activate extensions, and the server to echo what it applied.

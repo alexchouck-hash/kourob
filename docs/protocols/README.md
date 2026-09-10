@@ -12,10 +12,16 @@ someone can implement a KouroB node without reading our source.
 | [KNP-3](knp-3-meter.md) | Price quotes and credit settlement | `https://kourob.org/ext/meter/v1` | M4 |
 | [KNP-4](knp-4-registry.md) | Sets, registries, routes, trust | `https://kourob.org/ext/registry/v1` | M4 |
 | [KNP-5](knp-5-evolution.md) | Outcomes, tier promotion, split and merge | `https://kourob.org/ext/outcome/v1` | M4–M5 |
+| [KNP-6](knp-6-tap.md) | The tap: subscribing to a cell's flow | `https://kourob.org/ext/tap/v1` | M3–M5 |
+| [KNP-7](knp-7-autonomy.md) | Autonomy ladder, budget, `kourob tend` | — | M4–M6 |
+| [KNP-8](knp-8-cells.md) | Cells: containment, membrane, division | — | M2–M5 |
 
 ## Reading order
 
-KNP-0 first: it defines the three invariants everything else assumes. Then KNP-2, because
+**[KNP-8](knp-8-cells.md) first for the intuition** — what a cell is, why nothing crosses
+its membrane by import, and why it divides instead of growing. The rest is mechanism.
+
+Then KNP-0: it defines the three invariants everything else assumes. Then KNP-2, because
 provenance is the load-bearing one — a KouroB node without receipts is just an HTTP
 service. KNP-1 is what makes a node *contained*. KNP-3 and KNP-4 make a network of them
 economical. KNP-5 is what makes an individual node get cheaper, and it is the one with the

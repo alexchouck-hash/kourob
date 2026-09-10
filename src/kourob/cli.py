@@ -123,6 +123,26 @@ def doctor(
 
 
 @app.command()
+def tend(
+    node: Annotated[Path, typer.Option(help="Cell directory.")] = Path("."),
+    budget: Annotated[float, typer.Option(help="Credits this cycle may spend.")] = 1.0,
+    autonomy_max: Annotated[str, typer.Option(help="Cap the autonomy level: A0..A4.")] = "A0",
+    dry_run: Annotated[bool, typer.Option(help="Decide and report, apply nothing.")] = False,
+) -> None:
+    """Run one self-development cycle: ingest, compile, lint, evolve, decide, apply, reflect."""
+    _todo("tend", "M4", "docs/protocols/knp-7-autonomy.md section 4")
+
+
+@app.command()
+def rollback(
+    change: Annotated[str, typer.Argument(help="Change event id, e.g. evt_01J...")],
+    node: Annotated[Path, typer.Option(help="Cell directory.")] = Path("."),
+) -> None:
+    """Apply the recorded inverse of an auto-applied change."""
+    _todo("rollback", "M4", "docs/protocols/knp-7-autonomy.md section 4")
+
+
+@app.command()
 def version() -> None:
     """Print the kourob version."""
     typer.echo(__version__)
@@ -162,6 +182,7 @@ keys_app = typer.Typer(help="Node identity: ed25519 keypairs and did:key ids.")
 loop_app = typer.Typer(help="Scheduled loops: ingest, compile, lint, evolve, prune, reflect.")
 distill_app = typer.Typer(help="Train and calibrate the T1 student.")
 scope_app = typer.Typer(help="Scope declaration and classification.")
+cell_app = typer.Typer(help="The cell as a unit of work: size budget, seams, division.")
 
 app.add_typer(ledger_app, name="ledger")
 app.add_typer(meter_app, name="meter")
@@ -172,6 +193,7 @@ app.add_typer(keys_app, name="keys")
 app.add_typer(loop_app, name="loop")
 app.add_typer(distill_app, name="distill")
 app.add_typer(scope_app, name="scope")
+app.add_typer(cell_app, name="cell")
 
 
 @ledger_app.command("verify")
@@ -300,6 +322,27 @@ def scope_check(
 ) -> None:
     """Classify a request: in_scope, referral, or reject."""
     _todo("scope check", "M3", "section 3.1 step 2")
+
+
+@cell_app.command("size")
+def cell_size(node: Annotated[Path, typer.Option()] = Path(".")) -> None:
+    """Measure this cell against its declared ceiling. Non-zero exit when over budget."""
+    _todo("cell size", "M2", "docs/protocols/knp-8-cells.md section 2.3")
+
+
+@cell_app.command("seams")
+def cell_seams(node: Annotated[Path, typer.Option()] = Path(".")) -> None:
+    """Find where this cell could divide: the minimum cut over schema and tool co-occurrence."""
+    _todo("cell seams", "M4", "docs/protocols/knp-8-cells.md section 3.1")
+
+
+@cell_app.command("divide")
+def cell_divide(
+    seam: Annotated[str, typer.Argument(help="Seam id from `kourob cell seams`.")],
+    node: Annotated[Path, typer.Option()] = Path("."),
+) -> None:
+    """Propose a division along a seam: child manifest, narrowed parent, referral rule."""
+    _todo("cell divide", "M4", "docs/protocols/knp-8-cells.md section 3")
 
 
 def main() -> None:

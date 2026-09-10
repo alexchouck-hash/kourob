@@ -28,6 +28,9 @@ EXPECTED_COMMANDS = {
     "version",
     "run",
     "train",
+    "tend",
+    "rollback",
+    "cell",
     "ledger",
     "meter",
     "schema",
@@ -81,6 +84,9 @@ def test_version_prints_version() -> None:
         ["keys", "show"],
         ["loop", "run", "lint"],
         ["scope", "check", "anything"],
+        ["tend"],
+        ["rollback", "evt_01J"],
+        ["cell", "size"],
     ],
 )
 def test_stubs_exit_two_and_name_their_milestone(argv: list[str]) -> None:
