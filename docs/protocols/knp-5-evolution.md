@@ -119,6 +119,26 @@ the protocol can have.
 Requests in the cluster the rule does not cover keep falling through to T1. Coverage is
 allowed to be partial; correctness on what it covers is not.
 
+**What "exact" compares, precisely.** For each settled request, the candidate bound to that
+request's question must return **exactly the event ids the settled answer cited**. That is
+what `derived` promises a stranger — the same events — and it is checkable from the request
+log today. Comparing the rendered text as well needs the log to keep it (a follow-up); until
+then a mined rule renders a field of the event rather than a model's prose.
+
+**Rungs may be skipped downward to T0.** A cluster that has always been a function of one
+event is mined and replayed from wherever it sits — T3 included — because exact replay is a
+stronger gate than any tolerance rung, and the no-skip rule exists to stop *tolerance*
+shortcuts, of which T0 has none. Skipping T2 and T1 to pass a stricter test weakens nothing.
+
+**What v1 can mine.** A cluster whose settled answers each cited exactly one event, where
+the question's subject equals one field of that event on every request whose subject names
+any field — requests naming nothing are the rule's declined tail, and a request naming a
+*different* field disqualifies the binding. The replay gate, not the binding search, is what
+keeps a coincidence out of T0. The rule binds the cluster's
+dominant question frame; minority frames go uncovered and count against coverage rather
+than being papered over. Multi-event joins and multi-frame rules are follow-ups, and a
+cluster that is a function of something v1 cannot see is declined with that reason.
+
 ### 3.4 Why this is where the money is
 
 T0 costs a SQL scan. T3 costs a frontier call — three to four orders of magnitude more. The

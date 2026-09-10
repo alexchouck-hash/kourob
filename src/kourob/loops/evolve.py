@@ -210,7 +210,8 @@ def evolve(node_dir: Any, *, window: str = "30d", now: datetime | None = None) -
     )
 
     served = [c for c in clusters if not c.key.startswith(REFUSED)]
-    _propose_promotions(report, served)
+    _propose_demotions(report, node, verdicts)
+    _propose_promotions(report, served, node=node, verdicts=verdicts)
     _propose_shed(report, node, in_window)
     _propose_split(report, node, served, len(in_window))
     _propose_from_quarantine(report, node)
@@ -223,12 +224,35 @@ def evolve(node_dir: Any, *, window: str = "30d", now: datetime | None = None) -
 # ------------------------------------------------------------------------------ proposals
 
 
-def _propose_promotions(report: EvolveReport, clusters: list[ClusterStats]) -> None:
-    """Move work down the ladder as evidence accumulates (KNP-5 section 3)."""
+def _propose_promotions(
+    report: EvolveReport,
+    clusters: list[ClusterStats],
+    *,
+    node: Any = None,
+    verdicts: dict[str, Any] | None = None,
+) -> None:
+    """Move work down the ladder as evidence accumulates (KNP-5 section 3).
+
+    Two paths. The rung below is proposed on a settled-example count. Independently, a
+    cluster that has always been a function is **mined and replayed** for T0 straight from
+    wherever it sits: exact replay is a stronger gate than any tolerance rung, and the
+    ladder's no-skip rule exists to stop tolerance shortcuts, of which T0 has none.
+    """
+    overrides = (node.manifest.loops.get("evolve") or {}) if node is not None else {}
+    n_rule = int(overrides.get("n_rule", N_RULE))
     for cluster in clusters:
         current = _dominant_tier(cluster)
         if current is None:
             continue
+
+        if (
+            node is not None
+            and current is not Tier.T0
+            and cluster.is_function
+            and cluster.can_promote
+            and round(cluster.settle_rate * cluster.volume) >= n_rule
+        ):
+            _propose_mined_rule(report, node, cluster, verdicts or {}, current)
 
         if not cluster.can_promote:
             report.declined.append(
@@ -286,6 +310,104 @@ def _propose_promotions(report: EvolveReport, clusters: list[ClusterStats]) -> N
                     "accept_rate": cluster.accept_rate,
                     "answer_entropy": cluster.answer_entropy,
                     "schemas": cluster.schemas,
+                },
+            )
+        )
+
+
+def _propose_mined_rule(
+    report: EvolveReport,
+    node: Any,
+    cluster: ClusterStats,
+    verdicts: dict[str, Any],
+    current: Tier,
+) -> None:
+    """Mine a T0 candidate and replay it (ADR-0008). Promote only if exact on every one."""
+    from kourob.loops.distill.mine import mine_rule
+
+    candidate = mine_rule(node.store, cluster, verdicts)
+    if candidate is None:
+        report.declined.append(
+            DeclinedProposal(
+                kind=ProposalKind.PROMOTE,
+                cluster=cluster.key,
+                why="a function, but not of one event with a field the question names: "
+                "nothing to mine in v1",
+            )
+        )
+        return
+    evidence = {
+        "rule": candidate.rule_id,
+        "replay_exact_match": candidate.replay_exact_match,
+        "coverage": candidate.coverage,
+        "n": candidate.replayed,
+        "misses": candidate.misses[:5],
+        "rule_yaml": candidate.as_yaml(),
+    }
+    if not candidate.promotable:
+        why = (
+            f"replay_exact_match {candidate.replay_exact_match:.3f} over {candidate.covered} "
+            f"covered: a rule that is not exact is not a function"
+            if candidate.replay_exact_match < 1.0
+            else f"coverage {candidate.coverage:.3f} below {MIN_COVERAGE}"
+        )
+        report.declined.append(
+            DeclinedProposal(kind=ProposalKind.PROMOTE, cluster=cluster.key, why=why)
+        )
+        return
+    report.proposals.append(
+        Proposal(
+            kind=ProposalKind.PROMOTE,
+            cluster=cluster.key,
+            from_tier=current,
+            to_tier=Tier.T0,
+            evidence=evidence,
+            payback_requests=0.0,
+            expected_remaining=float(cluster.volume),
+        )
+    )
+
+
+def _propose_demotions(report: EvolveReport, node: Any, verdicts: dict[str, Any]) -> None:
+    """One `corrected` outcome on a T0 answer disables its rule. Now, not next window.
+
+    KNP-5 section 5 and ADR-0008: the rule's entire claim was that it is a function, and one
+    counter-example disproves it. This is the one change the evolve loop makes itself rather
+    than proposing, because it withdraws a privilege whose evidence stopped holding — the
+    same mechanism as an autonomy demotion — and because it is trivially reversible: the
+    file is renamed, not deleted.
+    """
+    from kourob.ledger.outcome import Verdict
+    from kourob.tiers.t0_rules import RULES_DIR
+
+    corrected: dict[str, list[str]] = {}
+    for record in node.ledger.records():
+        if record.get("kind", "receipt") != "receipt" or record.get("tier_used") != "T0":
+            continue
+        verdict = verdicts.get(record["id"])
+        if verdict is not Verdict.CORRECTED:
+            continue
+        model = str(record.get("model_version") or "")
+        if model.startswith("rule:"):
+            corrected.setdefault(model.removeprefix("rule:"), []).append(record["id"])
+
+    for rule_id, receipts in corrected.items():
+        path = Path(node.dir) / RULES_DIR / f"{rule_id}.yaml"
+        disabled = path.exists()
+        if disabled:
+            path.rename(path.with_suffix(".yaml.disabled"))
+        report.proposals.append(
+            Proposal(
+                kind=ProposalKind.DEMOTE,
+                cluster=f"rule:{rule_id}",
+                from_tier=Tier.T0,
+                to_tier=Tier.T1,
+                evidence={
+                    "rule": rule_id,
+                    "counter_examples": len(receipts),
+                    "receipts": receipts[:5],
+                    "disabled": disabled,
+                    "inverse": {"kind": "enable", "rule": rule_id},
                 },
             )
         )

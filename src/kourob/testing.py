@@ -280,11 +280,177 @@ def two_node_fixture(tmp_path: Path | str, *, bridge_limit: int = 3) -> tuple[Pe
     )
 
 
+def _scripted_grounded_runner(node: Any) -> Any:
+    """A T3 stand-in that answers from the events it is shown, citing the right one.
+
+    Parses the numbered events out of the prompt and returns the body of the one whose topic
+    the question names — or the first event when nothing matches, which is how an
+    edge-case question still gets a grounded, settleable answer.
+    """
+    from kourob.runner import Runner
+    from kourob.runner.adapters import LocalAdapter
+
+    def reply(prompt: str) -> str:
+        from kourob.loops.distill.mine import subject_of
+
+        question = prompt.rsplit("Question:", 1)[-1].strip()
+        subject = subject_of(question)
+        events: list[tuple[str, dict[str, Any]]] = []
+        for line in prompt.splitlines():
+            line = line.strip()
+            if line.startswith("evt_") and "(" in line:
+                event_id, rest = line.split(None, 1)
+                payload = json.loads(rest.split(")", 1)[1].strip())
+                events.append((event_id, payload))
+        chosen = next(
+            ((i, p) for i, p in events if str(p.get("topic", "")).lower() == subject),
+            events[0] if events else (None, {}),
+        )
+        event_id, payload = chosen
+        return json.dumps(
+            {
+                "answer": payload.get("body", "no body"),
+                "citations": [event_id] if event_id else [],
+                "confidence": 0.9,
+            }
+        )
+
+    return Runner(
+        node.manifest,
+        store=node.store,
+        adapters={"local": LocalAdapter.scripted([], fallback=reply)},
+    )
+
+
+def t3_answered_cell(
+    tmp_path: Path | str, *, topics: int = 8, edge: bool = False, n_rule: int = 5
+) -> Path:
+    """A cell whose settled answers all came from T3 and were all a function of one note.
+
+    The template's hand-written rule is disabled so the model has to answer; every answer is
+    then settled `accepted` from reality. This is the raw material rule mining works on.
+    """
+    from kourob import serve
+    from kourob.ledger.outcome import OutcomeSource, Verdict
+    from kourob.ledger.outcomes import submit
+    from kourob.tiers.t0_rules import RULES_DIR
+
+    target = Path(tmp_path) / "t3cell"
+    node = node_mod.init(target, scope="the KouroB design, as notes")
+    for rule in (target / RULES_DIR).glob("*.yaml"):
+        rule.rename(rule.with_suffix(".yaml.disabled"))
+    node.manifest.loops["evolve"] = {"n_rule": n_rule}
+    manifest_mod.save(target, node.manifest)
+
+    stamp = (datetime.now(UTC) - timedelta(days=1)).isoformat().replace("+00:00", "Z")
+    notes = target / "notes.jsonl"
+    notes.write_text(
+        "".join(
+            json.dumps(
+                {
+                    "schema_ref": "note.v1",
+                    "topic": f"topic-{i}",
+                    "body": f"Topic {i} is the {i}th thing this cell knows about, at length.",
+                    "ts": stamp,
+                }
+            )
+            + "\n"
+            for i in range(topics)
+        ),
+        encoding="utf-8",
+    )
+    node_mod.open_node(target).ingest(notes)
+
+    questions = [f"what is topic-{i}" for i in range(topics)]
+    if edge:
+        questions.append("what is the mechanism")
+    for question in questions:
+        node = node_mod.open_node(target)
+        answer = serve.answer(node, question, runner=_scripted_grounded_runner(node))
+        assert answer.tier_used is not None, f"{question!r} was not answered: {answer.rendered}"
+        submit(
+            node_mod.open_node(target).ledger,
+            answer.receipt_id,
+            verdict=Verdict.ACCEPTED,
+            source=OutcomeSource.REALITY,
+            evidence=list(answer.citations),
+        )
+    return target
+
+
+def cluster_with_an_edge_case(tmp_path: Path | str) -> tuple[Any, Any, dict[str, Any]]:
+    """(store, cluster, verdicts) for a function-of-one-note cluster with one question the
+    mined rule cannot bind. Twenty it can, one it cannot: coverage 0.952."""
+    from kourob.ledger.outcomes import read_outcomes
+    from kourob.loops.clustering import REFUSED, build_clusters
+
+    target = t3_answered_cell(tmp_path, topics=20, edge=True)
+    node = node_mod.open_node(target)
+    verdicts = {o.about: o.verdict for o in read_outcomes(node.ledger)}
+    clusters = build_clusters(
+        node.store.scan("requests", order_by="id"), outcomes_by_receipt=verdicts
+    )
+    (cluster,) = [c for c in clusters if not c.key.startswith(REFUSED)]
+    return node.store, cluster, verdicts
+
+
+def node_with_promoted_rule(tmp_path: Path | str) -> tuple[Path, str]:
+    """A cell where evolve mined a rule, the rule was installed, and T0 has answered with it."""
+    from kourob import serve
+    from kourob.loops.evolve import ProposalKind, evolve
+    from kourob.tiers.t0_rules import RULES_DIR
+
+    target = t3_answered_cell(tmp_path, topics=8)
+    report = evolve(target)
+    (promotion,) = [p for p in report.proposals if p.kind is ProposalKind.PROMOTE]
+    rule_id = str(promotion.evidence["rule"])
+    (Path(target) / RULES_DIR / f"{rule_id}.yaml").write_text(
+        str(promotion.evidence["rule_yaml"]), encoding="utf-8"
+    )
+    answer = serve.answer(node_mod.open_node(target), "what is topic-1")
+    assert answer.tier_used is Tier.T0, f"the mined rule did not answer: {answer.rendered}"
+    return target, rule_id
+
+
+def correct_one_t0_answer(node_dir: Path | str, rule_id: str) -> str:
+    """Settle the latest answer the rule gave as `corrected`. Returns the outcome id."""
+    from kourob.ledger.outcome import OutcomeSource, Verdict
+    from kourob.ledger.outcomes import submit
+
+    node = node_mod.open_node(node_dir)
+    receipt = next(
+        r
+        for r in reversed(node.ledger.records())
+        if r.get("kind", "receipt") == "receipt" and r.get("model_version") == f"rule:{rule_id}"
+    )
+    return submit(
+        node.ledger,
+        receipt["id"],
+        verdict=Verdict.CORRECTED,
+        source=OutcomeSource.REALITY,
+        evidence=[ev.new_id()],
+        note="the rule was wrong once, which is once too many",
+    ).id
+
+
+def outcomes_for_tier(node_dir: Path | str, tier: Tier) -> list[Any]:
+    from kourob.ledger.outcomes import read_outcomes
+
+    node = node_mod.open_node(node_dir)
+    tiered = {r["id"] for r in node.ledger.records() if r.get("tier_used") == tier.value}
+    return [o for o in read_outcomes(node.ledger) if o.about in tiered]
+
+
 __all__ = [
     "Peer",
+    "cluster_with_an_edge_case",
+    "correct_one_t0_answer",
     "node_with_events",
+    "node_with_promoted_rule",
     "note_check",
+    "outcomes_for_tier",
     "synthetic_request_log",
+    "t3_answered_cell",
     "tennis_cell",
     "two_node_fixture",
 ]

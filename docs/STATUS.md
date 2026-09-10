@@ -14,7 +14,7 @@ handoffs say how it got there.
 |---|---|---|---|
 | create a node in one command | **met** | `kourob init` lays down a working cell that ingests and answers with a citation in seconds | — |
 | connect it to other nodes | **met on disk** | `kourob connect`, route table with Hebbian strength, scope check with declared exclusions, referral with route hints, bridge with chained receipts, hop-list refusal, cross-node `trace`; the M3 router eval passes | only the local transport: no A2A card, no HTTP. A remote route is refused rather than guessed at |
-| become cheaper | **half** | evolve proposes promotions; T3 grounded; T0 rules run | nothing mines a rule or replays it (ADR-0008); no T1; no cost curve measured |
+| become cheaper | **mechanism met** | evolve mines a T0 rule from a cluster that has always been a function of one event, replays it over every settled request, promotes only on exact match, and disables it on one correction — proven by `evals/promotion_test.py` | nothing *applies* a promotion yet (`tend`); no T1; no measured cost curve; v1 mines single-event lookups only |
 | become better | **met in mechanism** | outcomes, settlement from reality, quality multiplier | only `note.v1` settles; no comparator for probabilistic answers |
 | traced back to its sources | **met for one node** | receipts, hash chain, `trace`, tamper detection | upstream receipts across nodes untested because there are no chains yet; no PROV export |
 | metered along the whole chain | **half** | measured token cost, priced receipts, call log | no accounts, no quotes, no price function, no meter report |
@@ -25,7 +25,7 @@ handoffs say how it got there.
 |---|---|---|---|---|
 | 1 | `init` to a cited answer over MCP | < 10 min | ~5 s to a cited answer — but **over the CLI**, not MCP; `handle()` exists, no stdio server | **not met** on the letter |
 | 2 | T0+T1 share after 30 days | ≥ 80 % | T0 share on the demo is 100 % of answered; T1 does not exist; no 30-day run | **not measurable** |
-| 3 | cost/request day 30 vs day 1 | ≥ 5× down | never run; no rule mining to bend the curve | **not met** |
+| 3 | cost/request day 30 vs day 1 | ≥ 5× down | rule mining exists and is exact-gated; the curve itself has never been replayed because nothing applies a promotion (`tend`) and no T1 exists | **mechanism only** |
 | 4 | provenance reconstructible | 100 % | 100 % for one node, proven by tests | **met** (single node) |
 | 5 | referral learning | second call goes direct | first call bridges and hands back a route with an evidence receipt; the caller's route table then points at the neighbour; the second call is referred, and a direct call works — proven by `evals/router_test.py` | **met** (local transport) |
 | 6 | split proposed within one evolve cycle | yes | yes, with a child manifest, proven by eval | **met** |
@@ -80,7 +80,8 @@ Kept in Beads (`bd ready`), ordered by what moves the sentence, not by milestone
 
 1. ~~**Connect**~~ — done on the local transport (`kb-9gv`). What remains of it is the
    A2A card and HTTP (`kb-imt`), which is transport, not mechanism.
-2. **Rule mining by exact replay** — turns a promotion proposal into a cost curve.
+2. ~~**Rule mining by exact replay**~~ — done for single-event lookups (`kb-24l`). The
+   proposal now carries the rule; `tend` is what installs it.
 3. **MCP stdio server** — metric 1 on the letter, and the first agent attaching.
 4. **`kourob tend`** — apply within autonomy, with recorded inverses and rollback.
 5. **Price function, quotes, accounts, meter report** — the economics half of metering.
