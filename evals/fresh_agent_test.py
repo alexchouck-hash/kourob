@@ -32,9 +32,8 @@ PACK_TOKEN_BUDGET = 15_000
 
 @pytest.mark.xfail(reason=M2)
 def test_fresh_agent_answers_with_a_citation_inside_the_budget() -> None:
-    from kourob.testing import fresh_agent_session, kourob_node_path
-
     from kourob.pack import build_pack
+    from kourob.testing import fresh_agent_session, kourob_node_path
 
     node = kourob_node_path()
 

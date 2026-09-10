@@ -19,9 +19,8 @@ M3 = "M3 not implemented"
 
 @pytest.mark.xfail(reason=M3)
 def test_first_call_bridges_and_returns_a_route_hint(tmp_path) -> None:
-    from kourob.testing import two_node_fixture
-
     from kourob.routes import RouteTable
+    from kourob.testing import two_node_fixture
 
     kourob_node, tennis_node, caller = two_node_fixture(tmp_path)
 
@@ -62,9 +61,8 @@ def test_a_request_whose_hop_list_contains_this_node_is_refused(tmp_path) -> Non
 
 @pytest.mark.xfail(reason=M3)
 def test_trace_shows_both_nodes_both_receipts_and_the_cited_events(tmp_path) -> None:
-    from kourob.testing import two_node_fixture
-
     from kourob.ledger.verify import trace
+    from kourob.testing import two_node_fixture
 
     kourob_node, tennis_node, caller = two_node_fixture(tmp_path)
     answer = caller.ask(kourob_node, "how many backhand winners did A hit at AO 2026")
