@@ -117,8 +117,17 @@ def serve(
     rest: Annotated[bool, typer.Option("--rest", help="Serve the REST port.")] = False,
     node: Annotated[Path, typer.Option(help="Node directory.")] = Path("."),
 ) -> None:
-    """Serve a node on one or more ports."""
-    _todo("serve", "M1", "sections 7 and 9")
+    """Serve a node on one or more ports. Only MCP over stdio exists today."""
+    if a2a or rest:
+        _todo("serve --a2a / --rest", "M3", "sections 7 and 9")
+    if not mcp:
+        _fail("nothing to serve: pass --mcp")
+    try:
+        from kourob.ports.mcp_server import serve_stdio
+    except ImportError:
+        _fail("the MCP SDK is not installed: `uv sync --extra mcp` (or pip install 'kourob[mcp]')")
+        return
+    serve_stdio(node)
 
 
 @app.command()
@@ -126,8 +135,36 @@ def attach(
     target: Annotated[str, typer.Argument(help="claude-code | codex | cursor | <node-url>")],
     node: Annotated[Path, typer.Option(help="Node directory.")] = Path("."),
 ) -> None:
-    """Attach an agent to this node, or attach this node to another node."""
-    _todo("attach", "M2", "section 12, M2 and M3")
+    """Attach an agent to this node by writing its MCP client config. Attaching to another
+    node is `kourob connect`."""
+    import json as _json
+
+    from kourob.node import open_node
+
+    if target.startswith(("http://", "https://")) or Path(target).exists():
+        _fail("to reach another node use `kourob connect <path>`; `attach` is for agents")
+    cell = open_node(node)
+    name = f"kourob-{cell.manifest.identity.name}"
+    entry = {
+        "command": "kourob",
+        "args": ["serve", "--mcp", "--node", str(Path(node).resolve())],
+    }
+    if target in ("claude-code", "cursor"):
+        path = Path(node) / ".mcp.json"
+        config: dict = {}
+        if path.exists():
+            config = _json.loads(path.read_text(encoding="utf-8") or "{}")
+        config.setdefault("mcpServers", {})[name] = entry
+        path.write_text(_json.dumps(config, indent=2) + "\n", encoding="utf-8")
+        typer.secho(f"wrote {path}", fg=typer.colors.GREEN)
+        typer.echo(f"  {target} picks it up from the project root; the server is `{name}`.")
+        return
+    if target == "codex":
+        typer.echo(f"add to ~/.codex/config.toml:\n\n[mcp_servers.{name}]")
+        typer.echo(f'command = "{entry["command"]}"')
+        typer.echo(f"args = {_json.dumps(entry['args'])}")
+        return
+    _fail(f"unknown agent {target!r}; know claude-code, cursor, codex")
 
 
 @app.command()

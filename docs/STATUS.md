@@ -23,7 +23,7 @@ handoffs say how it got there.
 
 | # | Metric | Target | Now | Verdict |
 |---|---|---|---|---|
-| 1 | `init` to a cited answer over MCP | < 10 min | ~5 s to a cited answer — but **over the CLI**, not MCP; `handle()` exists, no stdio server | **not met** on the letter |
+| 1 | `init` to a cited answer over MCP | < 10 min | `kourob init`, `kourob attach claude-code`, and an agent lists five tools over stdio and gets a cited, receipted answer — proven by `tests/test_mcp_server.py` against the real server process | **met** |
 | 2 | T0+T1 share after 30 days | ≥ 80 % | T0 share on the demo is 100 % of answered; T1 does not exist; no 30-day run | **not measurable** |
 | 3 | cost/request day 30 vs day 1 | ≥ 5× down | mining, promotion and installation all work end to end; the curve has never been replayed over 30 days, and without T1 the T3-to-T0 drop is the only step that exists | **unmeasured** |
 | 4 | provenance reconstructible | 100 % | 100 % for one node, proven by tests | **met** (single node) |
@@ -74,7 +74,8 @@ Honest list, in the order they bite:
    that never gets settled.
 6. **Cluster keys are unreadable** and are about to appear in commit messages.
 7. **Keyword retrieval** for T3 will stop scaling, and no measurement says when.
-8. **The MCP port has no transport**, so metric 1 is met by the CLI and not by the letter.
+8. **Only MCP has a transport.** A2A and REST are stubs, so nothing outside this machine can
+   reach a cell, and `examples/ui` has nothing to talk to.
 
 ## The queue
 
@@ -84,7 +85,8 @@ Kept in Beads (`bd ready`), ordered by what moves the sentence, not by milestone
    A2A card and HTTP (`kb-imt`), which is transport, not mechanism.
 2. ~~**Rule mining by exact replay**~~ — done for single-event lookups (`kb-24l`). The
    proposal now carries the rule; `tend` is what installs it.
-3. **MCP stdio server** — metric 1 on the letter, and the first agent attaching.
+3. ~~**MCP stdio server**~~ — done (`kb-dj7`). `kourob serve --mcp`, `kourob attach`,
+   and metric 1 met on the letter.
 4. ~~**`kourob tend`**~~ — done (`kb-2ff`). Decide by autonomy, budget and recorded
    inverse; apply as change events through the gate; halt and demote on breach; rollback.
 5. **Price function, quotes, accounts, meter report** — the economics half of metering.

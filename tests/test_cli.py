@@ -80,7 +80,6 @@ def test_version_prints_version() -> None:
         # into a test that exercises it — the list shrinking is the milestone progressing.
         ["pack", "kb-1"],
         ["publish"],
-        ["attach", "claude-code"],
         ["run", "hello"],
         ["train", "."],
         ["meter", "report"],
