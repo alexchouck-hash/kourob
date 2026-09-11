@@ -82,7 +82,6 @@ def test_version_prints_version() -> None:
         ["publish"],
         ["run", "hello"],
         ["train", "."],
-        ["distill", "train"],
         ["cell", "seams"],
         ["schema", "gen"],
     ],

@@ -107,8 +107,16 @@ class Ledger:
         return self.store.scan("receipts", order_by="seq")
 
     def head(self) -> dict[str, Any] | None:
-        records = self.records()
-        return records[-1] if records else None
+        """The newest record, read alone.
+
+        `append` needs only the head, and reading the whole chain to find it made every
+        answer O(n) in the node's history — invisible at a hundred receipts and the first
+        thing a thirty-day replay ran into.
+        """
+        if self.store.stats("receipts")["rows"] == 0:
+            return None
+        rows = self.store.query("SELECT * FROM receipts ORDER BY seq DESC LIMIT 1").to_pylist()
+        return self.store._decode(rows[0]) if rows else None
 
     def next_prev(self) -> str:
         head = self.head()
@@ -123,17 +131,13 @@ class Ledger:
         one (KNP-0 I1). That is why this raises rather than returning a status.
         """
         fields = fields_for(kind)
-        existing = self.records()
-        prev = (
-            record_hash(existing[-1], fields_for(existing[-1]["kind"]))
-            if existing
-            else genesis_prev(self.did)
-        )
+        head = self.head()
+        prev = record_hash(head, fields_for(head["kind"])) if head else genesis_prev(self.did)
         record = {
             **body,
             "kind": kind,
             "node": self.did,
-            "seq": len(existing),
+            "seq": (int(head["seq"]) + 1) if head else 0,
             "prev": prev,
         }
         private_key = identity.load_private_key(self.node_dir)
@@ -154,13 +158,9 @@ class Ledger:
         """
         if not entries:
             return []
-        existing = self.records()
-        prev = (
-            record_hash(existing[-1], fields_for(existing[-1]["kind"]))
-            if existing
-            else genesis_prev(self.did)
-        )
-        seq = len(existing)
+        head = self.head()
+        prev = record_hash(head, fields_for(head["kind"])) if head else genesis_prev(self.did)
+        seq = (int(head["seq"]) + 1) if head else 0
         private_key = identity.load_private_key(self.node_dir)
 
         written: list[dict[str, Any]] = []

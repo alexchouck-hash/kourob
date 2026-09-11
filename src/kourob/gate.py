@@ -287,6 +287,58 @@ class Gate:
                 self.store.append("quarantine", quarantined)
         return report
 
+    def ingest_gold(self, lines: list[str], *, task: str, source: str = "gold") -> IngestReport:
+        """Write labelled examples to gold. The gate is the only writer of gold, too.
+
+        A gold row is `{"question": ..., "label": ...}` for a task. It is not an event —
+        nothing in the world happened — so it does not pass the contract steps; it passes
+        parse and a shape check, and it is deduped on (task, question). Training code
+        never reads this table; calibration does (AGENTS.md section 4).
+        """
+        report = IngestReport()
+        rows: list[dict[str, Any]] = []
+        seen: set[str] = set()
+        if self.store is not None and self.store.stats("gold")["rows"]:
+            for row in self.store.query(
+                "SELECT question FROM gold WHERE task = $task", {"task": task}
+            ).to_pylist():
+                seen.add(str(row["question"]).strip().lower())
+
+        for line in lines:
+            if not line.strip():
+                continue
+            try:
+                raw = json.loads(line)
+            except json.JSONDecodeError as exc:
+                report.record(GateOutcome(True, "parse", f"not valid JSON: {exc.msg}"))
+                continue
+            question = str(raw.get("question") or "").strip()
+            label = raw.get("label")
+            if not question or label is None:
+                report.record(
+                    GateOutcome(True, "validate.missing_required", "gold needs question and label")
+                )
+                continue
+            key = question.lower()
+            if key in seen:
+                report.record(GateOutcome(True, "dedupe.exact", "already in gold"))
+                continue
+            seen.add(key)
+            report.accepted += 1
+            rows.append(
+                {
+                    "id": ev.new_id("gold_"),
+                    "task": task,
+                    "question": question,
+                    "label": str(label),
+                    "source": source,
+                    "ts": (self._now or ev.now()).isoformat(),
+                }
+            )
+        if self.store is not None and rows:
+            self.store.append("gold", rows)
+        return report
+
     def _silver_row(self, event: ev.Event) -> dict[str, Any]:
         contract = self.contracts[event.schema_ref]
         key_fields = contract.key_fields or self._infer_key_fields(contract)

@@ -14,7 +14,7 @@ handoffs say how it got there.
 |---|---|---|---|
 | create a node in one command | **met** | `kourob init` lays down a working cell that ingests and answers with a citation in seconds | — |
 | connect it to other nodes | **met on disk** | `kourob connect`, route table with Hebbian strength, scope check with declared exclusions, referral with route hints, bridge with chained receipts, hop-list refusal, cross-node `trace`; the M3 router eval passes | only the local transport: no A2A card, no HTTP. A remote route is refused rather than guessed at |
-| become cheaper | **met, unmeasured** | evolve mines a T0 rule by exact replay; `kourob tend` at A2 installs it as a `node_change.v1` event carrying its inverse, and the node answers from it on the next request; one correction disables it; `kourob rollback` restores the prior state — proven by `tests/test_tend.py` and `evals/promotion_test.py` | no T1; no replayed 30-day cost curve; v1 mines single-event lookups only |
+| become cheaper | **met, measured** | evolve mines a T0 rule by exact replay; `kourob tend` at A2 installs it as a `node_change.v1` event carrying its inverse, and the node answers from it on the next request; one correction disables it; `kourob rollback` restores the prior state — proven by `tests/test_tend.py` and `evals/promotion_test.py` | v1 mines single-event lookups only; the T1 student is a nearest-settled-answer model, not a trained network; the 30-day replay takes 40 minutes (`kb-0sl`) |
 | become better | **met in mechanism** | outcomes, settlement from reality, quality multiplier | only `note.v1` settles; no comparator for probabilistic answers |
 | traced back to its sources | **met for one node** | receipts, hash chain, `trace`, tamper detection | upstream receipts across nodes untested because there are no chains yet; no PROV export |
 | metered along the whole chain | **met for one node** | measured token cost; price = base × (1 + demand) × earned quality; quotes with a ceiling the receipt never exceeds; free allowance then post-paid debit; `kourob meter report` and `meter price` — proven by `tests/test_metering.py` | credits are internal and no money moves (by design); a bridge does not yet quote both legs; no Merkle roots |
@@ -24,14 +24,14 @@ handoffs say how it got there.
 | # | Metric | Target | Now | Verdict |
 |---|---|---|---|---|
 | 1 | `init` to a cited answer over MCP | < 10 min | `kourob init`, `kourob attach claude-code`, and an agent lists five tools over stdio and gets a cited, receipted answer — proven by `tests/test_mcp_server.py` against the real server process | **met** |
-| 2 | T0+T1 share after 30 days | ≥ 80 % | T0 share on the demo is 100 % of answered; T1 does not exist; no 30-day run | **not measurable** |
-| 3 | cost/request day 30 vs day 1 | ≥ 5× down | mining, promotion and installation all work end to end; the curve has never been replayed over 30 days, and without T1 the T3-to-T0 drop is the only step that exists | **unmeasured** |
+| 2 | T0+T1 share after 30 days | ≥ 80 % | **measured**: a 30-day, 200/day replay on the tennis cell, starting with T1 off, ends with T0+T1 serving ≥ 80 % — `evals/cost_curve.py` (marked `slow`: one replay takes 40 min, `kb-0sl`) | **met** |
+| 3 | cost/request day 30 vs day 1 | ≥ 5× down | the same replay measures it; T0 costs a scan, T1 a JSON lookup, T3 a priced model call, so the ratio is a real number rather than a tier count. Passes at ≥ 5×; the eval asserts the ratio without printing it, which a follow-up should fix | **met** |
 | 4 | provenance reconstructible | 100 % | 100 % for one node, proven by tests | **met** (single node) |
 | 5 | referral learning | second call goes direct | first call bridges and hands back a route with an evidence receipt; the caller's route table then points at the neighbour; the second call is referred, and a direct call works — proven by `evals/router_test.py` | **met** (local transport) |
 | 6 | split proposed within one evolve cycle | yes | yes, with a child manifest, proven by eval | **met** |
 
-Three of six met (5 on the local transport), one met-for-one-node, two not measurable
-until rule mining exists.
+Six of six met — 4 for one node, 5 on the local transport, 2 and 3 by a replay that takes
+forty minutes and runs only on purpose (`-m slow`).
 
 ## Milestones
 
@@ -42,7 +42,7 @@ until rule mining exists.
 | **M2** | compile loop (pages from events, a citation on every claim, page per key), lint loop (uncited, orphan, hand-edited), `get_page` serving compiled pages, `attach`, the markdown in-port, the dogfood node answering the M2 question from this repo's own docs | packs, the real fresh-agent eval |
 | **M3** | scope check with declared exclusions, referral, bridge, routes, connect, hop lists, cross-node trace, router eval — all on the local transport | A2A card and HTTP transport, T1 scope classifier, tennis node |
 | **M4** | outcomes, clustering, evolve, split, `tend` with rollback, halts and autonomy demotion, price function, quotes with a ceiling, accounts, allowance refusal, meter report | Merkle roots, ADR-0003/4/5 (owed: KNP-3/4/5 draft the mechanisms) |
-| **M5** | nothing | rule mining, T1, distill, cost curve, UI, publish |
+| **M5** | rule mining by exact replay, demotion on one correction, the T1 student trained on settled answers and calibrated per class against gold, `kourob distill train|calibrate|gold`, and the 30-day cost-curve replay (slow) | UI, publish; replay performance (`kb-0sl`) |
 
 ## Where the design is stronger than the brief
 
@@ -65,9 +65,9 @@ Honest list, in the order they bite:
 2. **Autonomy is exercised only by tests.** `tend` applies, rolls back, halts and demotes,
    and suggests graduation — but no real cell has run at A2 for long enough to say whether
    the ladder's evidence gates are set right.
-   KNP-7 exists only as a document.
-3. **The cost curve is a claim.** The headline 5× has never been measured because nothing
-   mines rules.
+3. **Serving is slow at scale.** A 30-day replay takes 40 minutes — roughly 400 ms a
+   request — so the cost-curve evals are `slow` and off by default. The profile named the
+   culprits (`kb-0sl`); the fix is per-request work that is O(receipts) or O(examples).
 4. **`answer_entropy` is computed across all history**, so a legitimately updated answer
    reads as non-deterministic and blocks a promotion that should happen.
 5. **T3 answers have no `settle_key`**, so the tier most in need of correction is the one
@@ -92,7 +92,7 @@ Kept in Beads (`bd ready`), ordered by what moves the sentence, not by milestone
 5. ~~**Price function, quotes, accounts, meter report**~~ — done (`kb-k60`).
 6. ~~**Compile and lint, and the dogfood node**~~ — done (`kb-afx`). The repo serves its
    own docs with a citation on every claim.
-7. **T1 and the cost-curve eval** — the headline number, measured.
+7. ~~**T1 and the cost-curve eval**~~ — done (`kb-ayo`). Measured over a real 30-day replay; the replay itself is too slow for CI (`kb-0sl`).
 8. **Tennis set** — the first real integration.
 9. **ADR-0003/4/5, Merkle, PROV export, schema codegen** — owed, not blocking.
 

@@ -21,6 +21,7 @@ __milestone__ = "M1"
 
 LOGICAL_TABLES = (
     "silver",
+    "gold",
     "quarantine",
     "requests",
     "receipts",

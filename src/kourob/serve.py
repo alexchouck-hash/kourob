@@ -45,13 +45,17 @@ def build_cascade(node: Node, *, runner: Runner | None = None) -> Cascade:
         raise TypeError("v1 serves from the Parquet backend")
     base = node.manifest.pricing.base_cost
     runner = runner or Runner(node.manifest, store=store)
-    return Cascade(
-        node.manifest,
-        {
-            Tier.T0: T0Rules(node.dir, store, base_cost=base[Tier.T0]),
-            Tier.T3: T3Frontier(node.dir, store, runner, node.manifest),
-        },
-    )
+    handlers: dict[Tier, Any] = {
+        Tier.T0: T0Rules(node.dir, store, base_cost=base[Tier.T0]),
+        Tier.T3: T3Frontier(node.dir, store, runner, node.manifest),
+    }
+    if node.manifest.tier_enabled(Tier.T1):
+        # Only constructed when enabled, and `enable` refuses without gold - so a T1 in
+        # the cascade is a T1 that was checked against something other than its teacher.
+        from kourob.tiers.t1_student import T1Student
+
+        handlers[Tier.T1] = T1Student(node.dir, store)
+    return Cascade(node.manifest, handlers)
 
 
 def answer(

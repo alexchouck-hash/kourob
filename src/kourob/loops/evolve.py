@@ -267,7 +267,7 @@ def _propose_promotions(
             )
             continue
 
-        target, threshold = _next_rung(current)
+        target, threshold = _next_rung(current, node.manifest)
         if target is None:
             continue
 
@@ -690,13 +690,31 @@ def _dominant_tier(cluster: ClusterStats) -> Tier | None:
     return max(cluster.tier_mix.items(), key=lambda kv: kv[1])[0]
 
 
-def _next_rung(current: Tier) -> tuple[Tier | None, int]:
-    """The rung below, and the settled-example count that unlocks it (KNP-5 section 3)."""
-    return {
-        Tier.T3: (Tier.T2, N_FEWSHOT),
-        Tier.T2: (Tier.T1, N_DISTILL),
-        Tier.T1: (Tier.T0, N_RULE),
-    }.get(current, (None, 0))
+def _next_rung(current: Tier, manifest: Any = None) -> tuple[Tier | None, int]:
+    """The rung below, and the settled-example count that unlocks it (KNP-5 section 3).
+
+    A rung the manifest does not enable is skipped, with the *stricter* gate carried down:
+    a node without a T2 goes T3 to T1 and needs T1's thousand settled examples, not T2's
+    fifty. Skipping a tier is fine; skipping its evidence is not.
+    """
+    ladder = [
+        (Tier.T2, N_FEWSHOT),
+        (Tier.T1, N_DISTILL),
+        (Tier.T0, N_RULE),
+    ]
+    order = [Tier.T3, Tier.T2, Tier.T1, Tier.T0]
+    if current not in order or current is Tier.T0:
+        return None, 0
+    threshold = 0
+    for tier, needed in ladder[order.index(current) :]:
+        threshold = max(threshold, needed)
+        # Only T2 can be absent from a node. T1 is disabled until it is *promoted to* -
+        # that is what the promotion does - and its own gate (a gold set) is checked when
+        # the proposal is applied, not here.
+        if tier is Tier.T2 and manifest is not None and not manifest.tier_enabled(Tier.T2):
+            continue
+        return tier, threshold
+    return None, 0
 
 
 def _disjoint_pair(clusters: list[ClusterStats]) -> tuple[ClusterStats, ClusterStats] | None:

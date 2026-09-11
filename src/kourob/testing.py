@@ -10,6 +10,7 @@ would prove nothing about the node.
 
 from __future__ import annotations
 
+import contextlib
 import json
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -246,6 +247,11 @@ def tennis_cell(tmp_path: Path | str, *, name: str = "tennis") -> Path:
         target / "tiers" / "t0" / "rules" / "shot-lookup.yaml",
     )
     node.manifest.scope.schemas = ["shot.v1", "note.v1", "note_check.v1"]
+    # A shot-charting cell does not predict winners. Declaring that (KNP-1 section 2) is
+    # what makes "who wins wimbledon" a refusal here rather than a question T3 gets asked.
+    node.manifest.scope.excludes = [
+        manifest_mod.Exclusion(pattern=r"who wins|winner of|champion|prediction", refer_to=None)
+    ]
     manifest_mod.save(target, node.manifest)
     node_mod.open_node(target).ingest(FIXTURES / "events.jsonl")
     return target
@@ -441,7 +447,202 @@ def outcomes_for_tier(node_dir: Path | str, tier: Tier) -> list[Any]:
     return [o for o in read_outcomes(node.ledger) if o.about in tiered]
 
 
+@dataclass
+class DayStats:
+    """One day of replayed traffic, as the cost-curve eval reads it."""
+
+    day: int
+    requests: int
+    cost_per_request: float
+    tier_share: dict[str, float]
+
+
+def _shot_questions() -> list[tuple[str, bool]]:
+    """(question, t0_bindable) over the accepted gate fixtures, in two phrasings."""
+    import json
+
+    rows = [
+        json.loads(line)
+        for line in (FIXTURES / "events.jsonl").read_text(encoding="utf-8").splitlines()
+        if line.strip() and json.loads(line).get("_expect") == "accept"
+    ]
+    out: list[tuple[str, bool]] = []
+    for row in rows:
+        m, p, i = row["match_id"], row["point_id"], row["shot_index"]
+        out.append((f"shot {i} of point {p} in match {m}", True))
+        out.append((f"which player hit shot {i} in point {p} of match {m}", False))
+    return out
+
+
+def tennis_node_fixture(tmp_path: Path | str, *, with_gold: bool = True) -> Path:
+    """The tennis cell, with a gold set labelled by what the node's own rule path decides.
+
+    Gold here is honest in the only way a synthetic gold can be: the labels are the teacher's
+    decisions on questions the teacher has not otherwise seen, so a student that matches
+    them has learned the decision boundary rather than memorised the training rows.
+    """
+    import json
+
+    from kourob.loops.distill.calibrate import teacher_label
+
+    cell = tennis_cell(tmp_path, name="tennis-node")
+    node = node_mod.open_node(cell)
+    node.manifest.pricing.token_rates.pop("local", None)  # price local model calls for real
+    manifest_mod.save(cell, node.manifest)
+    if with_gold:
+        node = node_mod.open_node(cell)
+        questions = [q for q, _ in _shot_questions()] + [
+            "who wins wimbledon",
+            "who wins the french open",
+            "how did the tennis match go",
+        ]
+        lines = [json.dumps({"question": q, "label": teacher_label(node, q)}) for q in questions]
+        node.gate.ingest_gold(lines, task="scope_classifier")
+        _warm_student(cell)
+    return cell
+
+
+def _warm_student(cell: Path) -> None:
+    """Ask, settle, and enable: the student needs settled answers to learn from.
+
+    Two passes over the shot questions through the real serving path with a scripted
+    grounded model, every accepted answer settled as `source: reality`, then `enable` -
+    which trains on those, calibrates on gold, and switches T1 on.
+    """
+    from kourob import serve
+    from kourob.ledger.chain import RECORD_OUTCOME
+    from kourob.tiers.t1_student import T1Student
+
+    node = node_mod.open_node(cell)
+    runner = _scripted_grounded_runner(node)
+    settle: list[tuple[str, dict[str, Any]]] = []
+    for _ in range(2):
+        for question, _bindable in _shot_questions():
+            answer = serve.answer(node, question, caller="user:warm", runner=runner)
+            if answer.scope_result.value == "in_scope" and answer.citations:
+                settle.append(
+                    (
+                        RECORD_OUTCOME,
+                        {
+                            "id": ev.new_id(ev.OUTCOME_PREFIX),
+                            "about": answer.receipt_id,
+                            "verdict": "accepted",
+                            "source": "reality",
+                            "evidence": list(answer.citations[:1]),
+                            "by": None,
+                            "note": "warm-up settlement",
+                            "latency_s": 60.0,
+                            "ts": ev.now().isoformat(),
+                        },
+                    )
+                )
+    node.ledger.extend(settle)
+    T1Student.enable(node_mod.open_node(cell))
+
+
+def replay_synthetic_traffic(
+    node_dir: Path | str,
+    *,
+    days: int = 30,
+    requests_per_day: int = 200,
+    evolve_weekly: bool = True,
+    t3_share: float = 0.3,
+) -> list[DayStats]:
+    """Thirty days of a cell's life, compressed: ask, settle, tend weekly, measure.
+
+    Each day asks `requests_per_day` questions - a mix of rule-bindable lookups and
+    paraphrases only a model answers - through the real serving path with a scripted
+    grounded model priced at the default token rate. Every accepted answer is settled that
+    day (`source: reality`), so the promotion gates see what a real settled cell would.
+    Weekly, `tend` runs at A2 and applies what it may. Cost per request is measured from
+    the request log, not computed from the tiers.
+    """
+    import random
+
+    from kourob import serve
+    from kourob.ledger.chain import RECORD_OUTCOME
+    from kourob.loops.tend import tend
+    from kourob.tiers.t1_student import T1Student
+
+    node_dir = Path(node_dir)
+    node = node_mod.open_node(node_dir)
+    node.manifest.autonomy.level = "A2"  # type: ignore[assignment]
+    manifest_mod.save(node_dir, node.manifest)
+    # A caller that asks two hundred times a day for a month is a paying caller. The first
+    # replay forgot this: the free allowance ran out on day one and every request after
+    # was refused for credit - the curve measured a node saying no, at no cost.
+    from kourob.ledger.accounts import Accounts
+
+    Accounts(node.store).credit("user:replay", 1_000.0, note="replay: a month of a paying caller")
+    # Day one is a node that has not distilled anything yet. The fixture's warm-up enabled
+    # T1 so the student could be scored; the replay switches it off and lets the weekly
+    # tend bring it back, so the curve starts where a real cell starts.
+    T1Student.disable(node)
+
+    rng = random.Random(7)
+    lookups = [q for q, bindable in _shot_questions() if bindable]
+    paraphrases = [q for q, bindable in _shot_questions() if not bindable]
+    stats: list[DayStats] = []
+
+    for day in range(1, days + 1):
+        node = node_mod.open_node(node_dir)
+        runner = _scripted_grounded_runner(node)
+        costs: list[float] = []
+        tiers: dict[str, int] = {}
+        settle: list[tuple[str, dict]] = []
+        for _ in range(requests_per_day):
+            question = rng.choice(paraphrases if rng.random() < t3_share else lookups)
+            answer = serve.answer(node, question, caller="user:replay", runner=runner)
+            row = node.store.query(
+                "SELECT cost_credits, tier_used FROM requests WHERE receipt_id = $r",
+                {"r": answer.receipt_id},
+            ).to_pylist()[0]
+            costs.append(float(row["cost_credits"] or 0.0))
+            tier = str(row["tier_used"] or "-")
+            tiers[tier] = tiers.get(tier, 0) + 1
+            if answer.scope_result.value == "in_scope" and answer.citations:
+                settle.append(
+                    (
+                        RECORD_OUTCOME,
+                        {
+                            "id": ev.new_id(ev.OUTCOME_PREFIX),
+                            "about": answer.receipt_id,
+                            "verdict": "accepted",
+                            "source": "reality",
+                            "evidence": list(answer.citations[:1]),
+                            "by": None,
+                            "note": f"replay day {day}",
+                            "latency_s": 3600.0,
+                            "ts": ev.now().isoformat(),
+                        },
+                    )
+                )
+        node.ledger.extend(settle)  # the store folds its own parts as they pile up
+
+        if evolve_weekly and day % 7 == 0:
+            tend(node_dir, autonomy_max="A2", budget=10.0)
+            fresh = node_mod.open_node(node_dir)
+            if not fresh.manifest.tier_enabled(Tier.T1):
+                # The operator's move, once there is something to check it against: enable
+                # the student. Its bar is calibrated on gold, per class, as it is enabled.
+                with contextlib.suppress(ValueError):  # no gold yet: T3 keeps serving
+                    T1Student.enable(fresh)
+
+        total = max(1, len(costs))
+        stats.append(
+            DayStats(
+                day=day,
+                requests=len(costs),
+                cost_per_request=sum(costs) / total,
+                tier_share={t: n / total for t, n in tiers.items()}
+                | {t: 0.0 for t in ("T0", "T1", "T3") if t not in tiers},
+            )
+        )
+    return stats
+
+
 __all__ = [
+    "DayStats",
     "Peer",
     "cluster_with_an_edge_case",
     "correct_one_t0_answer",
@@ -449,8 +650,10 @@ __all__ = [
     "node_with_promoted_rule",
     "note_check",
     "outcomes_for_tier",
+    "replay_synthetic_traffic",
     "synthetic_request_log",
     "t3_answered_cell",
     "tennis_cell",
+    "tennis_node_fixture",
     "two_node_fixture",
 ]

@@ -189,6 +189,15 @@ def apply_change(node: Node, kind: str, target: str, *, rule_yaml: str | None = 
             return False
         live.rename(disabled)
         return True
+    if kind in ("retrain", "enable") and target == "t1":
+        from kourob.tiers.t1_student import T1Student
+
+        T1Student.enable(node)  # raises ValueError without gold: never silently
+        return True
+    if kind == "disable" and target == "t1":
+        from kourob.tiers.t1_student import T1Student
+
+        return T1Student.disable(node)
     if kind == "shed":
         if target not in node.manifest.scope.schemas:
             return False
@@ -212,6 +221,10 @@ def apply_change(node: Node, kind: str, target: str, *, rule_yaml: str | None = 
 def _inverse_of(proposal: Proposal) -> dict[str, Any] | None:
     """The recorded inverse for a proposal, or None — and None means never auto-apply."""
     if proposal.kind is ProposalKind.PROMOTE and proposal.to_tier is not None:
+        from kourob.types import Tier
+
+        if proposal.to_tier is Tier.T1:
+            return {"kind": "disable", "target": "t1"}  # the model file stays; a lookup
         rule = proposal.evidence.get("rule")
         return {"kind": "demote", "target": rule} if rule else None
     if proposal.kind is ProposalKind.DEMOTE:
@@ -261,6 +274,14 @@ def _halt_reason(node: Node, evolve_report: EvolveReport) -> str | None:
     return None
 
 
+def _needs_gold(node: Node, proposal: Proposal) -> bool:
+    """A T1 promotion is applied only against a gold set (brief section 15)."""
+    from kourob.loops.distill.calibrate import gold_rows
+    from kourob.types import Tier
+
+    return proposal.to_tier is Tier.T1 and not gold_rows(node)
+
+
 # --------------------------------------------------------------------------------- decide
 
 
@@ -286,6 +307,15 @@ def decide(node: Node, proposals: list[Proposal], *, level: str, budget: float) 
         if _inverse_of(proposal) is None:
             decisions.append(
                 Decision(proposal, "propose", "no recorded inverse: never auto-applied")
+            )
+            continue
+        if proposal.kind is ProposalKind.PROMOTE and _needs_gold(node, proposal):
+            decisions.append(
+                Decision(
+                    proposal,
+                    "propose",
+                    "T1 needs a gold set to be checked against, and this node has none",
+                )
             )
             continue
         remaining -= cost
@@ -373,6 +403,11 @@ def _apply(node: Node, decision: Decision, level: str) -> Applied | None:
     assert inverse is not None
     target = _target_of(proposal)
     kind = proposal.kind.value
+    if proposal.kind is ProposalKind.PROMOTE and proposal.to_tier is not None:
+        from kourob.types import Tier
+
+        if proposal.to_tier is Tier.T1:
+            kind, target = "retrain", "t1"
 
     if proposal.kind is ProposalKind.DEMOTE and proposal.evidence.get("disabled"):
         changed = True  # evolve already renamed the file; this records the fact

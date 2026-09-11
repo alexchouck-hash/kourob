@@ -32,7 +32,7 @@ pytestmark = [pytest.mark.m5, pytest.mark.eval]
 M5 = "M5 not implemented"
 
 
-@pytest.mark.xfail(reason=M5)
+@pytest.mark.slow
 def test_a_promoted_t0_rule_is_never_corrected_in_the_replay_window(tmp_path) -> None:
     """KNP-5 section 10, claim 3. The core promise of `derived`, over thirty replayed days.
 

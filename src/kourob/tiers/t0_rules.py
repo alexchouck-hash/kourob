@@ -28,6 +28,11 @@ __milestone__ = "M1"
 
 RULES_DIR = "tiers/t0/rules"
 
+#: What a T0 answer *costs*: one SQL scan over silver. Measured, not priced - the price is
+#: `base_cost[T0]` in the manifest and the pricer applies it. Conflating the two hid the
+#: cost curve: a rule "costing" its price can never look cheaper than its price.
+T0_COMPUTE_COST = 0.00001
+
 
 @dataclass
 class Rule:
@@ -71,14 +76,26 @@ class Rule:
         return match.groupdict() if match else None
 
 
+#: Parsed rules per rules directory, keyed by the files' names and mtimes. A rule changes
+#: when a file changes - by hand, by `tend`, by `rollback` - and every one of those touches
+#: the mtime. Re-parsing YAML on every request was a fifth of a request's time.
+_RULE_CACHE: dict[tuple[str, tuple[tuple[str, float], ...]], list[Rule]] = {}
+
+
 def load_rules(node_dir: Path | str) -> list[Rule]:
     rules_dir = Path(node_dir) / RULES_DIR
     if not rules_dir.exists():
         return []
-    return [
-        Rule.from_dict(yaml.safe_load(p.read_text(encoding="utf-8")))
-        for p in sorted(rules_dir.glob("*.yaml"))
-    ]
+    files = sorted(rules_dir.glob("*.yaml"))
+    key = (str(rules_dir.resolve()), tuple((p.name, p.stat().st_mtime) for p in files))
+    cached = _RULE_CACHE.get(key)
+    if cached is not None:
+        return cached
+    rules = [Rule.from_dict(yaml.safe_load(p.read_text(encoding="utf-8"))) for p in files]
+    if len(_RULE_CACHE) > 32:  # a cache, not a history: a few live cells is plenty
+        _RULE_CACHE.pop(next(iter(_RULE_CACHE)))
+    _RULE_CACHE[key] = rules
+    return rules
 
 
 class T0Rules(TierHandler):
@@ -114,7 +131,7 @@ class T0Rules(TierHandler):
                 rendered=self._render(rule, rows),
                 citations=[r["id"] for r in rows if r.get("id")],
                 model_version=f"rule:{rule.id}",
-                cost_credits=self.base_cost,
+                cost_credits=T0_COMPUTE_COST,
                 detail=rule.description,
                 settle_key=rule.settle_key_for(params),
             )

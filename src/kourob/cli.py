@@ -562,14 +562,70 @@ def loop_list(node: Annotated[Path, typer.Option()] = Path(".")) -> None:
 
 @distill_app.command("train")
 def distill_train(node: Annotated[Path, typer.Option()] = Path(".")) -> None:
-    """Train the T1 student from the call log. Refuses if the node has no gold set."""
-    _todo("distill train", "M5", "sections 6.1 and 15")
+    """Train the T1 student from settled answers and switch it on. Refuses without gold."""
+    from kourob.node import open_node
+    from kourob.tiers.t1_student import T1Student, load_student
+
+    try:
+        path = T1Student.enable(open_node(node))
+    except ValueError as exc:
+        _fail(str(exc))
+        return
+    student = load_student(node)
+    assert student is not None
+    typer.secho(
+        f"trained {student.version}: {student.trained_on} settled examples", fg=typer.colors.GREEN
+    )
+    typer.echo(f"  model  {path}")
+    typer.echo(f"  bar    {student.bar:.2f}  (calibrated on gold, per class)")
 
 
 @distill_app.command("calibrate")
 def distill_calibrate(node: Annotated[Path, typer.Option()] = Path(".")) -> None:
-    """Calibrate cascade thresholds against gold, per class."""
-    _todo("distill calibrate", "M5", "section 15")
+    """Score the student against gold, per class, and set its confidence bar."""
+    from kourob.loops.distill.calibrate import calibrate_bar, compare_to_teacher
+    from kourob.node import open_node
+
+    cell = open_node(node)
+    try:
+        scores = compare_to_teacher(cell)
+    except ValueError as exc:
+        _fail(str(exc))
+        return
+    bar = calibrate_bar(cell)
+    typer.echo(
+        f"gold {scores.n}  teacher {scores.teacher_accuracy:.3f}  student "
+        f"{scores.student_accuracy:.3f}  gap {scores.gap:+.3f}  bar {bar:.2f}"
+    )
+    for label, row in sorted(scores.per_class.items()):
+        typer.echo(
+            f"  {label:<24} n={int(row['n']):<4} teacher {row['teacher_accuracy']:.2f}  "
+            f"student {row['student_accuracy']:.2f}"
+        )
+    if scores.gap > 0.02:
+        typer.secho(
+            f"student is {scores.gap:.3f} behind the teacher (weakest: {scores.weakest_class}); "
+            "KNP-5 section 3.2 allows 0.02",
+            fg=typer.colors.YELLOW,
+        )
+
+
+@distill_app.command("gold")
+def distill_gold(
+    path: Annotated[Path, typer.Argument(help="JSONL of {question, label} rows.")],
+    task: Annotated[str, typer.Option(help="Which task these label.")] = "scope_classifier",
+    node: Annotated[Path, typer.Option()] = Path("."),
+) -> None:
+    """Push labelled examples into gold. Through the gate, like everything else."""
+    from kourob.node import open_node
+
+    cell = open_node(node)
+    report = cell.gate.ingest_gold(path.read_text(encoding="utf-8").splitlines(), task=task)
+    typer.secho(
+        f"gold: accepted {report.accepted}, rejected {report.rejected}", fg=typer.colors.GREEN
+    )
+    for step, count in sorted(report.reasons.items()):
+        typer.echo(f"  {count:>4}  {step}")
 
 
 @scope_app.command("show")

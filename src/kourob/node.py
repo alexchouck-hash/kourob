@@ -10,6 +10,7 @@ Recorded in docs/decisions/.
 
 from __future__ import annotations
 
+import functools
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
@@ -44,8 +45,11 @@ class Node:
     store: ParquetDuckDBStore
     did: str
 
-    @property
+    @functools.cached_property
     def contracts(self) -> dict[str, Contract]:
+        """Parsed once per opened node. Contracts change by a human editing a file, and a
+        `Node` is opened per request; re-parsing every YAML on every access was a third of
+        a request's time."""
         return load_dir(self.dir / "schemas")
 
     @property

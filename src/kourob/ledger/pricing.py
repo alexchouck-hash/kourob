@@ -83,6 +83,45 @@ class Quote(BaseModel):
         )
 
 
+QUALITY_CACHE = "logs/quality.json"
+QUALITY_REFRESH_RECEIPTS = 200
+
+
+def _trailing_quality(node: Any, now: datetime) -> float:
+    """Quality over a trailing window, recomputed every `QUALITY_REFRESH_RECEIPTS` receipts.
+
+    `settlement_status` decodes the whole chain. Doing that per request made pricing
+    O(receipts); doing it every couple of hundred receipts keeps the number current to within
+    a window nobody would notice and costs nothing on the path a caller waits on. The cache
+    is a file under `logs/`, so a fresh process picks it up too.
+    """
+    import json
+    from pathlib import Path
+
+    from kourob.ledger.outcomes import settlement_status
+
+    path = Path(node.dir) / QUALITY_CACHE
+    receipts = node.store.stats("receipts")["rows"]
+    if path.exists():
+        try:
+            cached = json.loads(path.read_text(encoding="utf-8"))
+            fresh_enough = receipts - int(cached.get("receipts_at", -(10**9)))
+            # A young node recomputes every time: its chain is tiny and every outcome
+            # moves the number. The cache earns its keep once the chain is long.
+            if receipts >= QUALITY_REFRESH_RECEIPTS and fresh_enough < QUALITY_REFRESH_RECEIPTS:
+                return float(cached["quality"])
+        except (ValueError, KeyError, TypeError):
+            pass
+    status = settlement_status(node.ledger, node.contracts, now=now)
+    quality = status.quality_multiplier(Q_MIN, Q_MAX)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps({"quality": quality, "receipts_at": receipts, "ts": now.isoformat()}),
+        encoding="utf-8",
+    )
+    return quality
+
+
 class Pricer:
     """Prices for one node, from its manifest, its request log and its settled outcomes."""
 
@@ -119,11 +158,25 @@ class Pricer:
         return count
 
     def quality(self) -> float:
-        if self._quality is None:
-            from kourob.ledger.outcomes import settlement_status
+        """Earned quality over a trailing window (KNP-3 section 3).
 
-            status = settlement_status(self.node.ledger, self.node.contracts, now=self.now)
-            self._quality = status.quality_multiplier(Q_MIN, Q_MAX)
+        Read from the last evolve report when there is one: that *is* the trailing-window
+        computation, done once per cycle. Computing it from the whole ledger on every
+        request made each answer O(receipts) - a thirty-day replay spent most of its 36
+        minutes decoding the chain to price a lookup. With no report yet, compute it once.
+        """
+        if self._quality is None:
+            from kourob.loops.evolve import past_reports
+
+            reports = past_reports(self.node.dir)
+            if reports:
+                try:
+                    q = float(reports[-1]["objective"]["quality_multiplier"])
+                    self._quality = max(Q_MIN, min(Q_MAX, q))
+                    return self._quality
+                except (KeyError, TypeError, ValueError):
+                    pass
+            self._quality = _trailing_quality(self.node, self.now)
         return self._quality
 
     def demand(self) -> float:

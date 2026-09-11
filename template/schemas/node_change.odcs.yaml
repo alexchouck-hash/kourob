@@ -19,7 +19,7 @@ schema:
       - name: kind
         logicalType: string
         required: true
-        enum: [promote, demote, tune, shed, restore, split, merge, retrain, rollback, autonomy]
+        enum: [promote, demote, tune, shed, restore, split, merge, retrain, enable, disable, rollback, autonomy]
       - name: target
         logicalType: string
         required: true

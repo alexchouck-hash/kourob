@@ -31,6 +31,7 @@ __milestone__ = "M1"
 #: Logical table name to its directory, relative to the node root. Callers never see these.
 TABLE_PATHS = {
     "silver": "data/silver",
+    "gold": "data/gold",
     "quarantine": "data/quarantine",
     "requests": "logs/requests",
     "receipts": "ledger/receipts",
@@ -38,6 +39,11 @@ TABLE_PATHS = {
     "calls": "logs/calls",
     "accounts": "ledger/accounts",
 }
+
+#: Parts per table before an append folds them. Each append writes one Parquet part; a
+#: query reads them all. Sixty-four is small enough to keep reads fast and large enough
+#: that folding costs a fraction of the writes it follows.
+AUTO_COMPACT_PARTS = 64
 
 #: Statements a read-only query may begin with. Everything else is refused.
 _READ_PREFIXES = ("select", "with", "describe", "explain", "summarize", "pragma", "show")
@@ -53,6 +59,12 @@ class ParquetDuckDBStore(Store):
         self.node_dir = Path(node_dir)
         self.partition_by = partition_by
         self._conn: duckdb.DuckDBPyConnection | None = None
+        #: Per table, the part list the current view was built over. Re-registering every
+        #: view on every query re-globbed seven directories per request; comparing part
+        #: lists makes a query over an unchanged table free.
+        self._registered: dict[str, tuple[str, ...]] = {}
+        self._parts_cache: dict[str, list[Path]] = {}
+        self._row_counts: dict[str, int] = {}
 
     # ------------------------------------------------------------------ internals
 
@@ -66,8 +78,23 @@ class ParquetDuckDBStore(Store):
         return when.strftime("%Y-%m") if self.partition_by == "month" else when.strftime("%Y")
 
     def _parts(self, table: str) -> list[Path]:
+        """The Parquet parts of a table, globbed once and cached until this store writes.
+
+        ADR-0001 makes a node a single writer, so the only thing that changes a table's
+        part list is this object's own `append` or `compact` - both invalidate. Globbing on
+        every query was a quarter of a million `stat` calls in two hundred requests.
+        """
+        cached = self._parts_cache.get(table)
+        if cached is not None:
+            return cached
         root = self._dir(table)
-        return sorted(root.glob("*/*.parquet")) if root.exists() else []
+        parts = sorted(root.glob("*/*.parquet")) if root.exists() else []
+        self._parts_cache[table] = parts
+        return parts
+
+    def _invalidate(self, table: str) -> None:
+        self._parts_cache.pop(table, None)
+        self._row_counts.pop(table, None)
 
     @property
     def conn(self) -> duckdb.DuckDBPyConnection:
@@ -84,8 +111,11 @@ class ParquetDuckDBStore(Store):
         """
         for table in LOGICAL_TABLES:
             parts = self._parts(table)
+            signature = tuple(p.as_posix() for p in parts)
+            if self._registered.get(table) == signature:
+                continue  # unchanged since last query: the view is still right
             if parts:
-                paths = ", ".join(f"'{p.as_posix()}'" for p in parts)
+                paths = ", ".join(f"'{p}'" for p in signature)
                 self.conn.execute(
                     f"CREATE OR REPLACE VIEW {table} AS "
                     f"SELECT * FROM read_parquet([{paths}], union_by_name=true)"
@@ -94,6 +124,7 @@ class ParquetDuckDBStore(Store):
                 self.conn.execute(
                     f"CREATE OR REPLACE VIEW {table} AS SELECT NULL AS id WHERE FALSE"
                 )
+            self._registered[table] = signature
 
     @staticmethod
     def _encode(rows: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -137,8 +168,13 @@ class ParquetDuckDBStore(Store):
             part_dir / f"part-{ULID()}.parquet",
             compression="zstd",
         )
-        self._conn = None  # views are stale; rebuilt lazily on next read
-        return len(encoded)
+        self._invalidate(table)
+        if len(self._parts(table)) > AUTO_COMPACT_PARTS:
+            # One part per append is right for an audit trail and wrong for a query: a view
+            # over thousands of tiny files is what turned a month of replayed traffic into
+            # hours. Fold them once the count gets silly; the rows and their order survive.
+            self.compact(table, before="9999-99")
+        return len(encoded)  # the next query sees a new part list and rebuilds this view
 
     def query(self, sql: str, params: Sequence[Any] | Mapping[str, Any] | None = None) -> pa.Table:
         stripped = sql.lstrip().lower()
@@ -208,12 +244,24 @@ class ParquetDuckDBStore(Store):
                 old.unlink()
             compacted += 1
         self._conn = None
+        self._registered = {}
+        self._parts_cache = {}
+        self._row_counts = {}
         return compacted
 
     def stats(self, table: str) -> dict[str, Any]:
         parts = self._parts(table)
         partitions = self.partitions(table)
-        rows = sum(pq.ParquetFile(p).metadata.num_rows for p in parts)
+        # Counted once per write, by DuckDB. Opening every part's footer on every call was
+        # fifty thousand `ParquetFile` constructions in two hundred requests.
+        if table not in self._row_counts:
+            if parts:
+                self._register_views()
+                count = self.conn.execute(f"SELECT count(*) AS n FROM {table}").fetchone()
+                self._row_counts[table] = int(count[0] if count else 0)
+            else:
+                self._row_counts[table] = 0
+        rows = self._row_counts[table]
         return {
             "table": table,
             "rows": rows,
