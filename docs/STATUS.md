@@ -39,7 +39,7 @@ until rule mining exists.
 |---|---|---|
 | **M0** | everything | — |
 | **M1** | manifest, identity, store, gate (P 1.0 / R 1.0), events, ledger, T0, T3, cascade, MCP handler, init, trace | MCP stdio server; PROV export; schema codegen and diff |
-| **M2** | nothing | compile loop, lint loop, packs, attach, the dogfood node |
+| **M2** | compile loop (pages from events, a citation on every claim, page per key), lint loop (uncited, orphan, hand-edited), `get_page` serving compiled pages, `attach`, the markdown in-port, the dogfood node answering the M2 question from this repo's own docs | packs, the real fresh-agent eval |
 | **M3** | scope check with declared exclusions, referral, bridge, routes, connect, hop lists, cross-node trace, router eval — all on the local transport | A2A card and HTTP transport, T1 scope classifier, tennis node |
 | **M4** | outcomes, clustering, evolve, split, `tend` with rollback, halts and autonomy demotion, price function, quotes with a ceiling, accounts, allowance refusal, meter report | Merkle roots, ADR-0003/4/5 (owed: KNP-3/4/5 draft the mechanisms) |
 | **M5** | nothing | rule mining, T1, distill, cost curve, UI, publish |
@@ -90,7 +90,8 @@ Kept in Beads (`bd ready`), ordered by what moves the sentence, not by milestone
 4. ~~**`kourob tend`**~~ — done (`kb-2ff`). Decide by autonomy, budget and recorded
    inverse; apply as change events through the gate; halt and demote on breach; rollback.
 5. ~~**Price function, quotes, accounts, meter report**~~ — done (`kb-k60`).
-6. **Compile and lint** — pages with citations, and the dogfood node.
+6. ~~**Compile and lint, and the dogfood node**~~ — done (`kb-afx`). The repo serves its
+   own docs with a citation on every claim.
 7. **T1 and the cost-curve eval** — the headline number, measured.
 8. **Tennis set** — the first real integration.
 9. **ADR-0003/4/5, Merkle, PROV export, schema codegen** — owed, not blocking.

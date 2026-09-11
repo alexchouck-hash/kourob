@@ -116,10 +116,14 @@ def test_implemented_ports_return_the_answer_envelope() -> None:
     Checked as "the module uses the Answer type", which is where that shape is defined
     once. Stubs are exempt until they are implemented.
     """
+    # In-ports translate documents into pushes for the gate; they answer nothing and have
+    # no handler to return an envelope from. Everything that *answers* is checked.
+    in_ports = {"files.py", "git.py"}
     offenders = [
         _rel(p)
         for p in (SRC / "ports").glob("*.py")
         if p.name != "__init__.py"
+        and p.name not in in_ports
         and not _is_stub(p)
         and "Answer" not in p.read_text(encoding="utf-8")
     ]

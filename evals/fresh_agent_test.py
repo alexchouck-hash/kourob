@@ -50,7 +50,6 @@ def test_fresh_agent_answers_with_a_citation_inside_the_budget() -> None:
     assert pack.token_count < PACK_TOKEN_BUDGET, f"pack is {pack.token_count} tokens"
 
 
-@pytest.mark.xfail(reason=M2)
 def test_lint_fails_on_an_uncited_claim(tmp_path) -> None:
     """Brief section 12, M2: lint fails on a page containing an uncited claim."""
     from kourob.loops.lint import lint_page

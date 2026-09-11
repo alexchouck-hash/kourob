@@ -60,8 +60,18 @@ def _ingest(node: Node, args: dict[str, Any]) -> Answer:
 
 
 def _get_page(node: Node, args: dict[str, Any]) -> Answer:
-    """M1: the events themselves. M2 replaces this with a compiled, cited page."""
+    """A compiled page when one exists; the raw events for a topic otherwise."""
+    from kourob.knowledge.compile import citations_in, read_page
+
     topic = args.get("page") or args.get("topic")
+    compiled = read_page(node, str(topic or "index"))
+    if compiled is not None:
+        cited = citations_in(compiled)
+        # The index cites nothing itself: it is the node describing its own pages.
+        determinism = None if cited else Determinism.DECLARED
+        return _envelope(
+            node, {"page": topic or "index", "markdown": compiled}, compiled, cited, determinism
+        )
     if node.store.stats("silver")["rows"] == 0:
         return _refuse(node, "this node holds no events yet")
     rows = node.store.scan("silver")

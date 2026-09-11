@@ -82,6 +82,8 @@ class TendReport(BaseModel):
     budget: float
     spent: float = 0.0
     ingested: int = 0
+    compiled: int = 0
+    lint_flags: int = 0
     applied: list[Applied] = Field(default_factory=list)
     proposed: list[Proposal] = Field(default_factory=list)
     decisions: list[dict[str, Any]] = Field(default_factory=list)
@@ -314,6 +316,24 @@ def tend(
     )
 
     report.ingested = _ingest_inbox(node)
+
+    from kourob.knowledge.compile import compile_pages
+    from kourob.loops.lint import lint_node
+
+    report.compiled = len(compile_pages(node).pages)
+    lint = lint_node(node)
+    report.lint_flags = len(lint.flags)
+    if not lint.ok:
+        # An uncited claim on a page is a build failure, not a warning (KNP-2 section 5):
+        # it would launder a guess into the provenance graph. Nothing autonomous runs on
+        # top of a knowledge base that lint would not pass.
+        report.halted = True
+        report.halt_reason = str(lint)
+        if not dry_run:
+            report.demoted_to = _demote(node, report.halt_reason)
+        _write_report(node.dir, report)
+        return report
+
     report.evolve = evolve(node.dir, now=now)
     node = open_node(node_dir)  # evolve may have disabled a rule; reload
 

@@ -18,12 +18,15 @@ from pathlib import Path
 from typing import Any
 
 from kourob.ports.mcp import TOOLS, handle
+from kourob.types import Answer
 
 __milestone__ = "M1"
 
 
 def _envelope(node_dir: Path, tool: str, args: dict[str, Any]) -> dict[str, Any]:
-    return handle(node_dir, tool, args).model_dump(mode="json")
+    """Every tool returns the same thing: an `Answer`, serialised. Nothing else."""
+    answer: Answer = handle(node_dir, tool, args)
+    return answer.model_dump(mode="json")
 
 
 def build_server(node_dir: Path | str) -> Any:

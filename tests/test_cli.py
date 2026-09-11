@@ -82,7 +82,6 @@ def test_version_prints_version() -> None:
         ["publish"],
         ["run", "hello"],
         ["train", "."],
-        ["loop", "run", "lint"],  # evolve is implemented; lint is not
         ["distill", "train"],
         ["cell", "seams"],
         ["schema", "gen"],

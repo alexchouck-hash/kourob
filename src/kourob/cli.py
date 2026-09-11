@@ -76,6 +76,10 @@ def init(
 def ingest(
     path: Annotated[Path, typer.Argument(help="File or directory of events to push.")],
     node: Annotated[Path, typer.Option(help="Node directory.")] = Path("."),
+    from_markdown: Annotated[
+        bool,
+        typer.Option("--from-markdown", help="Treat PATH as markdown: one note per paragraph."),
+    ] = False,
 ) -> None:
     """Push data through the gate into silver, or into quarantine with a reason."""
     from kourob.node import open_node
@@ -83,7 +87,13 @@ def ingest(
     cell = open_node(node)
     if not cell.contracts:
         _fail(f"{node} declares no contracts. Add one to schemas/ before ingesting.")
-    report = cell.gate.ingest_file(path)
+    if from_markdown:
+        from kourob.ports.files import markdown_to_notes, markdown_tree_to_notes
+
+        lines = markdown_tree_to_notes(path) if path.is_dir() else markdown_to_notes(path)
+        report = cell.gate.ingest_lines(lines, source=str(path))
+    else:
+        report = cell.gate.ingest_file(path)
     typer.secho(f"accepted {report.accepted}", fg=typer.colors.GREEN, nl=False)
     typer.echo("   ", nl=False)
     typer.secho(f"quarantined {report.rejected}", fg=typer.colors.YELLOW)
@@ -380,13 +390,29 @@ def meter_report(
     node: Annotated[Path, typer.Option()] = Path("."),
 ) -> None:
     """Revenue, cost, margin, and top callers for a period."""
-    _todo("meter report", "M4", "section 4.4")
+    from kourob.ledger.meter import report as meter_report_for
+
+    typer.echo(meter_report_for(node, period).render())
 
 
 @meter_app.command("price")
 def meter_price(node: Annotated[Path, typer.Option()] = Path(".")) -> None:
     """Show the current price and demand factor, as callers see it in the agent card."""
-    _todo("meter price", "M4", "section 5.1, ADR-0004")
+    from kourob.ledger.pricing import Pricer
+    from kourob.node import open_node
+    from kourob.types import Tier
+
+    cell = open_node(node)
+    pricer = Pricer(cell)
+    typer.echo(
+        f"demand factor {pricer.demand():.2f}  ({pricer.requests_in_window()} requests in "
+        f"{cell.manifest.pricing.window}, capacity {cell.manifest.pricing.capacity_window})"
+    )
+    typer.echo(f"quality       {pricer.quality():.2f}  (earned from settled outcomes)")
+    typer.echo(f"ceiling       {pricer.ceiling():.6f}  credits, the dearest enabled tier")
+    for tier in Tier:
+        if cell.manifest.tier_enabled(tier):
+            typer.echo(f"  {tier.value}  {pricer.price(tier):.6f}")
 
 
 @schema_app.command("list")
@@ -482,6 +508,23 @@ def loop_run(
     budget: Annotated[float, typer.Option(help="Credit budget for this run.")] = 1.0,
 ) -> None:
     """Run one loop once. Each loop outputs a PR or an event, nothing else."""
+    if name == "compile":
+        from kourob.loops.compile import run as run_compile
+
+        typer.echo(str(run_compile(node)))
+        return
+    if name == "lint":
+        from kourob.loops.lint import lint_node
+        from kourob.node import open_node
+
+        lint_report = lint_node(open_node(node))
+        for flag in lint_report.flags:
+            typer.echo(f"  {flag}")
+        colour = typer.colors.GREEN if lint_report.ok else typer.colors.RED
+        typer.secho(str(lint_report), fg=colour)
+        if not lint_report.ok:
+            raise typer.Exit(1)
+        return
     if name != "evolve":
         _todo(f"loop run {name}", "M2", "section 6.1")
         return
