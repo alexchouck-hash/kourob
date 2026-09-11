@@ -18,11 +18,9 @@ pytestmark = [pytest.mark.m4, pytest.mark.eval]
 M4 = "M4 not implemented"
 
 
-@pytest.mark.xfail(reason=M4)
 def test_bimodal_demand_proposes_a_split_with_evidence(tmp_path) -> None:
+    from kourob.loops.evolve import ProposalKind, evolve
     from kourob.testing import synthetic_request_log
-
-    from kourob.loops.evolve import evolve
 
     node = synthetic_request_log(
         tmp_path,
@@ -31,31 +29,68 @@ def test_bimodal_demand_proposes_a_split_with_evidence(tmp_path) -> None:
         demand_factor=1.4,
     )
 
-    report = evolve(node)
+    (proposal,) = [p for p in evolve(node).proposals if p.kind is ProposalKind.SPLIT]
 
-    (proposal,) = [p for p in report.proposals if p.kind == "split"]
-    assert {c.schema_ref for c in proposal.clusters} == {"shot.v1", "serve_stats.v1"}
+    seam = {s for cluster in proposal.evidence["clusters"] for s in cluster["schemas"]}
+    assert seam == {"shot.v1", "serve_stats.v1"}
+    assert proposal.evidence["seam"] == "disjoint schemas"
+
     assert proposal.child_manifest is not None
-    assert proposal.parent_scope_after != proposal.parent_scope_before
-    assert proposal.referral_rule is not None
-    assert proposal.evidence, "a split PR without evidence cannot be reviewed"
-
-
-@pytest.mark.xfail(reason=M4)
-def test_noisy_unimodal_demand_does_not_split(tmp_path) -> None:
-    """Hysteresis: one busy week on one cluster is not a split."""
-    from kourob.testing import synthetic_request_log
-
-    from kourob.loops.evolve import evolve
-
-    node = synthetic_request_log(
-        tmp_path, clusters={"shot.v1": 0.97, "serve_stats.v1": 0.03}, days=3, demand_factor=2.0
+    assert proposal.child_manifest["scope"]["schemas"] == ["serve_stats.v1"]
+    assert proposal.child_manifest["autonomy"]["level"] == "A0", (
+        "a child has no evidence of its own yet, so it cannot inherit autonomy"
+    )
+    assert proposal.child_manifest["inherits"]["tiers"], (
+        "a child does not relearn what the parent already distilled (KNP-5 section 7)"
     )
 
-    assert not [p for p in evolve(node).proposals if p.kind == "split"]
+    assert proposal.parent_scope_after != proposal.parent_scope_before
+    assert set(proposal.parent_scope_after) == {"shot.v1"}
+    assert proposal.referral_rule is not None
+    assert proposal.referral_rule["schemas"] == ["serve_stats.v1"]
+    assert proposal.evidence["demand_factor"] > 0
 
 
-@pytest.mark.xfail(reason=M4)
+def test_noisy_unimodal_demand_does_not_split(tmp_path) -> None:
+    """Hysteresis: one busy week on one cluster is a scaling problem, not a split."""
+    from kourob.loops.evolve import ProposalKind, evolve
+    from kourob.testing import synthetic_request_log
+
+    node = synthetic_request_log(
+        tmp_path,
+        clusters={"shot.v1": 0.97, "serve_stats.v1": 0.03},
+        days=3,
+        demand_factor=2.0,
+    )
+
+    report = evolve(node)
+    assert not [p for p in report.proposals if p.kind is ProposalKind.SPLIT]
+
+    (declined,) = [d for d in report.declined if d.kind is ProposalKind.SPLIT]
+    assert "scaling problem" in declined.why, (
+        "a decline must say which of the two conditions failed, or the next window "
+        "re-derives it from nothing"
+    )
+
+
+def test_demand_alone_is_not_a_split(tmp_path) -> None:
+    """Two clusters below capacity is a shape, not a pressure (KNP-5 section 7)."""
+    from kourob.loops.evolve import ProposalKind, evolve
+    from kourob.testing import synthetic_request_log
+
+    node = synthetic_request_log(
+        tmp_path,
+        clusters={"shot.v1": 0.5, "serve_stats.v1": 0.5},
+        days=21,
+        demand_factor=0.0,
+    )
+
+    report = evolve(node)
+    assert not [p for p in report.proposals if p.kind is ProposalKind.SPLIT]
+    (declined,) = [d for d in report.declined if d.kind is ProposalKind.SPLIT]
+    assert "split_threshold" in declined.why
+
+
 def test_price_rises_with_demand_and_returns_to_base(tmp_path) -> None:
     """Brief section 12, M4: monotonic in demand above capacity, back to base below it."""
     from kourob.ledger.pricing import price_for
@@ -75,10 +110,9 @@ def test_price_rises_with_demand_and_returns_to_base(tmp_path) -> None:
 
 @pytest.mark.xfail(reason=M4)
 def test_merkle_root_verifies_and_a_tampered_receipt_breaks_it(tmp_path) -> None:
-    from kourob.testing import node_with_receipts
-
     from kourob.ledger.merkle import root_for, verify_against_registry
     from kourob.ledger.verify import tamper_for_test
+    from kourob.testing import node_with_receipts
 
     node, registry = node_with_receipts(tmp_path, count=32)
 

@@ -1,0 +1,11 @@
+{"schema_ref":"note.v1","topic":"scope","body":"A node answers what it declares and refuses everything else. Refusal is a first-class, receipted outcome, not an error.","source":"docs/protocols/knp-0-core.md","ts":"2026-09-01T09:00:00Z"}
+{"schema_ref":"note.v1","topic":"bridge","body":"A bridge is a referral the node executes on the caller's behalf, once, returning the answer plus the direct route. It stops after bridge_limit, default 3.","source":"docs/protocols/knp-1-scope.md","ts":"2026-09-01T09:05:00Z"}
+{"schema_ref":"note.v1","topic":"receipt","body":"Every request leaves a signed receipt. A node that cannot write one must fail the request rather than answer without it.","source":"docs/protocols/knp-2-receipt.md","ts":"2026-09-01T09:10:00Z"}
+{"schema_ref":"note.v1","topic":"determinism","body":"A T0 answer is derived: anyone holding the events can re-run it. A model answer is attested: it proves the node said it, not that it follows.","source":"docs/protocols/knp-0-core.md","ts":"2026-09-01T09:15:00Z"}
+{"schema_ref":"note.v1","topic":"cell","body":"A cell has a size ceiling, not a size target. Exceeding it does not raise it: the cell sheds or divides.","source":"docs/protocols/knp-8-cells.md","ts":"2026-09-01T09:20:00Z"}
+{"schema_ref":"note.v1","topic":"pruning","body":"Events, receipts and outcomes are never collected. Everything else in a cell is a cache of those two and is collected when unused.","source":"docs/protocols/knp-9-synapses.md","ts":"2026-09-01T09:25:00Z"}
+{"schema_ref":"note.v1","topic":"Scope Creep","body":"Topic must be lower-case and hyphenated: this line is here to show you what quarantine looks like.","ts":"2026-09-01T09:30:00Z"}
+{"schema_ref":"note.v1","topic":"missing-body","ts":"2026-09-01T09:35:00Z"}
+{"schema_ref":"note.v1","topic":"time-travel","body":"A note dated after the node heard about it. The gate refuses to believe the future.","ts":"2099-01-01T00:00:00Z"}
+{"schema_ref":"weather.v1","station":"KMSP","temp_c":-14,"ts":"2026-09-01T09:40:00Z"}
+{"topic":"no-schema","body":"Nothing here says what shape this is.","ts":"2026-09-01T09:45:00Z"}
