@@ -1,0 +1,60 @@
+# KouroB: Self-Specializing Nodes That Agents Attach To
+> Open-source framework and protocol for building metered, provenance-tracked, self-specializing nodes that agents and systems attach to through MCP, A2A, and REST.
+
+KouroB is an open-source structure for building **nodes**: small, specialized, metered units of knowledge and capability that other builders can create, connect, and chain into products. A node owns a slice of the world (typed events, compiled knowledge, tools, provenance), serves requests through standard ports (MCP, A2A, REST), and refuses or refers anything outside its scope. Every request leaves an ed25519-signed receipt in a hash-chained ledger, so provenance and cost are traceable across chains of nodes. Frontier models *train* nodes; nodes then *serve* far more cheaply than a frontier model would.
+
+## One-Command Quickstart
+
+```bash
+pipx install kourob          # or: uv tool install kourob
+kourob init demo && cd demo
+kourob ingest fixtures/events.jsonl
+kourob serve --mcp
+```
+
+Attach an agent:
+```bash
+kourob attach claude-code   # or: kourob attach cursor
+```
+
+## Key Invariants
+
+1. **Port Invariant (I1)**: Every port handler returns `{data, rendered, citations, receipt_id}`, including errors and referrals. No exceptions.
+2. **Citation Invariant (I2)**: Every factual claim cites an immutable event ULID (`evt_...`). Knowledge pages contain no uncited claims.
+3. **Receipt Invariant (I3)**: Every request produces an ed25519-signed receipt appended to an immutable, hash-chained Parquet ledger.
+4. **Silver Rail**: Nothing writes to `data/silver` or `data/gold` except `gate.py`. Training code reaches `data/gold` only through `evals/`.
+5. **Runner Rail**: Every model call goes through `runner/` so token counts, tiers, and costs are metered to `logs/calls.parquet`.
+
+## The 5 Execution Tiers
+
+- **T0 (Rules/SQL/Cache)**: Exact matching, regex extraction, SQL queries over silver DuckDB/Parquet tables. Cost: $0.00. Latency: <15ms. Determinism: `exact` or `derived`.
+- **T1 (Distilled Model)**: 0.5B-3B parameter local student model fine-tuned on the node's exact request distribution and gold sets. Cost: 5x-10x cheaper than frontier. Determinism: `calibrated`.
+- **T2 (Specialized Model)**: Mid-weight domain-specific model (7B-14B) hosted locally via Ollama or vLLM. Determinism: `calibrated`.
+- **T3 (Frontier Model)**: Frontier model (Claude 3.5 Sonnet, GPT-4o, Gemini 1.5 Pro) called with retrieved event context. Refuses ungrounded hallucinations. Cost: Full API token rates. Determinism: `calibrated`.
+- **T4 (Human Review)**: Asynchronous review queue for actions requiring human authorization. Determinism: `exact`.
+
+## KouroB Node Protocols (KNP)
+
+- **KNP-0 (Core)**: Wire envelopes, error codes, hop lists, and 4 determinism classes (`exact`, `derived`, `calibrated`, `declared`).
+- **KNP-1 (Scope)**: Declared entity/capability scopes, refusal taxonomy, referrals with route hints, and bridging with upstream receipt chains.
+- **KNP-2 (Receipts & Outcomes)**: Ed25519 signed receipts, hash chaining (`prev`), settlement keys, and `source: reality` outcomes.
+- **KNP-3 (Metering)**: Pricing function `base * (1 + demand) * earned_quality`, quotes with guaranteed ceilings, credit accounts, and debit logging.
+- **KNP-4 (Registries & Routes)**: Decentralized node discovery, trust roots (`did:key`), and Hebbian route learning.
+- **KNP-5 (Evolution & Lifecycle)**: Demand clustering, exact replay rule mining, autonomy levels (A0-A3), rollback events, and bimodal auto-split.
+
+## CLI Command Reference
+
+- `kourob init <path>`: Create a new node cell with keys, store, schemas, and cascade manifest.
+- `kourob ingest <file>`: Validate and push raw events through `gate.py` into silver Parquet tables.
+- `kourob query "<question>"`: Query the node across the tier cascade and return cited answers.
+- `kourob serve [--mcp] [--a2a] [--rest]`: Launch transport servers.
+- `kourob attach <agent>`: Configure local agent clients (Claude Code, Cursor).
+- `kourob trace <receipt_id>`: Walk and verify the cryptographic provenance chain back to silver events.
+- `kourob tend [--autonomy-max A2]`: Run the autonomous maintenance loop (evolve, proposal decisions, rollback, demotion).
+- `kourob meter report`: Audit token costs, margins, revenues, and quality multipliers.
+
+## Repository & Links
+
+- GitHub: https://github.com/alexchouck-hash/kourob
+- Specifications: https://github.com/alexchouck-hash/kourob/tree/main/docs/protocols
+- License: Apache-2.0
