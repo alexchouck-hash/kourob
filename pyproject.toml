@@ -76,7 +76,7 @@ ignore = [
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["tests", "evals"]
-addopts = "-ra --strict-markers --strict-config"
+addopts = "-ra --strict-markers --strict-config -m 'not slow'"
 markers = [
   "m1: acceptance criteria for milestone M1 (brief section 12)",
   "m2: acceptance criteria for milestone M2",
@@ -84,6 +84,7 @@ markers = [
   "m4: acceptance criteria for milestone M4",
   "m5: acceptance criteria for milestone M5",
   "eval: a milestone-gating eval, not a unit test",
+  "slow: a replay measured in tens of minutes; run on purpose with -m slow, never by default",
 ]
 xfail_strict = true
 
