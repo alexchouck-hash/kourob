@@ -91,7 +91,6 @@ def test_demand_alone_is_not_a_split(tmp_path) -> None:
     assert "split_threshold" in declined.why
 
 
-@pytest.mark.xfail(reason=M4)
 def test_price_rises_with_demand_and_returns_to_base(tmp_path) -> None:
     """Brief section 12, M4: monotonic in demand above capacity, back to base below it."""
     from kourob.ledger.pricing import price_for

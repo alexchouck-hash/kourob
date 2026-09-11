@@ -17,7 +17,7 @@ handoffs say how it got there.
 | become cheaper | **met, unmeasured** | evolve mines a T0 rule by exact replay; `kourob tend` at A2 installs it as a `node_change.v1` event carrying its inverse, and the node answers from it on the next request; one correction disables it; `kourob rollback` restores the prior state — proven by `tests/test_tend.py` and `evals/promotion_test.py` | no T1; no replayed 30-day cost curve; v1 mines single-event lookups only |
 | become better | **met in mechanism** | outcomes, settlement from reality, quality multiplier | only `note.v1` settles; no comparator for probabilistic answers |
 | traced back to its sources | **met for one node** | receipts, hash chain, `trace`, tamper detection | upstream receipts across nodes untested because there are no chains yet; no PROV export |
-| metered along the whole chain | **half** | measured token cost, priced receipts, call log | no accounts, no quotes, no price function, no meter report |
+| metered along the whole chain | **met for one node** | measured token cost; price = base × (1 + demand) × earned quality; quotes with a ceiling the receipt never exceeds; free allowance then post-paid debit; `kourob meter report` and `meter price` — proven by `tests/test_metering.py` | credits are internal and no money moves (by design); a bridge does not yet quote both legs; no Merkle roots |
 
 ## The six metrics
 
@@ -41,7 +41,7 @@ until rule mining exists.
 | **M1** | manifest, identity, store, gate (P 1.0 / R 1.0), events, ledger, T0, T3, cascade, MCP handler, init, trace | MCP stdio server; PROV export; schema codegen and diff |
 | **M2** | nothing | compile loop, lint loop, packs, attach, the dogfood node |
 | **M3** | scope check with declared exclusions, referral, bridge, routes, connect, hop lists, cross-node trace, router eval — all on the local transport | A2A card and HTTP transport, T1 scope classifier, tennis node |
-| **M4** | outcomes, clustering, evolve, split, `tend` with rollback, halts and autonomy demotion | accounts, price function, quotes, meter report, Merkle, ADR-0003/4/5 |
+| **M4** | outcomes, clustering, evolve, split, `tend` with rollback, halts and autonomy demotion, price function, quotes with a ceiling, accounts, allowance refusal, meter report | Merkle roots, ADR-0003/4/5 (owed: KNP-3/4/5 draft the mechanisms) |
 | **M5** | nothing | rule mining, T1, distill, cost curve, UI, publish |
 
 ## Where the design is stronger than the brief
@@ -89,7 +89,7 @@ Kept in Beads (`bd ready`), ordered by what moves the sentence, not by milestone
    and metric 1 met on the letter.
 4. ~~**`kourob tend`**~~ — done (`kb-2ff`). Decide by autonomy, budget and recorded
    inverse; apply as change events through the gate; halt and demote on breach; rollback.
-5. **Price function, quotes, accounts, meter report** — the economics half of metering.
+5. ~~**Price function, quotes, accounts, meter report**~~ — done (`kb-k60`).
 6. **Compile and lint** — pages with citations, and the dogfood node.
 7. **T1 and the cost-curve eval** — the headline number, measured.
 8. **Tennis set** — the first real integration.

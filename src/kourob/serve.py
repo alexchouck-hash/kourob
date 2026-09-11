@@ -15,7 +15,9 @@ from typing import Any
 
 from kourob import events as ev
 from kourob import scope as scope_mod
+from kourob.ledger.accounts import Accounts
 from kourob.ledger.chain import RECORD_RECEIPT
+from kourob.ledger.pricing import Pricer
 from kourob.node import Node
 from kourob.ports.local import UnreachableNeighbourError, resolve
 from kourob.protocols import Ext, key
@@ -70,6 +72,14 @@ def answer(
     routes = RouteTable(node.store, node.manifest.prune)
     started = time.perf_counter()
 
+    pricer = Pricer(node)
+    if not pricer.quote(question, caller, hops=request.hops).affordable():
+        # KNP-3 section 2: refuse rather than start work the caller cannot pay for. Checked
+        # against the *ceiling*, because the cascade's uncertainty is the node's risk.
+        return _refuse(
+            node, request, RefusalReason.INSUFFICIENT_CREDIT, started, decided_by="rule:allowance"
+        )
+
     decision = scope_mod.check(node.manifest, routes, question, own_did=node.did, hops=request.hops)
     if decision.result is ScopeResult.REJECT:
         return _refuse(
@@ -107,8 +117,9 @@ def _answered(node: Node, request: Request, run: CascadeResult, started: float) 
         response={"data": result.data, "rendered": result.rendered},
         result=result,
         cost=run.total_cost,
-        price=node.manifest.pricing.base_cost.get(result.tier, 0.0),
+        price=_price(node, request, result.tier),
     )
+    _charge(node, request, receipt)
     _log(node, request, receipt, started, run=run, decided_by=result.model_version)
     return Answer(
         data=result.data,
@@ -298,6 +309,11 @@ def _refuse(
         rendered = "Refused: this request has already passed through this node (hop list)."
     elif reason is RefusalReason.HOPS_EXHAUSTED:
         rendered = f"Refused: hop budget of {node.manifest.scope.max_hops} exhausted."
+    elif reason is RefusalReason.INSUFFICIENT_CREDIT:
+        rendered = (
+            "Refused: this caller has used its free allowance and its balance does not cover "
+            "the price ceiling. Ask for a quote, or top up. No work was started."
+        )
     elif run is not None:
         tried = ", ".join(f"{a.tier.value}({a.confidence:.2f})" for a in run.attempts)
         rendered = (
@@ -331,6 +347,31 @@ def _refuse(
             key(Ext.SCOPE, "decided_by"): decided_by,
         },
     )
+
+
+# ------------------------------------------------------------------------ metering
+
+
+def _price(node: Node, request: Request, tier: Tier) -> float:
+    """KNP-3: computed, never above the ceiling a caller could have been quoted.
+
+    The ceiling is recomputed here rather than carried on the request, because the request
+    log is what the pricer reads and it has not changed since the quote: same window, same
+    quality. A node MUST NOT charge above what it quoted, and capping at the ceiling is how
+    that promise survives a cascade that fell further than expected.
+    """
+    pricer = Pricer(node)
+    return round(min(pricer.price(tier), pricer.ceiling()), 9)
+
+
+def _charge(node: Node, request: Request, receipt: dict[str, Any]) -> None:
+    """Debit the caller once its free allowance is spent. Post-paid against the receipt."""
+    price = float(receipt.get("price_credits") or 0.0)
+    if price <= 0:
+        return
+    if Pricer(node).free_remaining(request.caller) > 0:
+        return
+    Accounts(node.store).debit(request.caller, price, receipt_id=str(receipt["id"]))
 
 
 # ------------------------------------------------------------------ receipt and log
