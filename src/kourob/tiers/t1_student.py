@@ -86,11 +86,27 @@ def model_path(node_dir: Path | str) -> Path:
     return Path(node_dir) / MODEL_DIR / MODEL_FILE
 
 
+#: Parsed students keyed on the model file's mtime and size. The cascade builds a handler
+#: per request, and a student is one JSON file that grows with every settled answer:
+#: parsing it per request was O(examples) on the path that exists to be cheap. Bounded
+#: like the rule cache; `train` and `disable` change the file, which changes the key.
+_STUDENT_CACHE: dict[tuple[str, int, int], Student] = {}
+
+
 def load_student(node_dir: Path | str) -> Student | None:
     path = model_path(node_dir)
-    if not path.exists():
+    try:
+        st = path.stat()
+    except OSError:
         return None
-    return Student(json.loads(path.read_text(encoding="utf-8")))
+    key = (str(path), st.st_mtime_ns, st.st_size)
+    student = _STUDENT_CACHE.get(key)
+    if student is None:
+        student = Student(json.loads(path.read_text(encoding="utf-8")))
+        if len(_STUDENT_CACHE) > 32:
+            _STUDENT_CACHE.pop(next(iter(_STUDENT_CACHE)))
+        _STUDENT_CACHE[key] = student
+    return student
 
 
 class T1Student(TierHandler):

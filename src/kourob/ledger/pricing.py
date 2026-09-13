@@ -86,6 +86,30 @@ class Quote(BaseModel):
 QUALITY_CACHE = "logs/quality.json"
 QUALITY_REFRESH_RECEIPTS = 200
 
+#: The parsed quality file per node, keyed on the file's mtime and size: a `stat` per
+#: request instead of a read and a parse. A cache of files, bounded like the rule cache.
+_QUALITY_FILE_CACHE: dict[tuple[str, int, int], dict[str, Any]] = {}
+
+
+def _read_quality_file(path: Any) -> dict[str, Any] | None:
+    import json
+
+    try:
+        st = path.stat()
+    except OSError:
+        return None
+    key = (str(path), st.st_mtime_ns, st.st_size)
+    cached = _QUALITY_FILE_CACHE.get(key)
+    if cached is None:
+        try:
+            cached = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return None
+        if len(_QUALITY_FILE_CACHE) > 32:
+            _QUALITY_FILE_CACHE.pop(next(iter(_QUALITY_FILE_CACHE)))
+        _QUALITY_FILE_CACHE[key] = cached
+    return cached
+
 
 def _trailing_quality(node: Any, now: datetime) -> float:
     """Quality over a trailing window, recomputed every `QUALITY_REFRESH_RECEIPTS` receipts.
@@ -102,9 +126,9 @@ def _trailing_quality(node: Any, now: datetime) -> float:
 
     path = Path(node.dir) / QUALITY_CACHE
     receipts = node.store.stats("receipts")["rows"]
-    if path.exists():
+    cached = _read_quality_file(path)
+    if cached is not None:
         try:
-            cached = json.loads(path.read_text(encoding="utf-8"))
             fresh_enough = receipts - int(cached.get("receipts_at", -(10**9)))
             # A young node recomputes every time: its chain is tiny and every outcome
             # moves the number. The cache earns its keep once the chain is long.
@@ -166,12 +190,12 @@ class Pricer:
         minutes decoding the chain to price a lookup. With no report yet, compute it once.
         """
         if self._quality is None:
-            from kourob.loops.evolve import past_reports
+            from kourob.loops.evolve import latest_report
 
-            reports = past_reports(self.node.dir)
-            if reports:
+            report = latest_report(self.node.dir)
+            if report is not None:
                 try:
-                    q = float(reports[-1]["objective"]["quality_multiplier"])
+                    q = float(report["objective"]["quality_multiplier"])
                     self._quality = max(Q_MIN, min(Q_MAX, q))
                     return self._quality
                 except (KeyError, TypeError, ValueError):

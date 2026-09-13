@@ -13,7 +13,10 @@ this file without any caller changing.
 from __future__ import annotations
 
 import contextlib
+import importlib.util
 import json
+import re
+import sys
 from collections.abc import Iterable, Mapping, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
@@ -27,6 +30,23 @@ from ulid import ULID
 from kourob.store.base import LOGICAL_TABLES, Store
 
 __milestone__ = "M1"
+
+
+def _pin_absent_optionals() -> None:
+    """Tell the import system, once, that pandas and dateutil are not here.
+
+    DuckDB's Python binding looks for both on every `execute`, so that a DataFrame can be
+    bound as a parameter. When they are not installed the lookup *fails* - and a failed
+    import is never cached, so every query walked `sys.path` again: a quarter of the time
+    of an answer, spent confirming that a library we do not use is still not installed.
+    `None` in `sys.modules` is the documented way to make the next attempt fail at once.
+    """
+    for name in ("pandas", "dateutil"):
+        if name not in sys.modules and importlib.util.find_spec(name) is None:
+            sys.modules[name] = None  # type: ignore[assignment]
+
+
+_pin_absent_optionals()
 
 #: Logical table name to its directory, relative to the node root. Callers never see these.
 TABLE_PATHS = {
@@ -43,7 +63,7 @@ TABLE_PATHS = {
 #: Parts per table before an append folds them. Each append writes one Parquet part; a
 #: query reads them all. Sixty-four is small enough to keep reads fast and large enough
 #: that folding costs a fraction of the writes it follows.
-AUTO_COMPACT_PARTS = 64
+AUTO_COMPACT_PARTS = 16
 
 #: Statements a read-only query may begin with. Everything else is refused.
 _READ_PREFIXES = ("select", "with", "describe", "explain", "summarize", "pragma", "show")
@@ -59,12 +79,13 @@ class ParquetDuckDBStore(Store):
         self.node_dir = Path(node_dir)
         self.partition_by = partition_by
         self._conn: duckdb.DuckDBPyConnection | None = None
-        #: Per table, the part list the current view was built over. Re-registering every
-        #: view on every query re-globbed seven directories per request; comparing part
-        #: lists makes a query over an unchanged table free.
-        self._registered: dict[str, tuple[str, ...]] = {}
+        #: Per table, the part list *object* the current view was built over. `_parts`
+        #: hands out the same list until a write invalidates it, so identity is the whole
+        #: test: an unchanged table costs one dict lookup per query, not a path comparison
+        #: across every part of every table.
+        self._registered: dict[str, list[Path]] = {}
         self._parts_cache: dict[str, list[Path]] = {}
-        self._row_counts: dict[str, int] = {}
+        self._stats_cache: dict[str, dict[str, Any]] = {}
 
     # ------------------------------------------------------------------ internals
 
@@ -94,7 +115,32 @@ class ParquetDuckDBStore(Store):
 
     def _invalidate(self, table: str) -> None:
         self._parts_cache.pop(table, None)
-        self._row_counts.pop(table, None)
+        self._stats_cache.pop(table, None)
+
+    def _written(self, table: str, part: Path, rows: int) -> None:
+        """Advance the caches by one part rather than throwing them away.
+
+        The writer knows exactly what changed: one more part, `rows` more rows, this many
+        more bytes, in this partition. Recounting with a query after every append was the
+        single largest cost of an answer once everything else was cached.
+        """
+        parts = self._parts_cache.get(table)
+        if parts is not None:
+            self._parts_cache[table] = [*parts, part]  # a new list: identity is the version
+        stats = self._stats_cache.get(table)
+        if stats is not None:
+            partition = part.parent.name
+            partitions = sorted(
+                {partition, *filter(None, [stats["first_partition"], stats["last_partition"]])}
+            )
+            stats.update(
+                rows=stats["rows"] + rows,
+                parts=stats["parts"] + 1,
+                bytes=stats["bytes"] + part.stat().st_size,
+                partitions=max(stats["partitions"], len(partitions)),
+                first_partition=partitions[0],
+                last_partition=partitions[-1],
+            )
 
     @property
     def conn(self) -> duckdb.DuckDBPyConnection:
@@ -102,20 +148,23 @@ class ParquetDuckDBStore(Store):
             self._conn = duckdb.connect(":memory:")
         return self._conn
 
-    def _register_views(self) -> None:
+    def _register_views(self, tables: Iterable[str] = LOGICAL_TABLES) -> None:
         """Expose each logical table as a DuckDB view over its Parquet parts.
 
         A table with no parts is registered as an empty view rather than left missing, so a
         query against a young node returns no rows instead of an error. "Nothing yet" and
         "no such thing" are different answers and callers should not have to tell them apart.
+
+        Only the tables asked for are (re)built. Binding a view opens every part - slow on
+        Windows, where a file open is a millisecond - and an answer appends to three tables
+        it does not read again before the next request.
         """
-        for table in LOGICAL_TABLES:
+        for table in tables:
             parts = self._parts(table)
-            signature = tuple(p.as_posix() for p in parts)
-            if self._registered.get(table) == signature:
+            if self._registered.get(table) is parts:
                 continue  # unchanged since last query: the view is still right
             if parts:
-                paths = ", ".join(f"'{p}'" for p in signature)
+                paths = ", ".join(f"'{p.as_posix()}'" for p in parts)
                 self.conn.execute(
                     f"CREATE OR REPLACE VIEW {table} AS "
                     f"SELECT * FROM read_parquet([{paths}], union_by_name=true)"
@@ -124,7 +173,13 @@ class ParquetDuckDBStore(Store):
                 self.conn.execute(
                     f"CREATE OR REPLACE VIEW {table} AS SELECT NULL AS id WHERE FALSE"
                 )
-            self._registered[table] = signature
+            self._registered[table] = parts
+
+    @staticmethod
+    def _tables_in(sql: str) -> list[str]:
+        """The logical tables a statement names. Over-matching is harmless: a word that is
+        also a table name costs one view rebuild, never a wrong answer."""
+        return [t for t in LOGICAL_TABLES if re.search(rf"\b{t}\b", sql)]
 
     @staticmethod
     def _encode(rows: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -163,12 +218,9 @@ class ParquetDuckDBStore(Store):
             return 0
         part_dir = self._dir(table) / self._partition_key()
         part_dir.mkdir(parents=True, exist_ok=True)
-        pq.write_table(
-            pa.Table.from_pylist(encoded),
-            part_dir / f"part-{ULID()}.parquet",
-            compression="zstd",
-        )
-        self._invalidate(table)
+        target = part_dir / f"part-{ULID()}.parquet"
+        pq.write_table(pa.Table.from_pylist(encoded), target, compression="zstd")
+        self._written(table, target, len(encoded))
         if len(self._parts(table)) > AUTO_COMPACT_PARTS:
             # One part per append is right for an audit trail and wrong for a query: a view
             # over thousands of tiny files is what turned a month of replayed traffic into
@@ -183,7 +235,7 @@ class ParquetDuckDBStore(Store):
                 "Store.query is read-only. Writes go through append(), and silver and gold "
                 "are written only by gate.py."
             )
-        self._register_views()
+        self._register_views(self._tables_in(sql))
         if params is None:
             bound: Any = None
         elif isinstance(params, Mapping):
@@ -246,23 +298,28 @@ class ParquetDuckDBStore(Store):
         self._conn = None
         self._registered = {}
         self._parts_cache = {}
-        self._row_counts = {}
+        self._stats_cache = {}
         return compacted
 
     def stats(self, table: str) -> dict[str, Any]:
+        """Row count, part count, bytes and partitions - computed once per write.
+
+        Every reader on the answering path asks this first ("anything here yet?"), a dozen
+        times a request. Counting is one DuckDB query; the rest was a `stat` per part per
+        call, and at sixty parts a table that was more system calls than the answer itself.
+        """
+        cached = self._stats_cache.get(table)
+        if cached is not None:
+            return dict(cached)
         parts = self._parts(table)
         partitions = self.partitions(table)
-        # Counted once per write, by DuckDB. Opening every part's footer on every call was
-        # fifty thousand `ParquetFile` constructions in two hundred requests.
-        if table not in self._row_counts:
-            if parts:
-                self._register_views()
-                count = self.conn.execute(f"SELECT count(*) AS n FROM {table}").fetchone()
-                self._row_counts[table] = int(count[0] if count else 0)
-            else:
-                self._row_counts[table] = 0
-        rows = self._row_counts[table]
-        return {
+        if parts:
+            self._register_views()
+            count = self.conn.execute(f"SELECT count(*) AS n FROM {table}").fetchone()
+            rows = int(count[0] if count else 0)
+        else:
+            rows = 0
+        stats = {
             "table": table,
             "rows": rows,
             "parts": len(parts),
@@ -271,6 +328,8 @@ class ParquetDuckDBStore(Store):
             "first_partition": partitions[0] if partitions else None,
             "last_partition": partitions[-1] if partitions else None,
         }
+        self._stats_cache[table] = stats
+        return dict(stats)
 
 
 __all__ = ["TABLE_PATHS", "ParquetDuckDBStore"]

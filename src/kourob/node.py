@@ -56,8 +56,10 @@ class Node:
     def gate(self) -> Gate:
         return Gate(self.contracts, store=self.store)
 
-    @property
+    @functools.cached_property
     def ledger(self) -> Ledger:
+        """One ledger per opened node. It remembers the chain head it last wrote, and a
+        fresh `Ledger` per access threw that away and re-read the chain's tail per answer."""
         return Ledger(self.dir, self.store, self.did)
 
     def ingest(self, path: Path | str) -> tuple[Any, list[Any]]:

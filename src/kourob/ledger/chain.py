@@ -90,6 +90,10 @@ class Ledger:
         self.node_dir = Path(node_dir)
         self.store = store
         self.did = did
+        #: The newest record and the row count it was newest at. `append` and `extend` know
+        #: the record they just wrote; a reader only has to check that nothing else has.
+        self._head: dict[str, Any] | None = None
+        self._head_rows: int = -1
 
     # ---------------------------------------------------------------------- reading
 
@@ -113,10 +117,19 @@ class Ledger:
         answer O(n) in the node's history — invisible at a hundred receipts and the first
         thing a thirty-day replay ran into.
         """
-        if self.store.stats("receipts")["rows"] == 0:
+        count = self.store.stats("receipts")["rows"]
+        if count == 0:
             return None
+        if self._head is not None and self._head_rows == count:
+            return self._head  # nothing written since we last knew the head
         rows = self.store.query("SELECT * FROM receipts ORDER BY seq DESC LIMIT 1").to_pylist()
-        return self.store._decode(rows[0]) if rows else None
+        self._head = self.store._decode(rows[0]) if rows else None
+        self._head_rows = count
+        return self._head
+
+    def _wrote(self, newest: dict[str, Any]) -> None:
+        self._head = newest
+        self._head_rows = self.store.stats("receipts")["rows"]
 
     def next_prev(self) -> str:
         head = self.head()
@@ -143,6 +156,7 @@ class Ledger:
         private_key = identity.load_private_key(self.node_dir)
         record["sig"] = identity.sign(private_key, signed_view(record, fields))
         self.store.append("receipts", [record])
+        self._wrote(record)
         return record
 
     def extend(self, entries: list[tuple[str, dict[str, Any]]]) -> list[dict[str, Any]]:
@@ -173,6 +187,7 @@ class Ledger:
             seq += 1
 
         self.store.append("receipts", written)
+        self._wrote(written[-1])
         return written
 
     # --------------------------------------------------------------------- verifying

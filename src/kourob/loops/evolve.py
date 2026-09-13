@@ -752,6 +752,19 @@ def past_reports(node_dir: Path | str) -> list[dict[str, Any]]:
     return out
 
 
+def latest_report(node_dir: Path | str) -> dict[str, Any] | None:
+    """The newest run only. Pricing asks on every request; reading them all was the cost."""
+    directory = report_dir(node_dir)
+    if not directory.exists():
+        return None
+    for path in sorted(directory.glob("*.json"), reverse=True):
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            continue
+    return None
+
+
 def _previous_objective(node_dir: Path | str) -> Objective | None:
     reports = past_reports(node_dir)
     if not reports:
@@ -830,6 +843,7 @@ __all__ = [
     "ProposalKind",
     "demand_factor",
     "evolve",
+    "latest_report",
     "past_reports",
     "render",
     "report_dir",

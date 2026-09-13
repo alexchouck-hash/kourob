@@ -98,7 +98,7 @@ def answer(
 
     run = build_cascade(node, runner=runner).run(request)
     if run.answered and run.result is not None:
-        return _answered(node, request, run, started)
+        return _answered(node, request, run, started, pricer)
 
     miss = scope_mod.after_miss(routes, question)
     if miss.result is ScopeResult.REFERRAL:
@@ -111,7 +111,10 @@ def answer(
 # ---------------------------------------------------------------------------- answered
 
 
-def _answered(node: Node, request: Request, run: CascadeResult, started: float) -> Answer:
+def _answered(
+    node: Node, request: Request, run: CascadeResult, started: float, pricer: Pricer
+) -> Answer:
+    """The quote's pricer prices the answer too: same window, same quality, one read."""
     result = run.result
     assert result is not None
     receipt = _receipt(
@@ -121,9 +124,9 @@ def _answered(node: Node, request: Request, run: CascadeResult, started: float) 
         response={"data": result.data, "rendered": result.rendered},
         result=result,
         cost=run.total_cost,
-        price=_price(node, request, result.tier),
+        price=_price(node, request, result.tier, pricer),
     )
-    _charge(node, request, receipt)
+    _charge(node, request, receipt, pricer)
     _log(node, request, receipt, started, run=run, decided_by=result.model_version)
     return Answer(
         data=result.data,
@@ -356,7 +359,7 @@ def _refuse(
 # ------------------------------------------------------------------------ metering
 
 
-def _price(node: Node, request: Request, tier: Tier) -> float:
+def _price(node: Node, request: Request, tier: Tier, pricer: Pricer | None = None) -> float:
     """KNP-3: computed, never above the ceiling a caller could have been quoted.
 
     The ceiling is recomputed here rather than carried on the request, because the request
@@ -364,16 +367,18 @@ def _price(node: Node, request: Request, tier: Tier) -> float:
     quality. A node MUST NOT charge above what it quoted, and capping at the ceiling is how
     that promise survives a cascade that fell further than expected.
     """
-    pricer = Pricer(node)
+    pricer = pricer or Pricer(node)
     return round(min(pricer.price(tier), pricer.ceiling()), 9)
 
 
-def _charge(node: Node, request: Request, receipt: dict[str, Any]) -> None:
+def _charge(
+    node: Node, request: Request, receipt: dict[str, Any], pricer: Pricer | None = None
+) -> None:
     """Debit the caller once its free allowance is spent. Post-paid against the receipt."""
     price = float(receipt.get("price_credits") or 0.0)
     if price <= 0:
         return
-    if Pricer(node).free_remaining(request.caller) > 0:
+    if (pricer or Pricer(node)).free_remaining(request.caller) > 0:
         return
     Accounts(node.store).debit(request.caller, price, receipt_id=str(receipt["id"]))
 
