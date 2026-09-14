@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Examples — A Network of KouroB Nodes</title>
+  <meta name="description" content="Worked KouroB examples: one node, four cells, then a seven-cell network with two desks. Click through the topology, the referral rules that route a question, and the receipt chain that crosses three nodes.">
+  <meta name="theme-color" content="#080c14">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2300d2ff'/><text y='70' x='20' font-size='65' font-family='monospace' font-weight='bold' fill='white'>K</text></svg>">
+  <style>
+    /* ---- Page-scoped styles: the network topology and its detail panel ---- */
+    .net-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 980px) {
+      .net-layout { grid-template-columns: 1fr; }
+    }
+
+    .net-canvas {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1rem;
+      box-shadow: var(--shadow-md);
+      overflow-x: auto;
+    }
+    .net-canvas svg { width: 100%; min-width: 620px; height: auto; display: block; }
+
+    .net-ask-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.9rem;
+    }
+    .net-ask {
+      font: inherit;
+      font-size: 0.82rem;
+      cursor: pointer;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      transition: all 0.18s ease;
+    }
+    .net-ask:hover { border-color: var(--accent-color); color: var(--text-primary); }
+    .net-ask.active {
+      border-color: var(--accent-color);
+      color: var(--accent-color);
+      background: var(--accent-glow);
+    }
+
+    /* Node boxes in the SVG */
+    .node-g { cursor: pointer; }
+    .node-box {
+      fill: var(--bg-surface);
+      stroke: var(--border-strong);
+      stroke-width: 1.5;
+      rx: 10;
+      transition: stroke 0.2s ease, fill 0.2s ease;
+    }
+    .node-g:hover .node-box { stroke: var(--accent-color); }
+    .node-g.selected .node-box { stroke: var(--accent-color); stroke-width: 2.5; }
+    .node-g.lit .node-box { stroke: var(--brand-emerald); stroke-width: 2.5; }
+    .node-g.dim { opacity: 0.35; }
+    .node-name { fill: var(--text-primary); font: 600 13px var(--font-mono); }
+    .node-role { fill: var(--text-muted); font: 400 10.5px var(--font-sans); }
+    .node-dot { fill: var(--brand-amber); }
+    .node-g.holds .node-dot { fill: var(--brand-emerald); }
+
+    .edge {
+      fill: none;
+      stroke: var(--border-strong);
+      stroke-width: 1.6;
+      transition: stroke 0.2s ease, stroke-width 0.2s ease;
+    }
+    .edge.lit { stroke: var(--brand-emerald); stroke-width: 3; }
+    .edge.dim { opacity: 0.25; }
+    .edge-label { fill: var(--text-muted); font: 400 9.5px var(--font-mono); }
+    .ask-label { fill: var(--text-secondary); font: 600 11px var(--font-mono); }
+
+    /* Detail panel */
+    .net-detail {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1.4rem;
+      box-shadow: var(--shadow-md);
+    }
+    .net-detail h3 {
+      font-family: var(--font-mono);
+      font-size: 1.05rem;
+      margin-bottom: 0.25rem;
+    }
+    .net-detail .detail-kind {
+      display: inline-block;
+      font-size: 0.7rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      margin-bottom: 0.9rem;
+    }
+    .kind-holds { background: rgba(16, 185, 129, 0.15); color: var(--tier-t0); }
+    .kind-desk { background: rgba(245, 158, 11, 0.15); color: var(--brand-amber); }
+    .net-detail p { color: var(--text-secondary); font-size: 0.9rem; }
+    .detail-rows { list-style: none; padding: 0; margin: 1rem 0 0; }
+    .detail-rows li {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr);
+      gap: 0.6rem;
+      padding: 0.5rem 0;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 0.83rem;
+      color: var(--text-secondary);
+    }
+    .detail-rows .k { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.76rem; }
+    .detail-rows code { font-size: 0.78rem; word-break: break-word; }
+
+    /* Hop trace */
+    .hop-list { list-style: none; padding: 0; margin: 0; counter-reset: hop; }
+    .hop-list li {
+      position: relative;
+      padding: 0 0 1.3rem 2.4rem;
+      border-left: 2px solid var(--border-subtle);
+      margin-left: 0.7rem;
+    }
+    .hop-list li:last-child { border-left-color: transparent; padding-bottom: 0; }
+    .hop-list li::before {
+      counter-increment: hop;
+      content: counter(hop);
+      position: absolute;
+      left: -0.78rem;
+      top: 0;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: var(--bg-surface-elevated);
+      color: var(--accent-color);
+      border: 1px solid var(--border-strong);
+    }
+    .hop-list h4 { margin: 0 0 0.25rem; font-size: 0.95rem; font-family: var(--font-mono); }
+    .hop-list p { margin: 0; color: var(--text-secondary); font-size: 0.88rem; }
+
+    /* Example ladder cards */
+    .ladder { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.2rem; }
+    .rung { position: relative; }
+    .rung .rung-step {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .rung .rung-count {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1;
+      margin: 0.35rem 0 0.15rem;
+    }
+
+    .note {
+      border-left: 3px solid var(--brand-amber);
+      background: var(--bg-surface-elevated);
+      padding: 0.9rem 1.1rem;
+      border-radius: 0 10px 10px 0;
+      color: var(--text-secondary);
+      font-size: 0.88rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header class="site-nav">
+    <div class="container nav-inner">
+      <a href="index.html" class="brand">
+        <span class="brand-icon">K</span>
+        <span>KouroB</span>
+      </a>
+
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html#overview">Architecture</a></li>
+          <li><a href="index.html#simulator">Live Simulator</a></li>
+          <li><a href="index.html#tiers">5-Tier Cascade</a></li>
+          <li><a href="index.html#protocols">KNP Protocols</a></li>
+          <li><a href="examples.html" aria-current="page">Examples</a></li>
+          <li><a href="index.html#cli">CLI Runbook</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <button id="theme-toggle" class="btn-icon" aria-label="Toggle theme" title="Toggle theme">🌙</button>
+        <a href="https://github.com/alexchouck-hash/kourob/tree/main/examples" class="btn btn-secondary" target="_blank" rel="noopener">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          Examples on GitHub
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-glow"></div>
+    <div class="container">
+      <div class="hero-badge">
+        <span class="status-dot"></span>
+        <span>Worked Examples &middot; Built from one command &middot; Covered by tests</span>
+      </div>
+      <h1 class="hero-title" style="max-width: 22ch;">
+        One Question, <span class="gradient-text">Seven Nodes</span>
+      </h1>
+      <p class="hero-subtitle" style="max-width: 70ch;">
+        A single node is easy to picture. The point of KouroB is what happens when there are several:
+        a question arrives at a desk that holds nothing, gets referred to the cell that does hold it,
+        and comes back cited &mdash; with a receipt on every hop. These examples build that network on
+        your machine in under a second, from public data, and let you ask it things.
+      </p>
+      <div class="hero-ctas">
+        <a href="#network" class="btn btn-primary">Explore the Network &rarr;</a>
+        <a href="#build" class="btn btn-secondary">Build It Locally</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- The ladder of examples -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">The Ladder</span>
+        <h2 class="section-title">Three Examples, Each One Cell Wider</h2>
+        <p class="section-desc">
+          Every example lives in <code>examples/</code> in the repository, is built by a single
+          <code>build.py</code>, and is rebuilt the same way by a test &mdash; so the example cannot
+          drift from what the code actually does. Nothing generated is committed.
+        </p>
+      </div>
+
+      <div class="ladder">
+        <div class="feature-card rung">
+          <div class="rung-step">Step 1</div>
+          <div class="rung-count gradient-text">1</div>
+          <h3 class="feature-title">trooth-node</h3>
+          <p class="feature-desc">
+            One cell, fed by signed provenance envelopes from <strong>Trooth</strong>. It holds a
+            public feed, answers from compiled T0 rules, and cites the event behind every number.
+            The smallest complete node: gate, store, ledger, ports.
+          </p>
+          <a class="feature-link" href="https://github.com/alexchouck-hash/kourob/tree/main/examples/trooth-node" target="_blank" rel="noopener">Read the example &rarr;</a>
+        </div>
+
+        <div class="feature-card rung">
+          <div class="rung-step">Step 2</div>
+          <div class="rung-count gradient-text">4</div>
+          <h3 class="feature-title">trooth-set</h3>
+          <p class="feature-desc">
+            Three data cells &mdash; weather, seismic, economy &mdash; plus a desk that holds
+            <em>nothing</em> and knows who does. The desk bridges once, hands back the direct route,
+            and refers after that. Price and cost are summed along the chain.
+          </p>
+          <a class="feature-link" href="https://github.com/alexchouck-hash/kourob/tree/main/examples/trooth-set" target="_blank" rel="noopener">Read the example &rarr;</a>
+        </div>
+
+        <div class="feature-card rung">
+          <div class="rung-step">Step 3</div>
+          <div class="rung-count gradient-text">7</div>
+          <h3 class="feature-title">trooth-network</h3>
+          <p class="feature-desc">
+            Five source cells, <strong>two</strong> desks. A weather question now takes two referrals
+            before it reaches a cell that holds anything, and the receipt chain crosses three nodes.
+            Credits are generated from what the nodes hold.
+          </p>
+          <a class="feature-link" href="#network">Explore it below &darr;</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- The network -->
+  <section class="section" id="network">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">trooth-network</span>
+        <h2 class="section-title">Seven Cells, Two Desks, No Coordinator</h2>
+        <p class="section-desc">
+          Click any cell to see its declared scope and what it holds. Or pick a question and watch
+          which cells it touches &mdash; the route is not configured anywhere central; each desk only
+          knows its own exclusions and the neighbours they refer to.
+        </p>
+      </div>
+
+      <div class="net-layout">
+        <div>
+          <div class="net-ask-row" role="group" aria-label="Example questions">
+            <button class="net-ask" data-ask="weather">"nws observation at KJFK"</button>
+            <button class="net-ask" data-ask="model">"open-meteo model wind"</button>
+            <button class="net-ask" data-ask="quake">"largest earthquake in the last hour"</button>
+            <button class="net-ask" data-ask="cpi">"what is the latest cpi"</button>
+            <button class="net-ask" data-ask="reset">Show all routes</button>
+          </div>
+
+          <div class="net-canvas">
+            <svg viewBox="0 0 860 478" role="img" aria-label="Topology of the seven-cell trooth-network: a front desk refers to a weather desk and to three source nodes; the weather desk refers to two more source nodes.">
+              <!-- edges: front desk -->
+              <path class="edge" data-edge="front-weather" d="M200 232 C 265 232, 265 100, 330 100"/>
+              <path class="edge" data-edge="front-usgs"    d="M200 232 C 265 232, 265 232, 330 232"/>
+              <path class="edge" data-edge="front-bls"     d="M200 232 C 265 232, 265 320, 330 320"/>
+              <path class="edge" data-edge="front-fred"    d="M200 232 C 265 232, 265 408, 330 408"/>
+              <!-- edges: weather desk -->
+              <path class="edge" data-edge="weather-nws"        d="M500 100 C 565 100, 565 52, 630 52"/>
+              <path class="edge" data-edge="weather-openmeteo"  d="M500 100 C 565 100, 565 156, 630 156"/>
+
+              <!-- edge labels -->
+              <text class="edge-label" x="238" y="150">weather|kjfk|nws…</text>
+              <text class="edge-label" x="238" y="224">earthquake|quake…</text>
+              <text class="edge-label" x="238" y="290">cpi|inflation…</text>
+              <text class="edge-label" x="238" y="378">fred|st louis…</text>
+              <text class="edge-label" x="536" y="68">\bnws\b|station…</text>
+              <text class="edge-label" x="536" y="146">open-meteo|grid…</text>
+
+              <!-- the ask -->
+              <text class="ask-label" x="42" y="196">a question arrives &darr;</text>
+
+              <!-- nodes -->
+              <g class="node-g selected" data-node="trooth-desk" tabindex="0" role="button" aria-label="trooth-desk">
+                <rect class="node-box" x="40" y="205" width="160" height="54"/>
+                <circle class="node-dot" cx="56" cy="222" r="4"/>
+                <text class="node-name" x="68" y="227">trooth-desk</text>
+                <text class="node-role" x="56" y="247">front &middot; holds nothing</text>
+              </g>
+
+              <g class="node-g" data-node="weather-desk" tabindex="0" role="button" aria-label="weather-desk">
+                <rect class="node-box" x="330" y="73" width="170" height="54"/>
+                <circle class="node-dot" cx="346" cy="90" r="4"/>
+                <text class="node-name" x="358" y="95">weather-desk</text>
+                <text class="node-role" x="346" y="115">desk &middot; holds nothing</text>
+              </g>
+
+              <g class="node-g holds" data-node="nws-node" tabindex="0" role="button" aria-label="nws-node">
+                <rect class="node-box" x="630" y="25" width="185" height="54"/>
+                <circle class="node-dot" cx="646" cy="42" r="4"/>
+                <text class="node-name" x="658" y="47">nws-node</text>
+                <text class="node-role" x="646" y="67">3 events &middot; weather-station</text>
+              </g>
+
+              <g class="node-g holds" data-node="open-meteo-node" tabindex="0" role="button" aria-label="open-meteo-node">
+                <rect class="node-box" x="630" y="129" width="185" height="54"/>
+                <circle class="node-dot" cx="646" cy="146" r="4"/>
+                <text class="node-name" x="658" y="151">open-meteo-node</text>
+                <text class="node-role" x="646" y="171">3 events &middot; weather-grid</text>
+              </g>
+
+              <g class="node-g holds" data-node="usgs-node" tabindex="0" role="button" aria-label="usgs-node">
+                <rect class="node-box" x="330" y="205" width="185" height="54"/>
+                <circle class="node-dot" cx="346" cy="222" r="4"/>
+                <text class="node-name" x="358" y="227">usgs-node</text>
+                <text class="node-role" x="346" y="247">3 events &middot; earthquake</text>
+              </g>
+
+              <g class="node-g holds" data-node="bls-node" tabindex="0" role="button" aria-label="bls-node">
+                <rect class="node-box" x="330" y="293" width="185" height="54"/>
+                <circle class="node-dot" cx="346" cy="310" r="4"/>
+                <text class="node-name" x="358" y="315">bls-node</text>
+                <text class="node-role" x="346" y="335">3 events &middot; price-index</text>
+              </g>
+
+              <g class="node-g holds" data-node="fred-node" tabindex="0" role="button" aria-label="fred-node">
+                <rect class="node-box" x="330" y="381" width="185" height="54"/>
+                <circle class="node-dot" cx="346" cy="398" r="4"/>
+                <text class="node-name" x="358" y="403">fred-node</text>
+                <text class="node-role" x="346" y="423">2 events &middot; economic-series</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <aside class="net-detail" id="net-detail" aria-live="polite"></aside>
+      </div>
+
+      <p class="note" style="margin-top: 1.5rem;">
+        <strong>Green dot</strong> = the cell holds events and can answer.
+        <strong>Amber dot</strong> = a desk: zero events, pure routing. A desk is still a full node
+        &mdash; it meters, receipts and signs its referral exactly like an answer, because
+        <code>{data, rendered, citations, receipt_id}</code> has no exceptions.
+      </p>
+    </div>
+  </section>
+
+  <!-- The hop trace -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">KNP-1 &middot; Scope &amp; Routing</span>
+        <h2 class="section-title">What Happens When You Ask the Front Desk</h2>
+        <p class="section-desc">
+          The two-hop path, step by step. This is the real output of
+          <code>kourob query "nws observation at KJFK"</code> against the front desk of a freshly
+          built network.
+        </p>
+      </div>
+
+      <div class="net-layout">
+        <div>
+          <ol class="hop-list">
+            <li>
+              <h4>trooth-desk &mdash; out of scope, refer</h4>
+              <p>
+                The question matches the front desk's declared exclusion
+                <code>weather|temperature|humidity|wind|observation|kjfk|nws|open-meteo</code>, which
+                names <code>weather-desk</code> as the referral target. The desk holds nothing, so
+                there is nothing to try first.
+              </p>
+            </li>
+            <li>
+              <h4>weather-desk &mdash; out of scope again, refer</h4>
+              <p>
+                The second desk splits weather by <em>kind</em>: <code>\bnws\b|national weather|station|conditions</code>
+                goes to the station node, <code>open-meteo|model|grid</code> to the model node. "nws" wins.
+              </p>
+            </li>
+            <li>
+              <h4>nws-node &mdash; answers at T0</h4>
+              <p>
+                A compiled rule binds against the held observation event and answers with no model
+                call at all: <strong>$0.00, exact replay</strong>. The answer carries the licence and
+                how far behind the source it is.
+              </p>
+            </li>
+            <li>
+              <h4>The route is handed back</h4>
+              <p>
+                <code>bridge_limit: 1</code> means the caller gets one introduction. Ask the same
+                question again and the desk <em>refers</em> instead of bridging &mdash; the caller now
+                holds the direct route and the network got shorter without anyone coordinating it.
+              </p>
+            </li>
+          </ol>
+        </div>
+
+        <div class="terminal-window">
+          <div class="terminal-topbar">
+            <div class="terminal-dots">
+              <span class="terminal-dot dot-red"></span>
+              <span class="terminal-dot dot-yellow"></span>
+              <span class="terminal-dot dot-green"></span>
+            </div>
+            <div class="terminal-title">bash &mdash; kourob query</div>
+            <div></div>
+          </div>
+          <div class="terminal-body">
+            <div class="terminal-line">
+              <span class="terminal-prompt">$</span>
+              <span>kourob query 'nws observation at KJFK' \<br>&nbsp;&nbsp;--node examples/trooth-network/cells/trooth-desk</span>
+            </div>
+            <div class="terminal-output">
+              nws at KJFK, 2026-09-13T23:55:00+00:00: 23 C, humidity 94.1%,<br>
+              wind 9.252 km/h (public-domain, 1345.6s behind the source).<br>
+              [evt_01M2ESTW5J43785V26B16G1CR7]
+              <br><br>
+              <span class="terminal-highlight">tier&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;T0 (derived)</span><br>
+              citations&nbsp;&nbsp;evt_01M2ESTW5J43785V26B16G1CR7<br>
+              receipt&nbsp;&nbsp;&nbsp;&nbsp;rcpt_01M2ESV8T9MC89GWWNH5D4CTB2
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-prompt">$</span>
+              <span>kourob trace rcpt_01M2ESV8T9MC89GWWNH5D4CTB2</span>
+            </div>
+            <div class="terminal-output">
+              ✓ signature valid &middot; prev-hash chain intact<br>
+              ↳ walks both referral receipts and the event behind them,<br>
+              &nbsp;&nbsp;across all three cells
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Build it -->
+  <section class="section" id="build">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Runbook</span>
+        <h2 class="section-title">Build the Network Yourself</h2>
+        <p class="section-desc">
+          Seven cells from one command, in under a second. Each is <code>kourob init</code> plus its
+          contracts, its T0 rules, and the fixtures it holds &mdash; no bespoke wiring.
+        </p>
+      </div>
+
+      <div class="cli-tab-content active" style="display:block;">
+        <div class="cli-command-block">
+          <code>uv run python examples/trooth-network/build.py</code>
+          <button class="btn-copy">Copy</button>
+        </div>
+        <p class="cli-explanation">
+          Initialises the five source cells, ingests each feed's envelope, Trooth's published
+          scorecard and Modafied's emblem through the gate, then creates the two desks and connects
+          them. Prints each cell's <code>did:key:</code> and event count, and writes
+          <code>cells/credits.md</code>.
+        </p>
+
+        <div class="cli-command-block">
+          <code>uv run kourob query 'largest earthquake in the last hour' --node examples/trooth-network/cells/trooth-desk</code>
+          <button class="btn-copy">Copy</button>
+        </div>
+        <p class="cli-explanation">
+          One hop instead of two: the front desk refers earthquakes straight to
+          <code>usgs-node</code>. Swap the question for a CPI one and it lands on
+          <code>bls-node</code> instead.
+        </p>
+
+        <div class="cli-command-block">
+          <code>uv run streamlit run examples/trooth-network/dashboard.py -- examples/trooth-network/cells</code>
+          <button class="btn-copy">Copy</button>
+        </div>
+        <p class="cli-explanation">
+          Watch it: the cells and their routes as a live graph with each route's Hebbian strength, a
+          question asked through <code>serve.answer</code>, and the receipt chain across nodes with
+          price and cost summed along it. The dashboard reads every cell through the Store API and
+          has no node-specific code.
+        </p>
+      </div>
+
+      <p class="note" style="margin-top: 1.5rem;">
+        <strong>Honest fixtures.</strong> The envelopes are snapshots of the real public sources
+        &mdash; fetched, hashed, and time-stamped the way Trooth's snapshot job does it &mdash; but
+        they are signed by a local key with <code>key_id: kourob-local</code>. That id is the marker:
+        they prove what was fetched and when, <em>by this operator</em>, not by Trooth. They validate
+        against Trooth's schemas, and nothing downstream changes the day real ones arrive.
+      </p>
+    </div>
+  </section>
+
+  <!-- What it demonstrates -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Why It Matters</span>
+        <h2 class="section-title">What the Network Demonstrates</h2>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon icon-amber">🔀</div>
+          <h3 class="feature-title">Routing Without a Registry</h3>
+          <p class="feature-desc">
+            No node holds a map of the network. Each desk declares exclusions and the neighbour each
+            one refers to; a three-cell path emerges from two independent local decisions. Callers
+            learn direct routes and stop paying for the hop.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon icon-purple">🔗</div>
+          <h3 class="feature-title">Receipts That Cross Machines</h3>
+          <p class="feature-desc">
+            Each hop appends its own signed receipt naming the upstream receipt it depended on.
+            <code>kourob trace</code> walks the whole chain back to the immutable event &mdash; across
+            nodes that never shared a database.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon icon-emerald">💳</div>
+          <h3 class="feature-title">Metered End to End</h3>
+          <p class="feature-desc">
+            Price and cost are recorded per hop and summed along the chain, so "what did that answer
+            cost, and who earned what" is a table, not an estimate &mdash; even when the answer came
+            from three separately owned cells.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon icon-cyan">📇</div>
+          <h3 class="feature-title">A Node Is a Data Provider</h3>
+          <p class="feature-desc">
+            <code>kourob publish --trooth</code> writes a catalog entry and a six-dimension scorecard
+            for each cell, in Trooth's own schemas, computed from the node's own records. A node and
+            a public source become comparable on one page.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon icon-blue">📜</div>
+          <h3 class="feature-title">Credits Generated, Not Written</h3>
+          <p class="feature-desc">
+            <code>credits.md</code> is produced from what the cells actually hold: every feed with its
+            licence and attribution, every scorecard, every independently issued benchmark emblem
+            with its notice. Rebuild it and it states what is true then.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon icon-pink">🧪</div>
+          <h3 class="feature-title">The Example Is the Test</h3>
+          <p class="feature-desc">
+            The test suite builds each example by calling the same <code>build</code> function, asks
+            the same questions, and validates the outputs against the published schemas. An example
+            that rots fails CI.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <div class="container">
+    <div class="cta-banner">
+      <h2>Attach an Agent to the Network</h2>
+      <p>
+        Every cell here speaks MCP. Point Claude Code or Cursor at the front desk and the agent gets
+        cited, receipted answers from all seven &mdash; without knowing any of them exist.
+      </p>
+      <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        <a href="index.html#agents" class="btn btn-primary">Agent Attach Guide &rarr;</a>
+        <a href="https://github.com/alexchouck-hash/kourob/tree/main/examples" class="btn btn-secondary" target="_blank" rel="noopener">
+          Browse examples/ on GitHub
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="brand">
+          <span class="brand-icon">K</span>
+          <span>KouroB</span>
+        </a>
+        <p>
+          An open-source architecture and protocol for metered, provenance-tracked, self-specializing nodes.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Architecture</h4>
+        <ul class="footer-links">
+          <li><a href="index.html#overview">Overview</a></li>
+          <li><a href="index.html#tiers">5-Tier Cascade</a></li>
+          <li><a href="index.html#protocols">KNP Protocols</a></li>
+          <li><a href="index.html#simulator">Live Simulator</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Examples</h4>
+        <ul class="footer-links">
+          <li><a href="examples.html#network">The seven-cell network</a></li>
+          <li><a href="examples.html#build">Build it locally</a></li>
+          <li><a href="https://github.com/alexchouck-hash/kourob/tree/main/examples/trooth-node" target="_blank" rel="noopener">trooth-node (one cell)</a></li>
+          <li><a href="https://github.com/alexchouck-hash/kourob/tree/main/examples/trooth-set" target="_blank" rel="noopener">trooth-set (four cells)</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <ul class="footer-links">
+          <li><a href="https://github.com/alexchouck-hash/kourob" target="_blank" rel="noopener">GitHub Repository</a></li>
+          <li><a href="llms.txt">llms.txt (AI Manifest)</a></li>
+          <li><a href="https://github.com/alexchouck-hash/kourob/blob/main/LICENSE" target="_blank" rel="noopener">Apache-2.0 License</a></li>
+          <li><a href="https://github.com/alexchouck-hash/kourob/blob/main/GOAL.md" target="_blank" rel="noopener">GOAL.md Metrics</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="container footer-bottom">
+      <div>&copy; 2026 KouroB Contributors. Licensed under Apache-2.0.</div>
+      <div>Designed for builders and autonomous agents.</div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+  <script>
+  // --- The network topology: cell details and question routes ---
+  (function () {
+    const NODES = {
+      'trooth-desk': {
+        kind: 'desk',
+        title: 'trooth-desk',
+        blurb: 'The front of the network. Holds no events at all: its whole job is to know which cell does, and to say so in a receipted referral.',
+        rows: [
+          ['holds', '0 events'],
+          ['scope', 'the front desk of a network of trooth-fed nodes'],
+          ['refers', 'weather-desk &middot; usgs-node &middot; bls-node &middot; fred-node'],
+          ['bridge', 'bridge_limit: 1 — one introduction per caller']
+        ]
+      },
+      'weather-desk': {
+        kind: 'desk',
+        title: 'weather-desk',
+        blurb: 'A second desk, one level down. It splits weather by kind — a station reading is not a model forecast — and refers accordingly. This is the hop that makes the network two-deep.',
+        rows: [
+          ['holds', '0 events'],
+          ['scope', 'a desk for weather at KJFK'],
+          ['refers', 'nws-node (station) &middot; open-meteo-node (model)'],
+          ['bridge', 'bridge_limit: 1']
+        ]
+      },
+      'nws-node': {
+        kind: 'holds',
+        title: 'nws-node',
+        blurb: 'Observations from the US National Weather Service station at KJFK: temperature, humidity, wind, conditions. Answers at T0 from a compiled rule.',
+        rows: [
+          ['holds', '3 events — observation, scorecard, emblem'],
+          ['entity', 'weather-station'],
+          ['source', 'api.weather.gov &middot; public domain'],
+          ['credit', 'Data provided by NOAA / National Weather Service']
+        ]
+      },
+      'open-meteo-node': {
+        kind: 'holds',
+        title: 'open-meteo-node',
+        blurb: 'Model weather for the same coordinates — a different kind of truth about the same place, which is exactly why it is a different cell.',
+        rows: [
+          ['holds', '3 events — observation, scorecard, emblem'],
+          ['entity', 'weather-grid'],
+          ['source', 'api.open-meteo.com &middot; CC-BY-4.0'],
+          ['credit', 'Weather data by Open-Meteo.com']
+        ]
+      },
+      'usgs-node': {
+        kind: 'holds',
+        title: 'usgs-node',
+        blurb: 'The USGS past-hour earthquake feed: largest quake, magnitude, count. One hop from the front desk — no intermediate desk needed.',
+        rows: [
+          ['holds', '3 events — observation, scorecard, emblem'],
+          ['entity', 'earthquake'],
+          ['source', 'earthquake.usgs.gov &middot; public domain'],
+          ['credit', 'Data courtesy of the U.S. Geological Survey']
+        ]
+      },
+      'bls-node': {
+        kind: 'holds',
+        title: 'bls-node',
+        blurb: 'The Consumer Price Index from the Bureau of Labor Statistics. Ask the front desk about inflation and it lands here.',
+        rows: [
+          ['holds', '3 events — observation, scorecard, emblem'],
+          ['entity', 'price-index'],
+          ['source', 'api.bls.gov &middot; public domain'],
+          ['credit', 'U.S. Bureau of Labor Statistics']
+        ]
+      },
+      'fred-node': {
+        kind: 'holds',
+        title: 'fred-node',
+        blurb: 'Economic series from the St. Louis Fed. It holds the scorecard and the benchmark emblem but no envelope yet — FRED needs an API key — so it is the honest case of a cell that is listed, scored, and not yet fed.',
+        rows: [
+          ['holds', '2 events — scorecard, emblem (no envelope yet)'],
+          ['entity', 'economic-series'],
+          ['source', 'fred.stlouisfed.org &middot; API key required'],
+          ['credit', 'Federal Reserve Economic Data (FRED)']
+        ]
+      }
+    };
+
+    const ASKS = {
+      weather: { edges: ['front-weather', 'weather-nws'], nodes: ['trooth-desk', 'weather-desk', 'nws-node'], focus: 'nws-node' },
+      model:   { edges: ['front-weather', 'weather-openmeteo'], nodes: ['trooth-desk', 'weather-desk', 'open-meteo-node'], focus: 'open-meteo-node' },
+      quake:   { edges: ['front-usgs'], nodes: ['trooth-desk', 'usgs-node'], focus: 'usgs-node' },
+      cpi:     { edges: ['front-bls'], nodes: ['trooth-desk', 'bls-node'], focus: 'bls-node' }
+    };
+
+    const detail = document.getElementById('net-detail');
+    const groups = Array.from(document.querySelectorAll('.node-g'));
+    const edges = Array.from(document.querySelectorAll('.edge'));
+    const askBtns = Array.from(document.querySelectorAll('.net-ask'));
+    if (!detail || !groups.length) return;
+
+    function render(id) {
+      const n = NODES[id];
+      if (!n) return;
+      const kindClass = n.kind === 'desk' ? 'kind-desk' : 'kind-holds';
+      const kindText = n.kind === 'desk' ? 'Desk — routes only' : 'Source cell — holds events';
+      detail.innerHTML =
+        '<h3>' + n.title + '</h3>' +
+        '<span class="detail-kind ' + kindClass + '">' + kindText + '</span>' +
+        '<p>' + n.blurb + '</p>' +
+        '<ul class="detail-rows">' +
+        n.rows.map(function (r) {
+          return '<li><span class="k">' + r[0] + '</span><span>' + r[1] + '</span></li>';
+        }).join('') +
+        '</ul>';
+      groups.forEach(function (g) {
+        g.classList.toggle('selected', g.getAttribute('data-node') === id);
+      });
+    }
+
+    function clearRoute() {
+      groups.forEach(function (g) { g.classList.remove('lit', 'dim'); });
+      edges.forEach(function (e) { e.classList.remove('lit', 'dim'); });
+    }
+
+    function showRoute(key) {
+      clearRoute();
+      const route = ASKS[key];
+      if (!route) return;
+      groups.forEach(function (g) {
+        const on = route.nodes.indexOf(g.getAttribute('data-node')) !== -1;
+        g.classList.toggle('lit', on);
+        g.classList.toggle('dim', !on);
+      });
+      edges.forEach(function (e) {
+        const on = route.edges.indexOf(e.getAttribute('data-edge')) !== -1;
+        e.classList.toggle('lit', on);
+        e.classList.toggle('dim', !on);
+      });
+      render(route.focus);
+    }
+
+    groups.forEach(function (g) {
+      const id = g.getAttribute('data-node');
+      g.addEventListener('click', function () { render(id); });
+      g.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); render(id); }
+      });
+    });
+
+    askBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        askBtns.forEach(function (b) { b.classList.remove('active'); });
+        const key = btn.getAttribute('data-ask');
+        if (key === 'reset') { clearRoute(); render('trooth-desk'); return; }
+        btn.classList.add('active');
+        showRoute(key);
+      });
+    });
+
+    render('trooth-desk');
+  })();
+  </script>
+</body>
+</html>

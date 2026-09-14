@@ -53,8 +53,37 @@ kourob attach claude-code   # or: kourob attach cursor
 - `kourob tend [--autonomy-max A2]`: Run the autonomous maintenance loop (evolve, proposal decisions, rollback, demotion).
 - `kourob meter report`: Audit token costs, margins, revenues, and quality multipliers.
 
+## Worked Examples: Networks of Nodes
+
+Page: https://alexchouck-hash.github.io/kourob/examples.html
+
+Three examples in `examples/`, each one cell wider, each built by a single `build.py` and rebuilt
+identically by a test so the example cannot drift from the code. Nothing generated is committed.
+
+- **trooth-node (1 cell)**: one node fed by signed provenance envelopes from Trooth. Holds a public
+  feed, answers from compiled T0 rules, cites the event behind every number.
+- **trooth-set (4 cells)**: three data nodes (weather, seismic, economy) plus a desk that holds
+  nothing and knows who does. The desk bridges once, hands back the direct route, refers after that.
+- **trooth-network (7 cells)**: five source nodes and two desks. `trooth-desk` (the front) refers
+  weather to `weather-desk`, earthquakes to `usgs-node`, the economy to `bls-node` and `fred-node`;
+  `weather-desk` refers station readings to `nws-node` and model output to `open-meteo-node`. A
+  weather question therefore takes two referrals and its receipt chain crosses three cells.
+
+Build and ask:
+```bash
+uv run python examples/trooth-network/build.py
+uv run kourob query 'nws observation at KJFK' --node examples/trooth-network/cells/trooth-desk
+uv run streamlit run examples/trooth-network/dashboard.py -- examples/trooth-network/cells
+```
+
+What the network demonstrates: routing with no central registry (each desk knows only its own
+exclusions and referral targets); receipts that chain across separately owned cells; price and cost
+metered per hop and summed along the chain; `kourob publish --trooth` turning any node into a listed
+data provider with a six-dimension scorecard; and `credits.md` generated from what the cells hold.
+
 ## Repository & Links
 
 - GitHub: https://github.com/alexchouck-hash/kourob
 - Specifications: https://github.com/alexchouck-hash/kourob/tree/main/docs/protocols
 - License: Apache-2.0
+- Examples: https://alexchouck-hash.github.io/kourob/examples.html
