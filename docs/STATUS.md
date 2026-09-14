@@ -1,6 +1,6 @@
 # Status against GOAL.md
 
-Dated 2026-09-10. Rewritten, not appended: this file says where the project *is*, and the
+Dated 2026-09-13. Rewritten, not appended: this file says where the project *is*, and the
 handoffs say how it got there.
 
 ## The one sentence
@@ -75,7 +75,8 @@ Honest list, in the order they bite:
 6. **Cluster keys are unreadable** and are about to appear in commit messages.
 7. **Keyword retrieval** for T3 will stop scaling, and no measurement says when.
 8. **Only MCP has a transport.** A2A and REST are stubs, so nothing outside this machine can
-   reach a cell, and `examples/ui` has nothing to talk to.
+   reach a cell. The first human tap (`examples/trooth-node/dashboard.py`) reads the store
+   in-process for the same reason; the SSE tap of KNP-6 is what it should subscribe to.
 
 ## The queue
 
@@ -93,7 +94,10 @@ Kept in Beads (`bd ready`), ordered by what moves the sentence, not by milestone
 6. ~~**Compile and lint, and the dogfood node**~~ — done (`kb-afx`). The repo serves its
    own docs with a citation on every claim.
 7. ~~**T1 and the cost-curve eval**~~ — done (`kb-ayo`). Measured over a real 30-day replay; the replay itself is too slow for CI (`kb-0sl`).
-8. **Tennis set** — the first real integration.
+8. ~~**The first real integration**~~ — done, and it was Trooth, not tennis (`kb-6hh`):
+   `examples/trooth-node` holds signed envelopes and public scorecards, answers at T0 with a
+   citation that carries Trooth's content hash, and has a Streamlit dashboard. The tennis set
+   (`kb-2yk`, `kb-id9`) is next.
 9. **ADR-0003/4/5, Merkle, PROV export, schema codegen** — owed, not blocking.
 
 Human decisions pending (`bd human`): what settles a probabilistic answer; whether mined

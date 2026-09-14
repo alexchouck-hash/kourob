@@ -118,7 +118,7 @@ def test_implemented_ports_return_the_answer_envelope() -> None:
     """
     # In-ports translate documents into pushes for the gate; they answer nothing and have
     # no handler to return an envelope from. Everything that *answers* is checked.
-    in_ports = {"files.py", "git.py"}
+    in_ports = {"files.py", "git.py", "trooth.py"}
     offenders = [
         _rel(p)
         for p in (SRC / "ports").glob("*.py")

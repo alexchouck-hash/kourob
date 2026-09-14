@@ -1,0 +1,60 @@
+{
+  "schema_version": "0.1",
+  "request_id": "req_01j7v0q8x1m9k2a4b6c8d0e2f4",
+  "data": {
+    "location": "KJFK",
+    "temperature_c": 21.1,
+    "relative_humidity_pct": 65,
+    "wind_speed_kmh": 14.5,
+    "conditions": "Partly Cloudy"
+  },
+  "provenance": {
+    "resolved_query": "weather/observations/KJFK",
+    "served_from": "live",
+    "snapshot_id": "snap_20260910T190000Z_nws_kjfk",
+    "sources": [
+      {
+        "id": "nws",
+        "role": "primary",
+        "url": "https://api.weather.gov/stations/KJFK/observations/latest",
+        "license": "public-domain",
+        "source_timestamp": "2026-09-10T18:51:00Z",
+        "fetched_at": "2026-09-10T18:57:52Z",
+        "freshness_lag_s": 412,
+        "content_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "considered_and_rejected": [
+      {
+        "id": "open-meteo",
+        "reason": "derivative of nws; lag p95 38m"
+      }
+    ],
+    "disagreements": [
+      {
+        "field": "temp_c",
+        "values": [
+          { "source": "nws", "value": 21.1 },
+          { "source": "open-meteo", "value": 20.4 }
+        ]
+      }
+    ],
+    "scorecard_ref": "https://trooth.io/scorecards/nws",
+    "untrusted_text": [
+      "Fair and Breezy"
+    ],
+    "quota": {
+      "remaining": 987,
+      "cost_units": 1
+    }
+  },
+  "signature": {
+    "alg": "ed25519",
+    "key_id": "2026-09",
+    "sig": "3a8b4c2e6f1a8d5b7c9e0f2a4b6c8d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8a0b2c"
+  },
+  "log": {
+    "entry_id": "log_89201948",
+    "checkpoint": "chk_20260910_001"
+  }
+}

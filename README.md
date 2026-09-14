@@ -19,6 +19,14 @@ kourob serve --mcp
 
 Then attach an agent: `kourob attach claude-code`.
 
+## Examples
+
+- `examples/kourob-node/` — the repo serves its own docs with a citation on every claim.
+- `examples/trooth-node/` — a node fed by [Trooth](https://alexchouck-hash.github.io/trooth-site/)
+  envelopes and scorecards, with a Streamlit dashboard as the human tap:
+  `uv run python examples/trooth-node/build.py`, then
+  `uv run streamlit run examples/trooth-node/dashboard.py -- examples/trooth-node/cell`.
+
 ## What it is not
 
 - **Not an agent.** KouroB is a node network. `ouroboros` is a heavily used name in the

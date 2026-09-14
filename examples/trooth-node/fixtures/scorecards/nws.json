@@ -1,0 +1,56 @@
+{
+  "accuracy": {
+    "anchor": "NWS MADIS / Surface Weather Observation Network (Automated Surface Observing Systems)",
+    "details": {
+      "lead_time_hours": 24,
+      "notes": "Grades National Weather Service earlier gridpoint forecast against settled ASOS airport station observation.",
+      "target_variable": "temperature"
+    },
+    "metric": "temperature_mae_deg_c",
+    "sample_count": 4,
+    "score": 1.15,
+    "unit": "celsius"
+  },
+  "dimensions": {
+    "completeness_by_segment": {
+      "overall_pct": 100.0,
+      "segments": {
+        "gridpoint_forecast": 100.0,
+        "latest_observations": 100.0
+      }
+    },
+    "correction_latency": {
+      "events_evaluated": 0,
+      "p50_seconds": null,
+      "p95_seconds": null
+    },
+    "freshness_lag": {
+      "p50_seconds": 1255.0,
+      "p95_seconds": 1261.3,
+      "sample_count": 2
+    },
+    "internal_consistency": {
+      "consistent_snapshots_pct": 100.0,
+      "contradictions_count": 0
+    },
+    "revision_behavior": {
+      "revised_records_count": 0,
+      "revision_rate_pct": 0.0,
+      "total_records_count": 0
+    },
+    "schema_stability": {
+      "schema_changes_count": 0,
+      "stable_snapshots_pct": 100.0
+    }
+  },
+  "generated_at": "2026-09-11T01:21:24Z",
+  "method_version": "0.1",
+  "schema_version": "0.1",
+  "scoring_window": {
+    "end": "2026-09-11T01:21:02Z",
+    "snapshot_count": 4,
+    "start": "2026-09-11T01:20:49Z"
+  },
+  "source_id": "nws",
+  "source_name": "National Weather Service API"
+}

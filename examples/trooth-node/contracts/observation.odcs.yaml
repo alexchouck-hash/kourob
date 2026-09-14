@@ -1,0 +1,97 @@
+# A Trooth provenance envelope, held as a fact. Brief section 9; Trooth schema/envelope/v0.1.
+#
+# The envelope's `data` object is kept whole: its shape belongs to the upstream source
+# (a weather station's fields are not an earthquake's). The provenance around it is lifted
+# to top-level fields so a T0 rule can select on the source, the snapshot, or the lag.
+apiVersion: v3.0.0
+kind: DataContract
+id: observation.v1
+version: 1.0.0
+status: active
+name: Trooth observation
+description: One signed Trooth envelope - a payload from one verified source, with its provenance.
+schema:
+  - name: observation
+    logicalType: object
+    physicalType: table
+    properties:
+      - name: source_id
+        logicalType: string
+        required: true
+        pattern: "^[a-z0-9-]{2,64}$"
+        description: Trooth catalog id of the primary source (nws, usgs-earthquake, ...).
+      - name: query
+        logicalType: string
+        required: true
+        description: Trooth's canonical form of the request (resolved_query).
+      - name: snapshot_id
+        logicalType: string
+        required: true
+        description: Immutable id of the snapshot the answer was served from.
+      - name: request_id
+        logicalType: string
+        required: false
+      - name: data
+        logicalType: object
+        required: true
+        description: The payload, exactly as Trooth normalised it.
+      - name: source_url
+        logicalType: string
+        required: true
+      - name: license
+        logicalType: string
+        required: false
+        description: SPDX id or Trooth licence name of the upstream source.
+      - name: source_timestamp
+        logicalType: string
+        required: true
+        description: When the source says the observation happened.
+      - name: fetched_at
+        logicalType: string
+        required: true
+        description: When Trooth fetched it.
+      - name: freshness_lag_s
+        logicalType: number
+        required: true
+        minimum: 0
+        description: fetched_at minus source_timestamp, in seconds.
+      - name: content_hash
+        logicalType: string
+        required: true
+        pattern: "^sha256:[a-f0-9]{64}$"
+      - name: served_from
+        logicalType: string
+        required: false
+        enum: [cache, live]
+      - name: considered_and_rejected
+        logicalType: array
+        required: false
+        description: Sources Trooth looked at and did not use, with reasons.
+      - name: disagreements
+        logicalType: array
+        required: false
+        description: Field-level disagreements between sources, if Trooth compared any.
+      - name: untrusted_text_dropped
+        logicalType: integer
+        required: false
+        description: How many quarantined free-text strings the in-port left out.
+      - name: signature_alg
+        logicalType: string
+        required: false
+      - name: signature_key_id
+        logicalType: string
+        required: false
+      - name: signature
+        logicalType: string
+        required: false
+        description: Trooth's signature over the envelope, kept so it can be re-verified.
+      - name: ts
+        logicalType: date
+        required: true
+        description: The source timestamp. ISO 8601 UTC. Must not be in the future.
+quality:
+  - rule: no_future_timestamps
+    description: ts must not be later than ingestion time.
+kourob:
+  key_fields: [source_id, snapshot_id]
+  outcome_window: 30d

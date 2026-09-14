@@ -50,3 +50,6 @@ Thumbs.db
 # Scratch nodes created by running the CLI in the repo root
 /demo/
 /tmp-node*/
+
+# generated example cells (keys are secret, Parquet is binary)
+examples/trooth-node/cell/

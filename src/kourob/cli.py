@@ -80,6 +80,13 @@ def ingest(
         bool,
         typer.Option("--from-markdown", help="Treat PATH as markdown: one note per paragraph."),
     ] = False,
+    from_trooth: Annotated[
+        bool,
+        typer.Option(
+            "--from-trooth",
+            help="Treat PATH as Trooth envelopes or scorecards (a file, a tree, or the site URL).",
+        ),
+    ] = False,
 ) -> None:
     """Push data through the gate into silver, or into quarantine with a reason."""
     from kourob.node import open_node
@@ -87,7 +94,11 @@ def ingest(
     cell = open_node(node)
     if not cell.contracts:
         _fail(f"{node} declares no contracts. Add one to schemas/ before ingesting.")
-    if from_markdown:
+    if from_trooth:
+        from kourob.ports.trooth import events_from
+
+        report = cell.gate.ingest_lines(events_from(str(path)), source=str(path))
+    elif from_markdown:
         from kourob.ports.files import markdown_to_notes, markdown_tree_to_notes
 
         lines = markdown_tree_to_notes(path) if path.is_dir() else markdown_to_notes(path)

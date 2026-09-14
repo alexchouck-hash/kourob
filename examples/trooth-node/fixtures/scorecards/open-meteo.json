@@ -1,0 +1,43 @@
+{
+  "dimensions": {
+    "completeness_by_segment": {
+      "overall_pct": 100.0,
+      "segments": {
+        "current_weather": 100.0
+      }
+    },
+    "correction_latency": {
+      "events_evaluated": 1,
+      "p50_seconds": 900.0,
+      "p95_seconds": 900.0
+    },
+    "freshness_lag": {
+      "p50_seconds": 300.0,
+      "p95_seconds": 600.0,
+      "sample_count": 2
+    },
+    "internal_consistency": {
+      "consistent_snapshots_pct": 100.0,
+      "contradictions_count": 0
+    },
+    "revision_behavior": {
+      "revised_records_count": 1,
+      "revision_rate_pct": 100.0,
+      "total_records_count": 1
+    },
+    "schema_stability": {
+      "schema_changes_count": 0,
+      "stable_snapshots_pct": 100.0
+    }
+  },
+  "generated_at": "2026-09-11T01:21:24Z",
+  "method_version": "0.1",
+  "schema_version": "0.1",
+  "scoring_window": {
+    "end": "2026-09-11T01:21:03Z",
+    "snapshot_count": 2,
+    "start": "2026-09-11T01:20:49Z"
+  },
+  "source_id": "open-meteo",
+  "source_name": "Open-Meteo Weather API"
+}

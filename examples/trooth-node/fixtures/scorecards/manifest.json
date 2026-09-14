@@ -1,0 +1,42 @@
+{
+  "method_version": "0.1",
+  "published_at": "2026-09-11T01:21:24Z",
+  "schema_version": "0.1",
+  "sources": [
+    {
+      "generated_at": "2026-09-11T01:21:24Z",
+      "has_accuracy": false,
+      "source_id": "bls",
+      "source_name": "Bureau of Labor Statistics Public Data API",
+      "url": "/scorecards/bls"
+    },
+    {
+      "generated_at": "2026-09-11T01:21:24Z",
+      "has_accuracy": false,
+      "source_id": "fred",
+      "source_name": "Federal Reserve Economic Data (FRED)",
+      "url": "/scorecards/fred"
+    },
+    {
+      "generated_at": "2026-09-11T01:21:24Z",
+      "has_accuracy": true,
+      "source_id": "nws",
+      "source_name": "National Weather Service API",
+      "url": "/scorecards/nws"
+    },
+    {
+      "generated_at": "2026-09-11T01:21:24Z",
+      "has_accuracy": false,
+      "source_id": "open-meteo",
+      "source_name": "Open-Meteo Weather API",
+      "url": "/scorecards/open-meteo"
+    },
+    {
+      "generated_at": "2026-09-11T01:21:24Z",
+      "has_accuracy": false,
+      "source_id": "usgs-earthquake",
+      "source_name": "USGS Earthquake Hazards Program",
+      "url": "/scorecards/usgs-earthquake"
+    }
+  ]
+}
