@@ -98,8 +98,9 @@ Kept in Beads (`bd ready`), ordered by what moves the sentence, not by milestone
    `examples/trooth-node` holds signed envelopes and public scorecards, answers at T0 with a
    citation that carries Trooth's content hash, and has a Streamlit dashboard.
    `examples/trooth-set` (`kb-58t`) connects three such nodes behind a desk that bridges and
-   refers, and publishes each node's Trooth provider documents. The tennis set (`kb-2yk`,
-   `kb-id9`) is next.
+   refers, and publishes each node's Trooth provider documents. `examples/trooth-network`
+   (`kb-6b5`) is seven nodes two hops deep, each source node holding its verified Modafied
+   emblem, with a generated credits page. The tennis set (`kb-2yk`, `kb-id9`) is next.
 9. **ADR-0003/4/5, Merkle, PROV export, schema codegen** — owed, not blocking.
 
 Human decisions pending (`bd human`): what settles a probabilistic answer; whether mined

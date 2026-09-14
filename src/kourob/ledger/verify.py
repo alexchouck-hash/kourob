@@ -77,28 +77,39 @@ class Chain:
         return "\n".join(lines)
 
 
-def _reachable_ledgers(node_dir: Path) -> dict[str, Path]:
-    """Every ledger a trace may need: this node's, and each neighbour's on disk.
+def _reachable_ledgers(node_dir: Path, *, limit: int = 32) -> dict[str, Path]:
+    """Every ledger a trace may need: this node's, its neighbours', and theirs.
 
     A bridged answer's upstream receipt lives in the *neighbour's* ledger, in its own chain,
     signed with its own key. Following it means opening that ledger, which the route table
-    knows how to find. A remote neighbour (HTTP) is reported as unreachable rather than
-    guessed at.
+    knows how to find - and a bridge of a bridge means following the neighbour's routes in
+    turn, so the walk is breadth-first over route tables, bounded by `limit` nodes. A remote
+    neighbour (HTTP) is reported as unreachable rather than guessed at.
     """
     from kourob.routes import RouteTable
 
     ledgers: dict[str, Path] = {}
-    try:
-        node_did = identity.load_did(node_dir)
-    except FileNotFoundError:
-        node_did = manifest.load(node_dir).identity.did
-    ledgers[node_did] = node_dir
-    m = manifest.load(node_dir)
-    store = ParquetDuckDBStore(node_dir, partition_by=m.store.partition_by)
-    for route in RouteTable(store, m.prune).all():
-        endpoint = Path(route.endpoint) if route.endpoint else None
-        if endpoint and endpoint.exists() and (endpoint / manifest.MANIFEST_FILE).exists():
-            ledgers[route.node] = endpoint
+    queue: list[Path] = [node_dir]
+    while queue and len(ledgers) < limit:
+        current = queue.pop(0)
+        try:
+            did = identity.load_did(current)
+        except FileNotFoundError:
+            did = manifest.load(current).identity.did
+        if did in ledgers:
+            continue
+        ledgers[did] = current
+        m = manifest.load(current)
+        store = ParquetDuckDBStore(current, partition_by=m.store.partition_by)
+        for route in RouteTable(store, m.prune).all():
+            endpoint = Path(route.endpoint) if route.endpoint else None
+            if (
+                endpoint
+                and endpoint.exists()
+                and (endpoint / manifest.MANIFEST_FILE).exists()
+                and route.node not in ledgers
+            ):
+                queue.append(endpoint)
     return ledgers
 
 

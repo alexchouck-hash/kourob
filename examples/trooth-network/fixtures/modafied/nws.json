@@ -1,0 +1,81 @@
+{
+  "category": "weather",
+  "claim": {
+    "coverage_pct": 83.3,
+    "dimensions": {
+      "completeness_by_segment": {
+        "grade": "B",
+        "measured_unit": "percent_populated",
+        "measured_value": 96.7,
+        "status": "ok"
+      },
+      "correction_latency": {
+        "grade": "D",
+        "measured_unit": "seconds",
+        "measured_value": 173933.0,
+        "status": "ok"
+      },
+      "freshness_lag": {
+        "grade": null,
+        "measured_unit": "ratio_of_declared_cadence",
+        "measured_value": null,
+        "status": "insufficient_data"
+      },
+      "internal_consistency": {
+        "grade": "A",
+        "measured_unit": "percent_consistent_snapshots",
+        "measured_value": 100.0,
+        "status": "ok"
+      },
+      "revision_behavior": {
+        "grade": "E",
+        "measured_unit": "percent_of_records_revised",
+        "measured_value": 49.25,
+        "status": "ok"
+      },
+      "schema_stability": {
+        "grade": "A",
+        "measured_unit": "percent_stable_snapshots",
+        "measured_value": 100.0,
+        "status": "ok"
+      }
+    },
+    "grade": "C",
+    "graded_dimensions": 5,
+    "points": 2.4,
+    "required_dimensions": 4,
+    "status": "ok"
+  },
+  "emblem": {
+    "alt": "Modafied benchmark grade C for National Weather Service API, 2.4 of 4 points across 5 of 6 dimensions, ranked 2 of 2 in weather",
+    "compact": "https://alexchouck-hash.github.io/modafied-site/v1/emblems/nws-compact.svg",
+    "full": "https://alexchouck-hash.github.io/modafied-site/v1/emblems/nws.svg"
+  },
+  "evidence": {
+    "changes_url": "https://alexchouck-hash.github.io/modafied-site/v1/changes/nws.jsonl",
+    "ledger_url": "https://alexchouck-hash.github.io/modafied-site/v1/trace/nws.jsonl",
+    "manifest_url": "https://alexchouck-hash.github.io/modafied-site/v1/manifest.json",
+    "method_url": "https://alexchouck-hash.github.io/modafied-site/method",
+    "rating_json_url": "https://alexchouck-hash.github.io/modafied-site/v1/ratings/nws.json",
+    "scorecard_json_url": "https://alexchouck-hash.github.io/modafied-site/v1/scorecards/nws.json",
+    "scorecard_page_url": "https://alexchouck-hash.github.io/modafied-site/scorecards/nws",
+    "scorecard_sha256": "a60ae218b181da10df9af08c9662e030bca0daf1a7bd300a3f286201696c9286"
+  },
+  "generated_at": "2026-09-14T00:55:32Z",
+  "method_version": "0.2",
+  "notice": "Mechanically computed from public snapshots. This is a measurement, not an endorsement, a verification, or a partnership. It cannot be purchased and it changes without notice when the measurement changes.",
+  "rank": {
+    "category": "weather",
+    "of": 2,
+    "position": 2
+  },
+  "rating_version": "0.1",
+  "relationship": "none",
+  "schema_version": "0.1",
+  "source_id": "nws",
+  "source_name": "National Weather Service API",
+  "subcategory": "national observations and gridpoint forecasts",
+  "trace_id": "b917a6518ab3",
+  "trace_url": "https://alexchouck-hash.github.io/modafied-site/trace/b917a6518ab3",
+  "trace_version": "0.1"
+}

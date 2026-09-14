@@ -54,6 +54,37 @@
         "127.0.0.1"
       ],
       "port": 4390
+    },
+    {
+      "name": "trooth-network-dashboard",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": [
+        "run",
+        "streamlit",
+        "run",
+        "examples/trooth-network/dashboard.py",
+        "--server.headless",
+        "true",
+        "--server.port",
+        "8503",
+        "--browser.gatherUsageStats",
+        "false",
+        "--",
+        "examples/trooth-network/cells"
+      ],
+      "port": 8503
+    },
+    {
+      "name": "kourob-site-preview",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "4400",
+        "--directory",
+        "C:/Users/houck/kourob-site/site"
+      ],
+      "port": 4400
     }
   ]
 }

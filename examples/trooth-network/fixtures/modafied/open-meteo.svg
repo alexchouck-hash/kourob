@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="340" height="112" viewBox="0 0 340 112" role="img" aria-label="Modafied benchmark grade A for Open-Meteo Weather API, 4.0 of 4 points across 4 of 6 dimensions, ranked 1 of 2 in weather">
+  <title>Modafied benchmark grade A for Open-Meteo Weather API, 4.0 of 4 points across 4 of 6 dimensions, ranked 1 of 2 in weather</title>
+  <metadata id="modafied-trace" data-trace-id="7180cb8bf9e2">{"attestation_url": "https://alexchouck-hash.github.io/modafied-site/v1/emblems/open-meteo.json", "generated_at": "2026-09-14T00:55:32Z", "grade": "A", "graded_dimensions": 4, "method_version": "0.2", "points": 4.0, "rating_version": "0.1", "scorecard_sha256": "b7a7725383a54cebe3ac62951e6ed2f0360c78faf0fafcfd3db4b6581266274f", "scorecard_url": "https://alexchouck-hash.github.io/modafied-site/scorecards/open-meteo", "source_id": "open-meteo", "status": "ok", "trace_id": "7180cb8bf9e2", "trace_url": "https://alexchouck-hash.github.io/modafied-site/trace/7180cb8bf9e2"}</metadata>
+  <rect x="0.5" y="0.5" width="339" height="111" rx="8" fill="#ffffff" stroke="#e5e7eb"/>
+  <rect x="0.5" y="0.5" width="6" height="111" rx="3" fill="#15803d"/>
+  <g font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif">
+    <text x="22" y="24" font-size="10" font-weight="700" letter-spacing="1.4" fill="#111827">MODAFIED BENCHMARK</text>
+    <text x="22" y="46" font-size="14" font-weight="700" fill="#111827">Open-Meteo Weather API</text>
+    <text x="22" y="64" font-size="11" fill="#4b5563">4.0 / 4.0 across 4 of 6 dimensions</text>
+    <text x="22" y="80" font-size="10" fill="#6b7280">Rank 1 of 2 in weather · updated 2026-09-14</text>
+    <rect x="258" y="18" width="60" height="56" rx="6" fill="#15803d"/>
+    <text x="288" y="58" font-size="34" font-weight="800" fill="#ffffff" text-anchor="middle">A</text>
+    <text x="288" y="86" font-size="8" fill="#6b7280" text-anchor="middle">rating v0.1</text>
+    <line x1="22" y1="90" x2="318" y2="90" stroke="#f3f4f6"/>
+    <text x="22" y="104" font-size="9" fill="#6b7280">trace <tspan font-weight="700" fill="#111827" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">7180cb8bf9e2</tspan> · verify at alexchouck-hash.github.io/modafied-site/trace</text>
+  </g>
+  <desc>Trace 7180cb8bf9e2, resolvable at https://alexchouck-hash.github.io/modafied-site/trace/7180cb8bf9e2, which names the scorecard and digests this grade was derived from. Mechanically computed from public snapshots. Not purchasable. See alexchouck-hash.github.io/modafied-site for the method and the band table.</desc>
+</svg>

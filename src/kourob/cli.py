@@ -217,15 +217,28 @@ def publish(
     trooth: Annotated[
         bool, typer.Option("--trooth", help="Write a Trooth catalog entry and provider scorecard.")
     ] = False,
+    with_credits: Annotated[
+        bool, typer.Option("--credits", help="Write credits.md: every feed and UI output held.")
+    ] = False,
     out: Annotated[Path | None, typer.Option(help="Output directory (default out/trooth).")] = None,
 ) -> None:
     """Publish a node to a registry. --trooth writes catalog.yaml and scorecard.json."""
-    if not trooth:
-        _todo("publish", "M5", "sections 7 and 12, M5: only --trooth is implemented")
+    if not trooth and not with_credits:
+        _todo("publish", "M5", "sections 7 and 12, M5: only --trooth and --credits exist")
     from kourob.node import open_node
-    from kourob.publish import publish_trooth, summarise
 
     cell = open_node(node)
+    if with_credits:
+        from kourob.credits import credits_markdown
+
+        target = (out or cell.dir / "out") / "credits.md"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(credits_markdown([cell]), encoding="utf-8")
+        typer.echo(f"  credits    {target}")
+    if not trooth:
+        return
+    from kourob.publish import publish_trooth, summarise
+
     written = publish_trooth(cell, out)
     import json
 

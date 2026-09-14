@@ -1,0 +1,77 @@
+{
+  "category": "economic-indicators",
+  "claim": {
+    "coverage_pct": 33.3,
+    "dimensions": {
+      "completeness_by_segment": {
+        "grade": "E",
+        "measured_unit": "percent_populated",
+        "measured_value": 0.0,
+        "status": "ok"
+      },
+      "correction_latency": {
+        "grade": null,
+        "measured_unit": "seconds",
+        "measured_value": null,
+        "status": "insufficient_data"
+      },
+      "freshness_lag": {
+        "grade": null,
+        "measured_unit": "ratio_of_declared_cadence",
+        "measured_value": null,
+        "status": "insufficient_data"
+      },
+      "internal_consistency": {
+        "grade": "A",
+        "measured_unit": "percent_consistent_snapshots",
+        "measured_value": 100.0,
+        "status": "ok"
+      },
+      "revision_behavior": {
+        "grade": null,
+        "measured_unit": "percent_of_records_revised",
+        "measured_value": null,
+        "status": "insufficient_data"
+      },
+      "schema_stability": {
+        "grade": null,
+        "measured_unit": "percent_stable_snapshots",
+        "measured_value": null,
+        "status": "insufficient_data"
+      }
+    },
+    "grade": null,
+    "graded_dimensions": 2,
+    "points": null,
+    "required_dimensions": 4,
+    "status": "insufficient_data"
+  },
+  "emblem": {
+    "alt": "Modafied benchmark: Bureau of Labor Statistics Public Data API has insufficient data for a rating (2 of 6 dimensions measurable)",
+    "compact": "https://alexchouck-hash.github.io/modafied-site/v1/emblems/bls-compact.svg",
+    "full": "https://alexchouck-hash.github.io/modafied-site/v1/emblems/bls.svg"
+  },
+  "evidence": {
+    "changes_url": "https://alexchouck-hash.github.io/modafied-site/v1/changes/bls.jsonl",
+    "ledger_url": "https://alexchouck-hash.github.io/modafied-site/v1/trace/bls.jsonl",
+    "manifest_url": "https://alexchouck-hash.github.io/modafied-site/v1/manifest.json",
+    "method_url": "https://alexchouck-hash.github.io/modafied-site/method",
+    "rating_json_url": "https://alexchouck-hash.github.io/modafied-site/v1/ratings/bls.json",
+    "scorecard_json_url": "https://alexchouck-hash.github.io/modafied-site/v1/scorecards/bls.json",
+    "scorecard_page_url": "https://alexchouck-hash.github.io/modafied-site/scorecards/bls",
+    "scorecard_sha256": "9c40c18020f9dee2b052ef3b8111917ea63f7111d033d711ad6d8612d7773b67"
+  },
+  "generated_at": "2026-09-14T00:55:32Z",
+  "method_version": "0.2",
+  "notice": "Mechanically computed from public snapshots. This is a measurement, not an endorsement, a verification, or a partnership. It cannot be purchased and it changes without notice when the measurement changes.",
+  "rank": null,
+  "rating_version": "0.1",
+  "relationship": "none",
+  "schema_version": "0.1",
+  "source_id": "bls",
+  "source_name": "Bureau of Labor Statistics Public Data API",
+  "subcategory": "price and employment statistics",
+  "trace_id": "1c36ded3e91c",
+  "trace_url": "https://alexchouck-hash.github.io/modafied-site/trace/1c36ded3e91c",
+  "trace_version": "0.1"
+}

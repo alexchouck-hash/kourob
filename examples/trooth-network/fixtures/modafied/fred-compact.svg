@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="156" height="28" viewBox="0 0 156 28" role="img" aria-label="Modafied benchmark: Federal Reserve Economic Data (FRED) has insufficient data for a rating (0 of 6 dimensions measurable)">
+  <title>Modafied benchmark: Federal Reserve Economic Data (FRED) has insufficient data for a rating (0 of 6 dimensions measurable)</title>
+  <metadata id="modafied-trace" data-trace-id="806b74c8d8da">{"attestation_url": "https://alexchouck-hash.github.io/modafied-site/v1/emblems/fred.json", "generated_at": "2026-09-14T00:55:32Z", "grade": null, "graded_dimensions": 0, "method_version": "0.2", "points": null, "rating_version": "0.1", "scorecard_sha256": "d4322be6745007857f748223a82b7b84e544ba7d01b7e2384bd981edce6faf60", "scorecard_url": "https://alexchouck-hash.github.io/modafied-site/scorecards/fred", "source_id": "fred", "status": "insufficient_data", "trace_id": "806b74c8d8da", "trace_url": "https://alexchouck-hash.github.io/modafied-site/trace/806b74c8d8da"}</metadata>
+  <rect width="104" height="28" rx="4" fill="#111827"/>
+  <rect x="100" width="52" height="28" rx="4" fill="#4b5563"/>
+  <rect x="100" width="6" height="28" fill="#4b5563"/>
+  <g font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" font-size="11" font-weight="700">
+    <text x="12" y="18" fill="#ffffff" letter-spacing="1.2">MODAFIED</text>
+    <text x="126.0" y="18" fill="#ffffff" text-anchor="middle" font-size="11">n/a</text>
+  </g>
+  <desc>Updated 2026-09-14. Trace 806b74c8d8da, resolvable at https://alexchouck-hash.github.io/modafied-site/trace/806b74c8d8da. Mechanically computed. See alexchouck-hash.github.io/modafied-site for the method and the band table.</desc>
+</svg>

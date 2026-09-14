@@ -1,0 +1,77 @@
+{
+  "category": "economic-indicators",
+  "claim": {
+    "coverage_pct": 0.0,
+    "dimensions": {
+      "completeness_by_segment": {
+        "grade": null,
+        "measured_unit": "percent_populated",
+        "measured_value": null,
+        "status": "insufficient_data"
+      },
+      "correction_latency": {
+        "grade": null,
+        "measured_unit": "seconds",
+        "measured_value": null,
+        "status": "insufficient_data"
+      },
+      "freshness_lag": {
+        "grade": null,
+        "measured_unit": "ratio_of_declared_cadence",
+        "measured_value": null,
+        "status": "insufficient_data"
+      },
+      "internal_consistency": {
+        "grade": null,
+        "measured_unit": "percent_consistent_snapshots",
+        "measured_value": null,
+        "status": "insufficient_data"
+      },
+      "revision_behavior": {
+        "grade": null,
+        "measured_unit": "percent_of_records_revised",
+        "measured_value": null,
+        "status": "insufficient_data"
+      },
+      "schema_stability": {
+        "grade": null,
+        "measured_unit": "percent_stable_snapshots",
+        "measured_value": null,
+        "status": "insufficient_data"
+      }
+    },
+    "grade": null,
+    "graded_dimensions": 0,
+    "points": null,
+    "required_dimensions": 4,
+    "status": "insufficient_data"
+  },
+  "emblem": {
+    "alt": "Modafied benchmark: Federal Reserve Economic Data (FRED) has insufficient data for a rating (0 of 6 dimensions measurable)",
+    "compact": "https://alexchouck-hash.github.io/modafied-site/v1/emblems/fred-compact.svg",
+    "full": "https://alexchouck-hash.github.io/modafied-site/v1/emblems/fred.svg"
+  },
+  "evidence": {
+    "changes_url": "https://alexchouck-hash.github.io/modafied-site/v1/changes/fred.jsonl",
+    "ledger_url": "https://alexchouck-hash.github.io/modafied-site/v1/trace/fred.jsonl",
+    "manifest_url": "https://alexchouck-hash.github.io/modafied-site/v1/manifest.json",
+    "method_url": "https://alexchouck-hash.github.io/modafied-site/method",
+    "rating_json_url": "https://alexchouck-hash.github.io/modafied-site/v1/ratings/fred.json",
+    "scorecard_json_url": "https://alexchouck-hash.github.io/modafied-site/v1/scorecards/fred.json",
+    "scorecard_page_url": "https://alexchouck-hash.github.io/modafied-site/scorecards/fred",
+    "scorecard_sha256": "d4322be6745007857f748223a82b7b84e544ba7d01b7e2384bd981edce6faf60"
+  },
+  "generated_at": "2026-09-14T00:55:32Z",
+  "method_version": "0.2",
+  "notice": "Mechanically computed from public snapshots. This is a measurement, not an endorsement, a verification, or a partnership. It cannot be purchased and it changes without notice when the measurement changes.",
+  "rank": null,
+  "rating_version": "0.1",
+  "relationship": "none",
+  "schema_version": "0.1",
+  "source_id": "fred",
+  "source_name": "Federal Reserve Economic Data (FRED)",
+  "subcategory": "republished macroeconomic series",
+  "trace_id": "806b74c8d8da",
+  "trace_url": "https://alexchouck-hash.github.io/modafied-site/trace/806b74c8d8da",
+  "trace_version": "0.1"
+}

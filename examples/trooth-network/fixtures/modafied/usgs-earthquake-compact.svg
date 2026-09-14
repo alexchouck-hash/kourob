@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="144" height="28" viewBox="0 0 144 28" role="img" aria-label="Modafied benchmark grade B for USGS Earthquake Hazards Program, 3.17 of 4 points across 6 of 6 dimensions, ranked 1 of 1 in geophysical hazards">
+  <title>Modafied benchmark grade B for USGS Earthquake Hazards Program, 3.17 of 4 points across 6 of 6 dimensions, ranked 1 of 1 in geophysical hazards</title>
+  <metadata id="modafied-trace" data-trace-id="6ebbd7d1f2eb">{"attestation_url": "https://alexchouck-hash.github.io/modafied-site/v1/emblems/usgs-earthquake.json", "generated_at": "2026-09-14T00:55:32Z", "grade": "B", "graded_dimensions": 6, "method_version": "0.2", "points": 3.17, "rating_version": "0.1", "scorecard_sha256": "bd4ce3fad0317f9ee5f4c0e519560e629ca417dde8b194b4e76b6403a2b9f32d", "scorecard_url": "https://alexchouck-hash.github.io/modafied-site/scorecards/usgs-earthquake", "source_id": "usgs-earthquake", "status": "ok", "trace_id": "6ebbd7d1f2eb", "trace_url": "https://alexchouck-hash.github.io/modafied-site/trace/6ebbd7d1f2eb"}</metadata>
+  <rect width="104" height="28" rx="4" fill="#111827"/>
+  <rect x="100" width="40" height="28" rx="4" fill="#4d7c0f"/>
+  <rect x="100" width="6" height="28" fill="#4d7c0f"/>
+  <g font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" font-size="11" font-weight="700">
+    <text x="12" y="18" fill="#ffffff" letter-spacing="1.2">MODAFIED</text>
+    <text x="120.0" y="18" fill="#ffffff" text-anchor="middle" font-size="13">B</text>
+  </g>
+  <desc>Updated 2026-09-14. Trace 6ebbd7d1f2eb, resolvable at https://alexchouck-hash.github.io/modafied-site/trace/6ebbd7d1f2eb. Mechanically computed. See alexchouck-hash.github.io/modafied-site for the method and the band table.</desc>
+</svg>

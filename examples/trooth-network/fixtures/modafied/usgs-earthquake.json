@@ -1,0 +1,81 @@
+{
+  "category": "geophysical-hazards",
+  "claim": {
+    "coverage_pct": 100.0,
+    "dimensions": {
+      "completeness_by_segment": {
+        "grade": "A",
+        "measured_unit": "percent_populated",
+        "measured_value": 100.0,
+        "status": "ok"
+      },
+      "correction_latency": {
+        "grade": "B",
+        "measured_unit": "seconds",
+        "measured_value": 20567.0,
+        "status": "ok"
+      },
+      "freshness_lag": {
+        "grade": "A",
+        "measured_unit": "ratio_of_declared_cadence",
+        "measured_value": 0.405,
+        "status": "ok"
+      },
+      "internal_consistency": {
+        "grade": "A",
+        "measured_unit": "percent_consistent_snapshots",
+        "measured_value": 100.0,
+        "status": "ok"
+      },
+      "revision_behavior": {
+        "grade": "A",
+        "measured_unit": "percent_of_records_revised",
+        "measured_value": 0.96,
+        "status": "ok"
+      },
+      "schema_stability": {
+        "grade": "E",
+        "measured_unit": "percent_stable_snapshots",
+        "measured_value": 50.0,
+        "status": "ok"
+      }
+    },
+    "grade": "B",
+    "graded_dimensions": 6,
+    "points": 3.17,
+    "required_dimensions": 4,
+    "status": "ok"
+  },
+  "emblem": {
+    "alt": "Modafied benchmark grade B for USGS Earthquake Hazards Program, 3.17 of 4 points across 6 of 6 dimensions, ranked 1 of 1 in geophysical hazards",
+    "compact": "https://alexchouck-hash.github.io/modafied-site/v1/emblems/usgs-earthquake-compact.svg",
+    "full": "https://alexchouck-hash.github.io/modafied-site/v1/emblems/usgs-earthquake.svg"
+  },
+  "evidence": {
+    "changes_url": "https://alexchouck-hash.github.io/modafied-site/v1/changes/usgs-earthquake.jsonl",
+    "ledger_url": "https://alexchouck-hash.github.io/modafied-site/v1/trace/usgs-earthquake.jsonl",
+    "manifest_url": "https://alexchouck-hash.github.io/modafied-site/v1/manifest.json",
+    "method_url": "https://alexchouck-hash.github.io/modafied-site/method",
+    "rating_json_url": "https://alexchouck-hash.github.io/modafied-site/v1/ratings/usgs-earthquake.json",
+    "scorecard_json_url": "https://alexchouck-hash.github.io/modafied-site/v1/scorecards/usgs-earthquake.json",
+    "scorecard_page_url": "https://alexchouck-hash.github.io/modafied-site/scorecards/usgs-earthquake",
+    "scorecard_sha256": "bd4ce3fad0317f9ee5f4c0e519560e629ca417dde8b194b4e76b6403a2b9f32d"
+  },
+  "generated_at": "2026-09-14T00:55:32Z",
+  "method_version": "0.2",
+  "notice": "Mechanically computed from public snapshots. This is a measurement, not an endorsement, a verification, or a partnership. It cannot be purchased and it changes without notice when the measurement changes.",
+  "rank": {
+    "category": "geophysical-hazards",
+    "of": 1,
+    "position": 1
+  },
+  "rating_version": "0.1",
+  "relationship": "none",
+  "schema_version": "0.1",
+  "source_id": "usgs-earthquake",
+  "source_name": "USGS Earthquake Hazards Program",
+  "subcategory": "seismic event feeds",
+  "trace_id": "6ebbd7d1f2eb",
+  "trace_url": "https://alexchouck-hash.github.io/modafied-site/trace/6ebbd7d1f2eb",
+  "trace_version": "0.1"
+}

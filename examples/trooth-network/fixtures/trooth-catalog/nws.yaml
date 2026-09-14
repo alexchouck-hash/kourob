@@ -1,0 +1,56 @@
+id: "nws"
+name: "National Weather Service API"
+description: "Primary United States weather observations, terminal forecasts, and hazard alerts from NOAA / NWS."
+endpoints:
+  - name: "latest_observations"
+    url: "https://api.weather.gov/stations/KJFK/observations/latest"
+    method: "GET"
+    headers:
+      User-Agent: "(trooth.io, contact@trooth.io)"
+      Accept: "application/geo+json"
+  - name: "gridpoint_forecast"
+    url: "https://api.weather.gov/gridpoints/OKX/33,37/forecast"
+    method: "GET"
+    headers:
+      User-Agent: "(trooth.io, contact@trooth.io)"
+      Accept: "application/geo+json"
+auth:
+  type: "none"
+  notes: "Requires a custom User-Agent header with contact info. No API key needed."
+license:
+  spdx: "public-domain"
+  name: "U.S. Government Work (17 U.S.C. 105)"
+  url: "https://www.weather.gov/disclaimer"
+  redistribution_allowed: true
+  attribution_required: false
+  attribution_text: "Data provided by the National Oceanic and Atmospheric Administration (NOAA) National Weather Service."
+  notes: "Works prepared by officers and employees of the U.S. Government as part of official duties are in the public domain."
+refresh_cadence: "hourly"
+declared_lineage:
+  role: "primary"
+  notes: "Originating authority for official United States meteorological observations and forecasts."
+freshness_field: "properties.timestamp"
+fields:
+  - name: "properties.timestamp"
+    type: "string"
+    description: "ISO 8601 observation timestamp as recorded by the weather station."
+  - name: "properties.temperature.value"
+    type: "number"
+    description: "Air temperature in degrees Celsius."
+  - name: "properties.relativeHumidity.value"
+    type: "number"
+    description: "Relative humidity percentage (0-100)."
+  - name: "properties.windSpeed.value"
+    type: "number"
+    description: "Wind speed in kilometers per hour."
+  - name: "properties.textDescription"
+    type: "string"
+    description: "Textual description of weather conditions (quarantined as untrusted text)."
+quirks:
+  - "Requires unique User-Agent header; requests without User-Agent return HTTP 403."
+  - "Intermittent 503 Service Unavailable errors during regional radar updates."
+  - "Missing values represented as null inside object value fields rather than omitted keys."
+cost:
+  model: "free"
+  rate_limit: "Reasonable use guidelines; throttle if exceeding ~30 requests per minute."
+  pricing_url: "https://www.weather.gov/documentation/services-web-api"

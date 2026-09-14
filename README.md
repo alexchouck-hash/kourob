@@ -30,6 +30,10 @@ Then attach an agent: `kourob attach claude-code`.
   bridges and refers. `kourob publish --trooth` writes each node's Trooth catalog entry and
   six-dimension provider scorecard; the set dashboard shows the route graph, a bridged
   answer's receipt chain with cost along it, and those provider documents per node.
+- `examples/trooth-network/` — seven nodes, one per Trooth feed plus two desks, two hops deep.
+  Each source node holds its [Modafied](https://modafied.org/) emblem, verified against
+  Modafied's manifest; `kourob publish --credits` writes the page that advertises every feed
+  and UI output the network uses.
 
 ## What it is not
 
