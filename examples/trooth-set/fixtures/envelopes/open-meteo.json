@@ -1,0 +1,49 @@
+{
+  "data": {
+    "conditions": "",
+    "location": "KJFK",
+    "relative_humidity_pct": 91,
+    "temperature_c": 22.9,
+    "wind_speed_kmh": 6.9
+  },
+  "log": {
+    "checkpoint": "local-unsigned-by-trooth",
+    "entry_id": "did:key:z6MkuDcnQ9rC8DDJcB2SxwXTXZzfmQATb3fEUdPsSZUznvex"
+  },
+  "provenance": {
+    "considered_and_rejected": [
+      {
+        "id": "nws",
+        "reason": "primary; asked for the model grid"
+      }
+    ],
+    "quota": {
+      "cost_units": 1,
+      "remaining": 0
+    },
+    "resolved_query": "weather/current/40.64,-73.78",
+    "scorecard_ref": "https://alexchouck-hash.github.io/trooth-site/scorecards/open-meteo",
+    "served_from": "live",
+    "snapshot_id": "snap_20260914T001725Z_open-meteo",
+    "sources": [
+      {
+        "content_hash": "sha256:8e54ac3090dc044b41bba75ef4129cff052c598fce1e40b6903ee8ebe6bb7aaf",
+        "fetched_at": "2026-09-14T00:17:25Z",
+        "freshness_lag_s": 145.9,
+        "id": "open-meteo",
+        "license": "CC-BY-4.0",
+        "role": "primary",
+        "source_timestamp": "2026-09-14T00:15:00Z",
+        "url": "https://api.open-meteo.com/v1/forecast?latitude=40.64&longitude=-73.78&current=temperature_2m%2Crelative_humidity_2m%2Cwind_speed_10m"
+      }
+    ],
+    "untrusted_text": []
+  },
+  "request_id": "req_8e54ac3090dc044b41bba75e",
+  "schema_version": "0.1",
+  "signature": {
+    "alg": "ed25519",
+    "key_id": "kourob-local",
+    "sig": "5x7QUVrzfyN7QNQeXZkEAG11XpQnBZcb3cN2fnKdd3Tdmku6vHzq8UWo4i85tmzNrvqpw5LhAfgh4WXj4ePWwq7d"
+  }
+}

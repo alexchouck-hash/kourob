@@ -173,6 +173,7 @@ def tamper_for_test(node_dir: Path | str, *, index: int, field: str, value: Any)
     receipts_dir = node_dir / "ledger" / "receipts"
     for part in receipts_dir.glob("*/*.parquet"):
         part.unlink()
+    ledger.store.refresh()  # the files changed behind the store's back; say so
     # Re-append the decoded records as they are. The store encodes what needs encoding;
     # pre-serialising list columns here turned them into text on the way back out, and
     # `Receipt` and `Outcome` then refused to validate the ledger this helper had just

@@ -20,7 +20,7 @@ import sys
 from collections.abc import Iterable, Mapping, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 import duckdb
 import pyarrow as pa
@@ -84,8 +84,17 @@ class ParquetDuckDBStore(Store):
         #: test: an unchanged table costs one dict lookup per query, not a path comparison
         #: across every part of every table.
         self._registered: dict[str, list[Path]] = {}
-        self._parts_cache: dict[str, list[Path]] = {}
-        self._stats_cache: dict[str, dict[str, Any]] = {}
+        # The part lists and stats are shared by every store opened on the same directory
+        # in this process. ADR-0001 makes a node a single writer, but one process opens a
+        # node several times - `tend` reopens it, the local transport opens the neighbour,
+        # a test holds one handle while a bridge writes through another - and a cache that
+        # only its own writes invalidate would show each of them a different node.
+        shared = self._SHARED.setdefault(str(self.node_dir.resolve()), ({}, {}))
+        self._parts_cache: dict[str, list[Path]] = shared[0]
+        self._stats_cache: dict[str, dict[str, Any]] = shared[1]
+
+    #: Per resolved node directory: (parts cache, stats cache). See `__init__`.
+    _SHARED: ClassVar[dict[str, tuple[dict[str, list[Path]], dict[str, dict[str, Any]]]]] = {}
 
     # ------------------------------------------------------------------ internals
 
@@ -116,6 +125,18 @@ class ParquetDuckDBStore(Store):
     def _invalidate(self, table: str) -> None:
         self._parts_cache.pop(table, None)
         self._stats_cache.pop(table, None)
+
+    def refresh(self) -> None:
+        """Forget everything cached about this node's files.
+
+        For the one caller that touches the directory behind the store's back: a test
+        tampering with the ledger to prove the chain notices. Every handle on this node
+        shares the caches, so one call is enough for all of them.
+        """
+        self._conn = None
+        self._registered = {}
+        self._parts_cache.clear()
+        self._stats_cache.clear()
 
     def _written(self, table: str, part: Path, rows: int) -> None:
         """Advance the caches by one part rather than throwing them away.
@@ -297,8 +318,8 @@ class ParquetDuckDBStore(Store):
             compacted += 1
         self._conn = None
         self._registered = {}
-        self._parts_cache = {}
-        self._stats_cache = {}
+        self._parts_cache.clear()  # shared: every handle on this node sees the fold
+        self._stats_cache.clear()
         return compacted
 
     def stats(self, table: str) -> dict[str, Any]:

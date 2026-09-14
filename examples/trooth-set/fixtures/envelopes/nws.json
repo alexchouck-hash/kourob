@@ -1,0 +1,51 @@
+{
+  "data": {
+    "conditions": "Mostly Clear",
+    "location": "KJFK",
+    "relative_humidity_pct": 94.105818040075,
+    "temperature_c": 23,
+    "wind_speed_kmh": 9.252
+  },
+  "log": {
+    "checkpoint": "local-unsigned-by-trooth",
+    "entry_id": "did:key:z6MkuDcnQ9rC8DDJcB2SxwXTXZzfmQATb3fEUdPsSZUznvex"
+  },
+  "provenance": {
+    "considered_and_rejected": [
+      {
+        "id": "open-meteo",
+        "reason": "derivative of nws"
+      }
+    ],
+    "quota": {
+      "cost_units": 1,
+      "remaining": 0
+    },
+    "resolved_query": "weather/observations/KJFK",
+    "scorecard_ref": "https://alexchouck-hash.github.io/trooth-site/scorecards/nws",
+    "served_from": "live",
+    "snapshot_id": "snap_20260914T001725Z_nws",
+    "sources": [
+      {
+        "content_hash": "sha256:d4ffa336e868ad1b99d813b4087b4516517145aecf4e710fdef73226ec20a198",
+        "fetched_at": "2026-09-14T00:17:25Z",
+        "freshness_lag_s": 1345.6,
+        "id": "nws",
+        "license": "public-domain",
+        "role": "primary",
+        "source_timestamp": "2026-09-13T23:55:00+00:00",
+        "url": "https://api.weather.gov/stations/KJFK/observations/latest"
+      }
+    ],
+    "untrusted_text": [
+      "Mostly Clear"
+    ]
+  },
+  "request_id": "req_d4ffa336e868ad1b99d813b4",
+  "schema_version": "0.1",
+  "signature": {
+    "alg": "ed25519",
+    "key_id": "kourob-local",
+    "sig": "2HF8sJCdA5meZKAparUHTUznyB6uAr2XuWcCNU6LDc6trNRdYFrrzNNZvXcQgBPFrKiqkr6FsZd3kDJ1EeLD9Cbc"
+  }
+}

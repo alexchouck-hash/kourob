@@ -68,6 +68,10 @@ class Store(ABC):
     def compact(self, table: str, before: str | None = None) -> int:
         """Compact partitions older than `before`. Returns partitions compacted."""
 
+    def refresh(self) -> None:
+        """Drop any cached view of the files. Only a test that edits them directly needs it."""
+        return None
+
     @abstractmethod
     def stats(self, table: str) -> dict[str, Any]:
         """Row count, byte size, and partition span. Used by prune and by meter report."""

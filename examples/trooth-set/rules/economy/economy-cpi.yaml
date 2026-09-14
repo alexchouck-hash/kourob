@@ -1,0 +1,20 @@
+# A T0 rule: the latest CPI reading the node holds from BLS.
+id: economy-cpi
+description: The newest consumer price index reading held from BLS.
+match: '(?i)(?:cpi|consumer price|price index|inflation)'
+confidence: 1.0
+sql: |
+  SELECT
+    id,
+    json_extract_string(payload, '$.data.series_id')   AS series_id,
+    json_extract_string(payload, '$.data.series_name') AS series_name,
+    json_extract_string(payload, '$.data.period_name') AS period_name,
+    json_extract_string(payload, '$.data.year')        AS year,
+    json_extract_string(payload, '$.data.value')       AS value,
+    json_extract_string(payload, '$.source_url')       AS source_url
+  FROM silver
+  WHERE schema_ref = 'observation.v1'
+    AND json_extract_string(payload, '$.source_id') = 'bls'
+  ORDER BY ts DESC
+  LIMIT 1
+render: "{series_name} ({series_id}): {value} for {period_name} {year}. Source bls ({source_url})."

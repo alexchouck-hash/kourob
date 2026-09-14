@@ -1,0 +1,28 @@
+# A T0 rule: the latest Trooth observation for one location, with its provenance.
+#
+# "latest observation at KJFK", "current weather at kjfk", "what is the temperature in
+# KJFK" all bind the same way. The answer is the newest event by source time; the
+# citation is that event, whose payload carries the source URL, hash and signature.
+id: observation-latest
+description: The newest observation Trooth delivered for one location.
+match: '(?i)(?:latest|current|newest|what is the)\b.*?\b(?:observation|weather|temperature|conditions)\b.*?\b(?:at|in|for)\s+(?P<location>[A-Za-z0-9-]{3,16})\s*\??$'
+confidence: 1.0
+sql: |
+  SELECT
+    id,
+    json_extract_string(payload, '$.source_id')                AS source_id,
+    json_extract_string(payload, '$.data.location')            AS location,
+    json_extract_string(payload, '$.data.temperature_c')       AS temperature_c,
+    json_extract_string(payload, '$.data.relative_humidity_pct') AS relative_humidity_pct,
+    json_extract_string(payload, '$.data.wind_speed_kmh')      AS wind_speed_kmh,
+    json_extract_string(payload, '$.data.conditions')          AS conditions,
+    json_extract_string(payload, '$.source_timestamp')         AS source_timestamp,
+    json_extract_string(payload, '$.freshness_lag_s')          AS freshness_lag_s,
+    json_extract_string(payload, '$.source_url')               AS source_url,
+    json_extract_string(payload, '$.content_hash')             AS content_hash
+  FROM silver
+  WHERE schema_ref = 'observation.v1'
+    AND upper(json_extract_string(payload, '$.data.location')) = upper($location)
+  ORDER BY ts DESC
+  LIMIT 1
+render: "{location} at {source_timestamp}: {temperature_c} C, humidity {relative_humidity_pct}%, wind {wind_speed_kmh} km/h, {conditions}. Source {source_id} ({source_url}), {freshness_lag_s}s behind the station, content {content_hash}."

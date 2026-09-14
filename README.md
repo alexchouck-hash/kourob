@@ -26,6 +26,10 @@ Then attach an agent: `kourob attach claude-code`.
   envelopes and scorecards, with a Streamlit dashboard as the human tap:
   `uv run python examples/trooth-node/build.py`, then
   `uv run streamlit run examples/trooth-node/dashboard.py -- examples/trooth-node/cell`.
+- `examples/trooth-set/` — four nodes connected: three fed by Trooth sources and a desk that
+  bridges and refers. `kourob publish --trooth` writes each node's Trooth catalog entry and
+  six-dimension provider scorecard; the set dashboard shows the route graph, a bridged
+  answer's receipt chain with cost along it, and those provider documents per node.
 
 ## What it is not
 

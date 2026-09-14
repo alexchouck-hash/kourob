@@ -1,0 +1,200 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://trooth.io/schema/envelope/v0.1.json",
+  "title": "TroothProvenanceEnvelope",
+  "description": "Standard response envelope carrying payload data, provenance metadata, and cryptographic verification.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "request_id",
+    "data",
+    "provenance",
+    "signature"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1"
+    },
+    "request_id": {
+      "type": "string"
+    },
+    "data": {
+      "type": "object",
+      "description": "Structured data payload returned to the caller."
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "resolved_query",
+        "served_from",
+        "snapshot_id",
+        "sources",
+        "considered_and_rejected",
+        "scorecard_ref",
+        "untrusted_text",
+        "quota"
+      ],
+      "properties": {
+        "resolved_query": {
+          "type": "string",
+          "description": "Canonical normalized representation of the request."
+        },
+        "served_from": {
+          "type": "string",
+          "enum": ["cache", "live"]
+        },
+        "snapshot_id": {
+          "type": "string",
+          "description": "Immutable identifier of the snapshot in storage."
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "role",
+              "url",
+              "license",
+              "source_timestamp",
+              "fetched_at",
+              "freshness_lag_s",
+              "content_hash"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string",
+                "enum": ["primary", "derivative"]
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "license": {
+                "type": "string"
+              },
+              "source_timestamp": {
+                "type": "string"
+              },
+              "fetched_at": {
+                "type": "string"
+              },
+              "freshness_lag_s": {
+                "type": "number",
+                "minimum": 0
+              },
+              "content_hash": {
+                "type": "string",
+                "pattern": "^sha256:[a-f0-9]{64}$"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "considered_and_rejected": {
+          "type": "array",
+          "description": "Sources considered but not selected, with explicit reasons. Mandatory for auditability.",
+          "items": {
+            "type": "object",
+            "required": ["id", "reason"],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "disagreements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["field", "values"],
+            "properties": {
+              "field": {
+                "type": "string"
+              },
+              "values": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["source", "value"],
+                  "properties": {
+                    "source": { "type": "string" },
+                    "value": {}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "scorecard_ref": {
+          "type": "string",
+          "format": "uri"
+        },
+        "untrusted_text": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Quarantined upstream free text to prevent prompt injection."
+        },
+        "quota": {
+          "type": "object",
+          "required": ["remaining", "cost_units"],
+          "properties": {
+            "remaining": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "cost_units": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "signature": {
+      "type": "object",
+      "required": ["alg", "key_id", "sig"],
+      "properties": {
+        "alg": {
+          "type": "string",
+          "enum": ["ed25519"]
+        },
+        "key_id": {
+          "type": "string"
+        },
+        "sig": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "log": {
+      "type": "object",
+      "required": ["entry_id", "checkpoint"],
+      "properties": {
+        "entry_id": {
+          "type": "string"
+        },
+        "checkpoint": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

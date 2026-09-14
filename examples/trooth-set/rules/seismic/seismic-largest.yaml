@@ -1,0 +1,22 @@
+# A T0 rule: the largest earthquake in the latest USGS window the node holds.
+id: seismic-largest
+description: The largest quake in the newest past-hour feed from USGS.
+match: '(?i)(?:largest|biggest|strongest)\b.*?\b(?:earthquake|quake)'
+confidence: 1.0
+sql: |
+  SELECT
+    id,
+    json_extract_string(payload, '$.data.largest.mag')      AS mag,
+    json_extract_string(payload, '$.data.largest.place')    AS place,
+    json_extract_string(payload, '$.data.largest.time')     AS time,
+    json_extract_string(payload, '$.data.largest.depth_km') AS depth_km,
+    json_extract_string(payload, '$.data.count')            AS count,
+    json_extract_string(payload, '$.source_timestamp')      AS source_timestamp,
+    json_extract_string(payload, '$.source_url')            AS source_url
+  FROM silver
+  WHERE schema_ref = 'observation.v1'
+    AND json_extract_string(payload, '$.source_id') = 'usgs-earthquake'
+    AND json_extract_string(payload, '$.data.largest') IS NOT NULL
+  ORDER BY ts DESC
+  LIMIT 1
+render: "Largest of {count} quakes in the hour to {source_timestamp}: M{mag} {place} at {time}, depth {depth_km} km. Source usgs-earthquake ({source_url})."

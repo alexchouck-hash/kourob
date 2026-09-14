@@ -1,0 +1,18 @@
+# A T0 rule: how many earthquakes USGS reported in the latest window the node holds.
+id: seismic-count
+description: The number of quakes in the newest past-hour feed from USGS.
+match: '(?i)(?:how many|number of|count of)\b.*?\b(?:earthquakes?|quakes)'
+confidence: 1.0
+sql: |
+  SELECT
+    id,
+    json_extract_string(payload, '$.data.count')       AS count,
+    json_extract_string(payload, '$.data.window')      AS window,
+    json_extract_string(payload, '$.source_timestamp') AS source_timestamp,
+    json_extract_string(payload, '$.freshness_lag_s')  AS freshness_lag_s
+  FROM silver
+  WHERE schema_ref = 'observation.v1'
+    AND json_extract_string(payload, '$.source_id') = 'usgs-earthquake'
+  ORDER BY ts DESC
+  LIMIT 1
+render: "{count} earthquakes in the {window} window generated {source_timestamp} (USGS, fetched {freshness_lag_s}s later)."

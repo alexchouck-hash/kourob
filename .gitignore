@@ -53,3 +53,4 @@ Thumbs.db
 
 # generated example cells (keys are secret, Parquet is binary)
 examples/trooth-node/cell/
+examples/trooth-set/cells/

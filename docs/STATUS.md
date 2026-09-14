@@ -13,11 +13,11 @@ handoffs say how it got there.
 | Clause | State | What exists | What is missing |
 |---|---|---|---|
 | create a node in one command | **met** | `kourob init` lays down a working cell that ingests and answers with a citation in seconds | — |
-| connect it to other nodes | **met on disk** | `kourob connect`, route table with Hebbian strength, scope check with declared exclusions, referral with route hints, bridge with chained receipts, hop-list refusal, cross-node `trace`; the M3 router eval passes | only the local transport: no A2A card, no HTTP. A remote route is refused rather than guessed at |
+| connect it to other nodes | **met on disk** | `kourob connect`, route table with Hebbian strength, scope check with declared exclusions, referral with route hints, bridge with chained receipts, hop-list refusal, cross-node `trace`; the M3 router eval passes; `examples/trooth-set` is four real cells doing it | only the local transport: no A2A card, no HTTP. A remote route is refused rather than guessed at |
 | become cheaper | **met, measured** | evolve mines a T0 rule by exact replay; `kourob tend` at A2 installs it as a `node_change.v1` event carrying its inverse, and the node answers from it on the next request; one correction disables it; `kourob rollback` restores the prior state — proven by `tests/test_tend.py` and `evals/promotion_test.py` | v1 mines single-event lookups only; the T1 student is a nearest-settled-answer model, not a trained network; the 30-day replay takes 40 minutes (`kb-0sl`) |
 | become better | **met in mechanism** | outcomes, settlement from reality, quality multiplier | only `note.v1` settles; no comparator for probabilistic answers |
-| traced back to its sources | **met for one node** | receipts, hash chain, `trace`, tamper detection | upstream receipts across nodes untested because there are no chains yet; no PROV export |
-| metered along the whole chain | **met for one node** | measured token cost; price = base × (1 + demand) × earned quality; quotes with a ceiling the receipt never exceeds; free allowance then post-paid debit; `kourob meter report` and `meter price` — proven by `tests/test_metering.py` | credits are internal and no money moves (by design); a bridge does not yet quote both legs; no Merkle roots |
+| traced back to its sources | **met across a set** | receipts, hash chain, `trace` following a bridge into the neighbour's ledger (proven on `examples/trooth-set`), tamper detection | no PROV export |
+| metered along the whole chain | **met across a set** | measured token cost; price = base × (1 + demand) × earned quality; quotes with a ceiling the receipt never exceeds; free allowance then post-paid debit; `kourob meter report` and `meter price` — proven by `tests/test_metering.py` | credits are internal and no money moves (by design); a bridge does not yet quote both legs; no Merkle roots |
 
 ## The six metrics
 
@@ -26,7 +26,7 @@ handoffs say how it got there.
 | 1 | `init` to a cited answer over MCP | < 10 min | `kourob init`, `kourob attach claude-code`, and an agent lists five tools over stdio and gets a cited, receipted answer — proven by `tests/test_mcp_server.py` against the real server process | **met** |
 | 2 | T0+T1 share after 30 days | ≥ 80 % | **measured**: a 30-day, 200/day replay on the tennis cell, starting with T1 off, ends with T0+T1 serving ≥ 80 % — `evals/cost_curve.py` (marked `slow`: one replay takes 40 min, `kb-0sl`) | **met** |
 | 3 | cost/request day 30 vs day 1 | ≥ 5× down | the same replay measures it; T0 costs a scan, T1 a JSON lookup, T3 a priced model call, so the ratio is a real number rather than a tier count. Passes at ≥ 5×; the eval asserts the ratio without printing it, which a follow-up should fix | **met** |
-| 4 | provenance reconstructible | 100 % | 100 % for one node, proven by tests | **met** (single node) |
+| 4 | provenance reconstructible | 100 % | 100 % for one node by tests; across a bridge on `examples/trooth-set` (`trace` returns both receipts and the event) | **met** |
 | 5 | referral learning | second call goes direct | first call bridges and hands back a route with an evidence receipt; the caller's route table then points at the neighbour; the second call is referred, and a direct call works — proven by `evals/router_test.py` | **met** (local transport) |
 | 6 | split proposed within one evolve cycle | yes | yes, with a child manifest, proven by eval | **met** |
 
@@ -42,7 +42,7 @@ forty minutes and runs only on purpose (`-m slow`).
 | **M2** | compile loop (pages from events, a citation on every claim, page per key), lint loop (uncited, orphan, hand-edited), `get_page` serving compiled pages, `attach`, the markdown in-port, the dogfood node answering the M2 question from this repo's own docs | packs, the real fresh-agent eval |
 | **M3** | scope check with declared exclusions, referral, bridge, routes, connect, hop lists, cross-node trace, router eval — all on the local transport | A2A card and HTTP transport, T1 scope classifier, tennis node |
 | **M4** | outcomes, clustering, evolve, split, `tend` with rollback, halts and autonomy demotion, price function, quotes with a ceiling, accounts, allowance refusal, meter report | Merkle roots, ADR-0003/4/5 (owed: KNP-3/4/5 draft the mechanisms) |
-| **M5** | rule mining by exact replay, demotion on one correction, the T1 student trained on settled answers and calibrated per class against gold, `kourob distill train|calibrate|gold`, and the 30-day cost-curve replay (slow) | UI, publish; replay performance (`kb-0sl`) |
+| **M5** | rule mining by exact replay, demotion on one correction, the T1 student trained on settled answers and calibrated per class against gold, `kourob distill train|calibrate|gold`, the 30-day cost-curve replay (slow), `kourob publish --trooth` (a node's Trooth catalog entry and provider scorecard) | the reference UI over REST; publish to a set registry; replay performance (`kb-0sl`) |
 
 ## Where the design is stronger than the brief
 
@@ -96,8 +96,10 @@ Kept in Beads (`bd ready`), ordered by what moves the sentence, not by milestone
 7. ~~**T1 and the cost-curve eval**~~ — done (`kb-ayo`). Measured over a real 30-day replay; the replay itself is too slow for CI (`kb-0sl`).
 8. ~~**The first real integration**~~ — done, and it was Trooth, not tennis (`kb-6hh`):
    `examples/trooth-node` holds signed envelopes and public scorecards, answers at T0 with a
-   citation that carries Trooth's content hash, and has a Streamlit dashboard. The tennis set
-   (`kb-2yk`, `kb-id9`) is next.
+   citation that carries Trooth's content hash, and has a Streamlit dashboard.
+   `examples/trooth-set` (`kb-58t`) connects three such nodes behind a desk that bridges and
+   refers, and publishes each node's Trooth provider documents. The tennis set (`kb-2yk`,
+   `kb-id9`) is next.
 9. **ADR-0003/4/5, Merkle, PROV export, schema codegen** — owed, not blocking.
 
 Human decisions pending (`bd human`): what settles a probabilistic answer; whether mined

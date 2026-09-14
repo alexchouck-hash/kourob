@@ -214,9 +214,24 @@ def trace(
 @app.command()
 def publish(
     node: Annotated[Path, typer.Option(help="Node directory.")] = Path("."),
+    trooth: Annotated[
+        bool, typer.Option("--trooth", help="Write a Trooth catalog entry and provider scorecard.")
+    ] = False,
+    out: Annotated[Path | None, typer.Option(help="Output directory (default out/trooth).")] = None,
 ) -> None:
-    """Publish a node to its set registry: agent card, scope, price, Merkle root."""
-    _todo("publish", "M5", "sections 7 and 12, M5")
+    """Publish a node to a registry. --trooth writes catalog.yaml and scorecard.json."""
+    if not trooth:
+        _todo("publish", "M5", "sections 7 and 12, M5: only --trooth is implemented")
+    from kourob.node import open_node
+    from kourob.publish import publish_trooth, summarise
+
+    cell = open_node(node)
+    written = publish_trooth(cell, out)
+    import json
+
+    typer.echo(summarise(json.loads(written["scorecard"].read_text(encoding="utf-8"))))
+    for name, path in written.items():
+        typer.echo(f"  {name:<10} {path}")
 
 
 @app.command()

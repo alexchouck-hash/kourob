@@ -1,0 +1,28 @@
+# A T0 rule: the newest Trooth scorecard for one source.
+#
+# "how fresh is nws", "scorecard for usgs-earthquake", "freshness of open-meteo" bind the
+# trailing source id. Source ids are lower-case and hyphenated in Trooth's catalog, which is
+# what the contract's pattern says too.
+id: scorecard-lookup
+description: The newest published scorecard for one Trooth source.
+match: '(?i)(?:scorecard|score|fresh|freshness|lag|complete|completeness|reliab|how good|how is)\b.*?\b(?P<source_id>[a-z0-9]+(?:-[a-z0-9]+)*)\s*\??$'
+confidence: 1.0
+sql: |
+  SELECT
+    id,
+    json_extract_string(payload, '$.source_id')        AS source_id,
+    json_extract_string(payload, '$.source_name')      AS source_name,
+    json_extract_string(payload, '$.generated_at')     AS generated_at,
+    json_extract_string(payload, '$.method_version')   AS method_version,
+    json_extract_string(payload, '$.freshness_p50_s')  AS freshness_p50_s,
+    json_extract_string(payload, '$.freshness_p95_s')  AS freshness_p95_s,
+    json_extract_string(payload, '$.completeness_pct') AS completeness_pct,
+    json_extract_string(payload, '$.consistency_pct')  AS consistency_pct,
+    json_extract_string(payload, '$.schema_changes')   AS schema_changes,
+    json_extract_string(payload, '$.snapshot_count')   AS snapshot_count
+  FROM silver
+  WHERE schema_ref = 'scorecard.v1'
+    AND json_extract_string(payload, '$.source_id') = lower($source_id)
+  ORDER BY ts DESC
+  LIMIT 1
+render: "{source_name} ({source_id}), scored {generated_at} under method {method_version} over {snapshot_count} snapshots: freshness lag p50 {freshness_p50_s}s, p95 {freshness_p95_s}s; completeness {completeness_pct}%; consistency {consistency_pct}%; schema changes {schema_changes}."

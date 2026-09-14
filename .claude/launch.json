@@ -4,8 +4,40 @@
     {
       "name": "trooth-dashboard",
       "runtimeExecutable": "uv",
-      "runtimeArgs": ["run", "streamlit", "run", "examples/trooth-node/dashboard.py", "--server.headless", "true", "--server.port", "8501", "--browser.gatherUsageStats", "false", "--", "examples/trooth-node/cell"],
+      "runtimeArgs": [
+        "run",
+        "streamlit",
+        "run",
+        "examples/trooth-node/dashboard.py",
+        "--server.headless",
+        "true",
+        "--server.port",
+        "8501",
+        "--browser.gatherUsageStats",
+        "false",
+        "--",
+        "examples/trooth-node/cell"
+      ],
       "port": 8501
+    },
+    {
+      "name": "trooth-set-dashboard",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": [
+        "run",
+        "streamlit",
+        "run",
+        "examples/trooth-set/dashboard.py",
+        "--server.headless",
+        "true",
+        "--server.port",
+        "8502",
+        "--browser.gatherUsageStats",
+        "false",
+        "--",
+        "examples/trooth-set/cells"
+      ],
+      "port": 8502
     }
   ]
 }
