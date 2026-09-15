@@ -60,13 +60,26 @@ Grepped `docs/adr/`, `docs/experiments/`, `docs/spikes/` for `markdown`, `in-por
 
 ## Not done
 
-- **The page is not live.** `main` has no `site/` directory and the `github-pages` environment only
-  accepts deployments from `main`, so nothing here reaches the live site until `feat/public-site`
-  merges. PR #2 is `MERGEABLE` but `BLOCKED`: `main` requires one approving review with
-  `enforce_admins` on, so the owner cannot self-merge. Unchanged from the 2026-09-14 handoff.
+- **PR #2 is still blocked**, but that no longer gates the site. `MERGEABLE` / `BLOCKED` /
+  `REVIEW_REQUIRED`: `main` requires one approving review with `enforce_admins` on, so the owner
+  cannot self-merge, and `main` still has no `site/` directory. The example, the exporter and the
+  handoff therefore live only on `feat/public-site` until someone reviews that PR.
 - No live querying from the page. It is static by necessity until the HTTP transport (`kb-imt`).
 - No test builds this node the way `tests/test_dogfood.py` builds the dogfood one, so the example
   can drift from the code. That is the obvious next item and it is small.
+
+## The deploy policy changed since 2026-09-14
+
+The previous handoff recorded that `deploy-site` runs from `feat/public-site` were rejected because
+the `github-pages` environment allowed only `main`. That is no longer true: the last three runs from
+this branch, including this commit's, completed successfully, and
+https://alexchouck-hash.github.io/kourob/maude.html serves the page with 23/23 signatures and 23/23
+chain links verifying in the browser.
+
+So the live site is now deployed from `feat/public-site` while Pages' configured source still says
+`main`, and `main` has none of this. That split is worth closing deliberately rather than leaving
+to whoever pushes next. The open question from 2026-09-14 stands and is now sharper: move `site/`
+to `main` and keep this branch for drafts, or accept that the branch name is wrong and rename it.
 
 ## Resume
 
