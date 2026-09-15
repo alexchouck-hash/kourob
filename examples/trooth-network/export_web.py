@@ -279,9 +279,10 @@ def export(root: Path) -> dict[str, Any]:
         _thread(
             f"{repeat_key}-again",
             repeat_question,
-            "The same caller asks again. Its one introduction is spent, so the desk refers "
-            "instead of bridging - and the hint it hands back is the direct route it learned "
-            "the first time. Follow it and the answer costs one hop instead of three.",
+            "The same caller asks again. Its one introduction is spent, so the front node "
+            "refers instead of bridging, and hands back the route it learned the first time. "
+            "The caller follows it. That referral costs nothing, the bridge that remains is "
+            "one level shallower, and the totals below say what the difference was worth.",
             f"user:web-{repeat_key}",
             front,
             nodes,
