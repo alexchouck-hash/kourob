@@ -1,0 +1,95 @@
+# A Trooth scorecard, flattened. Trooth schema/scorecard/v0.1 and docs/METHOD.md.
+#
+# Trooth scores each catalog source on six mechanical dimensions, plus anchored accuracy
+# where a settled observation exists to grade a forecast against. A cell holds each
+# published card as one dated fact, so "how fresh is nws" is a lookup, not a model call.
+apiVersion: v3.0.0
+kind: DataContract
+id: scorecard.v1
+version: 1.0.0
+status: active
+name: Trooth scorecard
+description: One published scorecard for one Trooth source, at one generation time.
+schema:
+  - name: scorecard
+    logicalType: object
+    physicalType: table
+    properties:
+      - name: source_id
+        logicalType: string
+        required: true
+        pattern: "^[a-z0-9-]{2,64}$"
+      - name: source_name
+        logicalType: string
+        required: true
+      - name: generated_at
+        logicalType: string
+        required: true
+      - name: method_version
+        logicalType: string
+        required: true
+        description: The scoring method the numbers were produced under.
+      - name: window_start
+        logicalType: string
+        required: false
+      - name: window_end
+        logicalType: string
+        required: false
+      - name: snapshot_count
+        logicalType: integer
+        required: false
+        minimum: 0
+      - name: freshness_p50_s
+        logicalType: number
+        required: false
+        minimum: 0
+      - name: freshness_p95_s
+        logicalType: number
+        required: false
+        minimum: 0
+      - name: completeness_pct
+        logicalType: number
+        required: false
+        minimum: 0
+        maximum: 100
+      - name: consistency_pct
+        logicalType: number
+        required: false
+        minimum: 0
+        maximum: 100
+      - name: contradictions
+        logicalType: integer
+        required: false
+        minimum: 0
+      - name: revision_rate_pct
+        logicalType: number
+        required: false
+        minimum: 0
+        maximum: 100
+      - name: schema_changes
+        logicalType: integer
+        required: false
+        minimum: 0
+      - name: correction_p95_s
+        logicalType: number
+        required: false
+        minimum: 0
+      - name: accuracy_metric
+        logicalType: string
+        required: false
+      - name: accuracy_score
+        logicalType: number
+        required: false
+      - name: accuracy_unit
+        logicalType: string
+        required: false
+      - name: ts
+        logicalType: date
+        required: true
+        description: generated_at. ISO 8601 UTC. Must not be in the future.
+quality:
+  - rule: no_future_timestamps
+    description: ts must not be later than ingestion time.
+kourob:
+  key_fields: [source_id, generated_at]
+  outcome_window: 30d

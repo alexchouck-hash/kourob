@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://trooth.io/schema/catalog/v0.1.json",
+  "title": "TroothCatalogSource",
+  "description": "Schema for catalog source definitions (catalog/sources/<id>.yaml).",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "description",
+    "endpoints",
+    "auth",
+    "license",
+    "refresh_cadence",
+    "declared_lineage",
+    "freshness_field",
+    "fields",
+    "quirks",
+    "cost"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "endpoints": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "url", "method"],
+        "properties": {
+          "name": { "type": "string" },
+          "url": { "type": "string", "format": "uri" },
+          "method": { "type": "string", "enum": ["GET", "POST"] },
+          "params": { "type": "object" },
+          "headers": { "type": "object" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "auth": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["none", "api_key", "bearer", "oauth2"]
+        },
+        "env_var": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "license": {
+      "type": "object",
+      "required": ["spdx", "url", "redistribution_allowed"],
+      "properties": {
+        "spdx": {
+          "type": "string",
+          "description": "SPDX-style identifier or public-domain."
+        },
+        "name": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Direct URL confirming license in upstream documentation."
+        },
+        "redistribution_allowed": {
+          "type": "boolean"
+        },
+        "attribution_required": {
+          "type": "boolean"
+        },
+        "attribution_text": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "refresh_cadence": {
+      "type": "string",
+      "description": "Human and machine-readable refresh interval (e.g., hourly, 15m, daily, monthly)."
+    },
+    "declared_lineage": {
+      "type": "object",
+      "required": ["role"],
+      "properties": {
+        "role": {
+          "type": "string",
+          "enum": ["primary", "derivative"]
+        },
+        "upstream_sources": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "freshness_field": {
+      "type": "string",
+      "description": "Path or field name in the response containing the source event timestamp."
+    },
+    "fields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "type", "description"],
+        "properties": {
+          "name": { "type": "string" },
+          "type": { "type": "string" },
+          "description": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "quirks": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "cost": {
+      "type": "object",
+      "required": ["model"],
+      "properties": {
+        "model": {
+          "type": "string",
+          "enum": ["free", "metered", "subscription", "freemium"]
+        },
+        "rate_limit": {
+          "type": "string"
+        },
+        "pricing_url": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

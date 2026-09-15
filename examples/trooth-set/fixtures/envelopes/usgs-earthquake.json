@@ -1,0 +1,99 @@
+{
+  "data": {
+    "count": 7,
+    "largest": {
+      "depth_km": 11.05,
+      "id": "pr71531758",
+      "mag": 2.41,
+      "place": "5 km S of Indios, Puerto Rico",
+      "time": "2026-09-13T23:29:01Z"
+    },
+    "quakes": [
+      {
+        "depth_km": 9.65999984741211,
+        "id": "nc75435292",
+        "mag": 1.52,
+        "place": "5 km NNW of Hollister, CA",
+        "time": "2026-09-13T23:45:54Z"
+      },
+      {
+        "depth_km": 2.6359,
+        "id": "tx2026sbxfop",
+        "mag": 1.1,
+        "place": "12 km W of Stanton, Texas",
+        "time": "2026-09-13T23:39:38Z"
+      },
+      {
+        "depth_km": 3.39000010490417,
+        "id": "nc75435272",
+        "mag": 0.77,
+        "place": "6 km WNW of The Geysers, CA",
+        "time": "2026-09-13T23:32:42Z"
+      },
+      {
+        "depth_km": 11.05,
+        "id": "pr71531758",
+        "mag": 2.41,
+        "place": "5 km S of Indios, Puerto Rico",
+        "time": "2026-09-13T23:29:01Z"
+      },
+      {
+        "depth_km": 7.73999977111816,
+        "id": "nc75435262",
+        "mag": 0.57,
+        "place": "3 km NNW of The Geysers, CA",
+        "time": "2026-09-13T23:26:42Z"
+      },
+      {
+        "depth_km": 14.6,
+        "id": "aka2026seujbr",
+        "mag": 1.8,
+        "place": "92 km SSE of Port Graham, Alaska",
+        "time": "2026-09-13T23:22:46Z"
+      },
+      {
+        "depth_km": -0.33,
+        "id": "ci41546840",
+        "mag": 1.49,
+        "place": "5 km NNW of Boron, CA",
+        "time": "2026-09-13T23:18:51Z"
+      }
+    ],
+    "window": "past_hour"
+  },
+  "log": {
+    "checkpoint": "local-unsigned-by-trooth",
+    "entry_id": "did:key:z6MkuDcnQ9rC8DDJcB2SxwXTXZzfmQATb3fEUdPsSZUznvex"
+  },
+  "provenance": {
+    "considered_and_rejected": [],
+    "quota": {
+      "cost_units": 1,
+      "remaining": 0
+    },
+    "resolved_query": "seismic/earthquakes/past_hour",
+    "scorecard_ref": "https://alexchouck-hash.github.io/trooth-site/scorecards/usgs-earthquake",
+    "served_from": "live",
+    "snapshot_id": "snap_20260914T001726Z_usgs-earthquake",
+    "sources": [
+      {
+        "content_hash": "sha256:d464a57e8ac930980db9226ce9a6865651ec3c6cdfd58bbd8b7b410361733bf0",
+        "fetched_at": "2026-09-14T00:17:26Z",
+        "freshness_lag_s": 16.0,
+        "id": "usgs-earthquake",
+        "license": "public-domain",
+        "role": "primary",
+        "source_timestamp": "2026-09-14T00:17:10Z",
+        "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson"
+      }
+    ],
+    "untrusted_text": []
+  },
+  "request_id": "req_d464a57e8ac930980db9226c",
+  "schema_version": "0.1",
+  "signature": {
+    "alg": "ed25519",
+    "key_id": "kourob-local",
+    "sig": "56onkCduosr6cqycrGpkmfc8z89C5KCtXQmxNcWhtLDBi9vxhQizsv8MDzerq7nHXnhkXx9qXKXjU5qDN6DHkXXJ"
+  }
+}

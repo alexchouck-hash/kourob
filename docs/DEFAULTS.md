@@ -38,6 +38,15 @@ the same PR**.
 - Choose the **stricter** reading. A stricter scope, a stricter schema, a stricter refusal.
 - Record it under `## Decisions made without asking`.
 
+## Protocols
+
+- A wire contract between nodes is a **spec** in `docs/protocols/`, not an ADR. The spec
+  says what the bytes look like; the ADR says why, with the options rejected. A spec that
+  embeds a real choice needs both, and the spec links the ADR.
+- KouroB semantics ride on A2A as declared extensions, never as loose `kourob.*` fields
+  (ADR-0006). Every extension URI lives in `src/kourob/protocols.py` and nowhere else.
+- A breaking protocol change mints a new URI version. An additive one does not.
+
 ## Schemas
 
 - ADR first, then implement. Run `datacontract changelog` and paste the output in the PR.

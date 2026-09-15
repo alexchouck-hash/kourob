@@ -46,3 +46,12 @@ Thumbs.db
 *.db
 .beads-credential-key
 .beads/proxieddb/
+
+# Scratch nodes created by running the CLI in the repo root
+/demo/
+/tmp-node*/
+
+# generated example cells (keys are secret, Parquet is binary)
+examples/trooth-node/cell/
+examples/trooth-set/cells/
+examples/trooth-network/cells/

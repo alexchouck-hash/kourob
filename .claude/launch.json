@@ -1,0 +1,90 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "trooth-dashboard",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": [
+        "run",
+        "streamlit",
+        "run",
+        "examples/trooth-node/dashboard.py",
+        "--server.headless",
+        "true",
+        "--server.port",
+        "8501",
+        "--browser.gatherUsageStats",
+        "false",
+        "--",
+        "examples/trooth-node/cell"
+      ],
+      "port": 8501
+    },
+    {
+      "name": "trooth-set-dashboard",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": [
+        "run",
+        "streamlit",
+        "run",
+        "examples/trooth-set/dashboard.py",
+        "--server.headless",
+        "true",
+        "--server.port",
+        "8502",
+        "--browser.gatherUsageStats",
+        "false",
+        "--",
+        "examples/trooth-set/cells"
+      ],
+      "port": 8502
+    },
+    {
+      "name": "trooth-site-preview",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "C:/Users/houck/AppData/Local/Temp/claude/C--Users-houck-kourob/141b1a9d-bd96-4c43-8470-171208b1d543/scratchpad/trooth-site",
+        "run",
+        "preview",
+        "--",
+        "--port",
+        "4390",
+        "--host",
+        "127.0.0.1"
+      ],
+      "port": 4390
+    },
+    {
+      "name": "trooth-network-dashboard",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": [
+        "run",
+        "streamlit",
+        "run",
+        "examples/trooth-network/dashboard.py",
+        "--server.headless",
+        "true",
+        "--server.port",
+        "8503",
+        "--browser.gatherUsageStats",
+        "false",
+        "--",
+        "examples/trooth-network/cells"
+      ],
+      "port": 8503
+    },
+    {
+      "name": "kourob-site-preview",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "4400",
+        "--directory",
+        "C:/Users/houck/kourob-site/site"
+      ],
+      "port": 4400
+    }
+  ]
+}

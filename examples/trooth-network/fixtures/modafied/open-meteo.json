@@ -1,0 +1,81 @@
+{
+  "category": "weather",
+  "claim": {
+    "coverage_pct": 66.7,
+    "dimensions": {
+      "completeness_by_segment": {
+        "grade": "A",
+        "measured_unit": "percent_populated",
+        "measured_value": 100.0,
+        "status": "ok"
+      },
+      "correction_latency": {
+        "grade": null,
+        "measured_unit": "seconds",
+        "measured_value": null,
+        "status": "insufficient_data"
+      },
+      "freshness_lag": {
+        "grade": null,
+        "measured_unit": "ratio_of_declared_cadence",
+        "measured_value": null,
+        "status": "insufficient_data"
+      },
+      "internal_consistency": {
+        "grade": "A",
+        "measured_unit": "percent_consistent_snapshots",
+        "measured_value": 100.0,
+        "status": "ok"
+      },
+      "revision_behavior": {
+        "grade": "A",
+        "measured_unit": "percent_of_records_revised",
+        "measured_value": 0.0,
+        "status": "ok"
+      },
+      "schema_stability": {
+        "grade": "A",
+        "measured_unit": "percent_stable_snapshots",
+        "measured_value": 100.0,
+        "status": "ok"
+      }
+    },
+    "grade": "A",
+    "graded_dimensions": 4,
+    "points": 4.0,
+    "required_dimensions": 4,
+    "status": "ok"
+  },
+  "emblem": {
+    "alt": "Modafied benchmark grade A for Open-Meteo Weather API, 4.0 of 4 points across 4 of 6 dimensions, ranked 1 of 2 in weather",
+    "compact": "https://alexchouck-hash.github.io/modafied-site/v1/emblems/open-meteo-compact.svg",
+    "full": "https://alexchouck-hash.github.io/modafied-site/v1/emblems/open-meteo.svg"
+  },
+  "evidence": {
+    "changes_url": "https://alexchouck-hash.github.io/modafied-site/v1/changes/open-meteo.jsonl",
+    "ledger_url": "https://alexchouck-hash.github.io/modafied-site/v1/trace/open-meteo.jsonl",
+    "manifest_url": "https://alexchouck-hash.github.io/modafied-site/v1/manifest.json",
+    "method_url": "https://alexchouck-hash.github.io/modafied-site/method",
+    "rating_json_url": "https://alexchouck-hash.github.io/modafied-site/v1/ratings/open-meteo.json",
+    "scorecard_json_url": "https://alexchouck-hash.github.io/modafied-site/v1/scorecards/open-meteo.json",
+    "scorecard_page_url": "https://alexchouck-hash.github.io/modafied-site/scorecards/open-meteo",
+    "scorecard_sha256": "b7a7725383a54cebe3ac62951e6ed2f0360c78faf0fafcfd3db4b6581266274f"
+  },
+  "generated_at": "2026-09-14T00:55:32Z",
+  "method_version": "0.2",
+  "notice": "Mechanically computed from public snapshots. This is a measurement, not an endorsement, a verification, or a partnership. It cannot be purchased and it changes without notice when the measurement changes.",
+  "rank": {
+    "category": "weather",
+    "of": 2,
+    "position": 1
+  },
+  "rating_version": "0.1",
+  "relationship": "none",
+  "schema_version": "0.1",
+  "source_id": "open-meteo",
+  "source_name": "Open-Meteo Weather API",
+  "subcategory": "aggregated model forecasts",
+  "trace_id": "7180cb8bf9e2",
+  "trace_url": "https://alexchouck-hash.github.io/modafied-site/trace/7180cb8bf9e2",
+  "trace_version": "0.1"
+}

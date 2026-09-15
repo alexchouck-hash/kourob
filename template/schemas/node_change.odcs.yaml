@@ -1,0 +1,50 @@
+# A change this cell made to itself (KNP-7 section 4.1).
+#
+# Every auto-applied change is an event in the same store, under the same schema
+# discipline, cited by the same receipts as everything else. It goes through the gate like
+# any other push, and it carries its own inverse, so `kourob rollback` is a lookup rather
+# than a reconstruction. A change with no recorded inverse is never auto-applied.
+apiVersion: v3.0.0
+kind: DataContract
+id: node_change.v1
+version: 1.0.0
+status: active
+name: Node change
+description: One change a cell applied to itself, with the inverse that undoes it.
+schema:
+  - name: node_change
+    logicalType: object
+    physicalType: table
+    properties:
+      - name: kind
+        logicalType: string
+        required: true
+        enum: [promote, demote, tune, shed, restore, split, merge, retrain, enable, disable, rollback, autonomy]
+      - name: target
+        logicalType: string
+        required: true
+        description: What was changed - a rule id, a schema id, a setting.
+      - name: autonomy_level
+        logicalType: string
+        required: true
+        enum: [A0, A1, A2, A3, A4]
+      - name: evidence
+        logicalType: string
+        required: false
+        description: JSON - the numbers that justified it.
+      - name: inverse
+        logicalType: string
+        required: true
+        description: JSON - {kind, target} that undoes this change.
+      - name: reverts
+        logicalType: string
+        required: false
+        description: For kind=rollback, the change event this undoes.
+      - name: cost_credits
+        logicalType: number
+        required: false
+      - name: ts
+        logicalType: date
+        required: true
+kourob:
+  key_fields: [kind, target, ts]

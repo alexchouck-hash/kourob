@@ -1,0 +1,50 @@
+{
+  "data": {
+    "period": "M08",
+    "period_name": "August",
+    "series_id": "CUUR0000SA0",
+    "series_name": "CPI-U, all items, U.S. city average, not seasonally adjusted",
+    "value": 334.98,
+    "year": 2026
+  },
+  "log": {
+    "checkpoint": "local-unsigned-by-trooth",
+    "entry_id": "did:key:z6MkuDcnQ9rC8DDJcB2SxwXTXZzfmQATb3fEUdPsSZUznvex"
+  },
+  "provenance": {
+    "considered_and_rejected": [
+      {
+        "id": "fred",
+        "reason": "derivative of bls for CPI"
+      }
+    ],
+    "quota": {
+      "cost_units": 1,
+      "remaining": 0
+    },
+    "resolved_query": "economy/cpi/CUUR0000SA0",
+    "scorecard_ref": "https://alexchouck-hash.github.io/trooth-site/scorecards/bls",
+    "served_from": "live",
+    "snapshot_id": "snap_20260914T001726Z_bls",
+    "sources": [
+      {
+        "content_hash": "sha256:2e0dba68109cefa67720b19d60c322da69ef6d81b7061ba970d79e6ef2a3abe9",
+        "fetched_at": "2026-09-14T00:17:26Z",
+        "freshness_lag_s": 3802646.3,
+        "id": "bls",
+        "license": "public-domain",
+        "role": "primary",
+        "source_timestamp": "2026-08-01T00:00:00Z",
+        "url": "https://api.bls.gov/publicAPI/v1/timeseries/data/CUUR0000SA0"
+      }
+    ],
+    "untrusted_text": []
+  },
+  "request_id": "req_2e0dba68109cefa67720b19d",
+  "schema_version": "0.1",
+  "signature": {
+    "alg": "ed25519",
+    "key_id": "kourob-local",
+    "sig": "2v1RAFqtZ2F6kgbpb2F3TioTQKxJhzdLyhNCiMbsLmi1RSpvBFyrTZ7TDGJF4ZJ3KGo74e111LHjwQQv34fkLkkM"
+  }
+}

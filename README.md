@@ -19,6 +19,22 @@ kourob serve --mcp
 
 Then attach an agent: `kourob attach claude-code`.
 
+## Examples
+
+- `examples/kourob-node/` — the repo serves its own docs with a citation on every claim.
+- `examples/trooth-node/` — a node fed by [Trooth](https://alexchouck-hash.github.io/trooth-site/)
+  envelopes and scorecards, with a Streamlit dashboard as the human tap:
+  `uv run python examples/trooth-node/build.py`, then
+  `uv run streamlit run examples/trooth-node/dashboard.py -- examples/trooth-node/cell`.
+- `examples/trooth-set/` — four nodes connected: three fed by Trooth sources and a desk that
+  bridges and refers. `kourob publish --trooth` writes each node's Trooth catalog entry and
+  six-dimension provider scorecard; the set dashboard shows the route graph, a bridged
+  answer's receipt chain with cost along it, and those provider documents per node.
+- `examples/trooth-network/` — seven nodes, one per Trooth feed plus two desks, two hops deep.
+  Each source node holds its [Modafied](https://modafied.org/) emblem, verified against
+  Modafied's manifest; `kourob publish --credits` writes the page that advertises every feed
+  and UI output the network uses.
+
 ## What it is not
 
 - **Not an agent.** KouroB is a node network. `ouroboros` is a heavily used name in the
@@ -37,6 +53,8 @@ Then attach an agent: `kourob attach claude-code`.
 - `GOAL.md` — the one paragraph and the v1.0 metrics
 - `AGENTS.md` — how agents work in this repo (read this first if you are an agent)
 - `docs/brief/07-kourob-development.md` — the full design brief
+- `docs/protocols/` — **KNP**: what actually crosses the boundary between two nodes
+- `docs/integration/` — how existing systems become nodes
 - `docs/DEFAULTS.md` — decide-do-not-ask policy
 - `docs/adr/` — architecture decision records
 

@@ -1,0 +1,25 @@
+# A T0 rule: what one named Trooth source says about a location. Two sources hold KJFK
+# here (nws, the primary; open-meteo, a model grid), so "nws observation at KJFK" and
+# "open-meteo observation at KJFK" are different questions with different citations.
+id: observation-by-source
+description: The newest observation from one named source for one location.
+match: '(?i)\b(?P<source_id>nws|open-meteo)\b.*?\b(?:observation|weather|temperature|reading)\b.*?\b(?:at|in|for)\s+(?P<location>[A-Za-z0-9-]{3,16})\s*\??$'
+confidence: 1.0
+sql: |
+  SELECT
+    id,
+    json_extract_string(payload, '$.source_id')                  AS source_id,
+    json_extract_string(payload, '$.data.location')              AS location,
+    json_extract_string(payload, '$.data.temperature_c')         AS temperature_c,
+    json_extract_string(payload, '$.data.relative_humidity_pct') AS relative_humidity_pct,
+    json_extract_string(payload, '$.data.wind_speed_kmh')        AS wind_speed_kmh,
+    json_extract_string(payload, '$.source_timestamp')           AS source_timestamp,
+    json_extract_string(payload, '$.freshness_lag_s')            AS freshness_lag_s,
+    json_extract_string(payload, '$.license')                    AS license
+  FROM silver
+  WHERE schema_ref = 'observation.v1'
+    AND json_extract_string(payload, '$.source_id') = lower($source_id)
+    AND upper(json_extract_string(payload, '$.data.location')) = upper($location)
+  ORDER BY ts DESC
+  LIMIT 1
+render: "{source_id} at {location}, {source_timestamp}: {temperature_c} C, humidity {relative_humidity_pct}%, wind {wind_speed_kmh} km/h ({license}, {freshness_lag_s}s behind the source)."

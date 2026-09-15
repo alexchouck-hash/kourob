@@ -1,0 +1,115 @@
+# A Modafied attestation, held as a fact. Modafied schema/attestation/v0.1.
+#
+# Modafied is an independent benchmark (modafied.org). Per source it publishes a grade,
+# six graded dimensions, a rank in its category, and two SVG emblems meant to be shown on
+# the provider's own pages. A node holds one verified attestation per source and generation:
+# the in-port checks the scorecard hash against Modafied's manifest before anything is pushed,
+# and the event carries the notice verbatim, because the notice is part of what an emblem is.
+apiVersion: v3.0.0
+kind: DataContract
+id: emblem.v1
+version: 1.0.0
+status: active
+name: Modafied emblem
+description: One verified Modafied attestation for one source - grade, dimensions, rank, emblem urls.
+schema:
+  - name: emblem
+    logicalType: object
+    physicalType: table
+    properties:
+      - name: source_id
+        logicalType: string
+        required: true
+        pattern: "^[a-z0-9-]{2,64}$"
+      - name: source_name
+        logicalType: string
+        required: true
+      - name: category
+        logicalType: string
+        required: false
+      - name: grade
+        logicalType: string
+        required: true
+        description: A to E, or unrated when too few dimensions were measurable.
+      - name: status
+        logicalType: string
+        required: true
+      - name: points
+        logicalType: number
+        required: true
+        minimum: 0
+      - name: graded_dimensions
+        logicalType: integer
+        required: true
+        minimum: 0
+        maximum: 6
+      - name: coverage_pct
+        logicalType: number
+        required: false
+        minimum: 0
+        maximum: 100
+      - name: dimensions
+        logicalType: object
+        required: true
+        description: The six dimensions, each with grade, measured value, unit and status.
+      - name: rank_position
+        logicalType: integer
+        required: false
+        minimum: 0
+      - name: rank_of
+        logicalType: integer
+        required: false
+        minimum: 0
+      - name: trace_id
+        logicalType: string
+        required: true
+        description: Modafied's trace id, also embedded in the SVG's metadata.
+      - name: trace_url
+        logicalType: string
+        required: false
+      - name: emblem_full
+        logicalType: string
+        required: true
+        description: URL of the full emblem SVG.
+      - name: emblem_compact
+        logicalType: string
+        required: true
+      - name: emblem_alt
+        logicalType: string
+        required: true
+        description: The alt text Modafied wrote for the emblem; use it verbatim.
+      - name: scorecard_page_url
+        logicalType: string
+        required: true
+      - name: scorecard_sha256
+        logicalType: string
+        required: true
+        pattern: "^[a-f0-9]{64}$"
+        description: Verified against Modafied's manifest by the in-port.
+      - name: manifest_generated_at
+        logicalType: string
+        required: false
+      - name: method_version
+        logicalType: string
+        required: true
+      - name: rating_version
+        logicalType: string
+        required: false
+      - name: relationship
+        logicalType: string
+        required: false
+        enum: [none, funder, affiliated]
+      - name: notice
+        logicalType: string
+        required: true
+        description: Modafied's notice, verbatim. A measurement, not an endorsement.
+      - name: ts
+        logicalType: date
+        required: true
+        description: generated_at. ISO 8601 UTC. Must not be in the future.
+quality:
+  - rule: no_future_timestamps
+    description: ts must not be later than ingestion time.
+kourob:
+  key_fields: [source_id, trace_id]
+  outcome_window: 30d

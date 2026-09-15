@@ -20,6 +20,12 @@ because a JSONL reader cannot annotate them; every line in it must be rejected a
 The gate steps, in order (brief section 3.1 step 3):
 `stamp` → `parse` → `validate` → `dedupe` → `classify` → `threshold` → `route`.
 
+`threshold.novelty` has no case here, deliberately. For a shot event, "adds nothing over
+what the node already holds" *is* a duplicate, and labelling it as novelty would be
+pretending the step does work it does not do at this grain. Novelty thresholding earns a
+fixture when pages and documents arrive in M2, where a push can be new bytes and no new
+information.
+
 Precision and recall are measured over rejections: a gate that rejects everything has
 recall 1.0 and terrible precision, and a gate that accepts everything has the reverse.
 Both must be at least 0.95.

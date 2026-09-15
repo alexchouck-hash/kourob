@@ -1,0 +1,50 @@
+id: "usgs-earthquake"
+name: "USGS Earthquake Hazards Program"
+description: "Real-time global seismic feeds from the United States Geological Survey Earthquake Hazards Program."
+endpoints:
+  - name: "all_hour"
+    url: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson"
+    method: "GET"
+  - name: "all_day"
+    url: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson"
+    method: "GET"
+auth:
+  type: "none"
+  notes: "No API key or authentication required."
+license:
+  spdx: "public-domain"
+  name: "U.S. Government Work (USGS Copyright Policy)"
+  url: "https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits"
+  redistribution_allowed: true
+  attribution_required: false
+  attribution_text: "Data courtesy of the U.S. Geological Survey."
+  notes: "USGS-authored data and information are in the public domain and may be used freely."
+refresh_cadence: "15m"
+declared_lineage:
+  role: "primary"
+  notes: "Primary authority for national and global seismic monitoring."
+freshness_field: "features[0].properties.time"
+fields:
+  - name: "features[].properties.time"
+    type: "integer"
+    description: "Epoch milliseconds of the earthquake origin event."
+  - name: "features[].properties.updated"
+    type: "integer"
+    description: "Epoch milliseconds of the latest event revision or calculation."
+  - name: "features[].properties.mag"
+    type: "number"
+    description: "Earthquake magnitude."
+  - name: "features[].properties.place"
+    type: "string"
+    description: "Descriptive location string."
+  - name: "features[].geometry.coordinates"
+    type: "array"
+    description: "Longitude, latitude, and depth in kilometers."
+quirks:
+  - "Earthquake magnitudes are frequently revised retroactively as additional seismograph data is processed."
+  - "Timestamps are provided in epoch milliseconds rather than ISO 8601 strings."
+  - "Events can occasionally be deleted or consolidated if determined to be false triggers or duplicate detections."
+cost:
+  model: "free"
+  rate_limit: "Reasonable use guidelines. Static GeoJSON summaries cached on CDN edges."
+  pricing_url: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php"

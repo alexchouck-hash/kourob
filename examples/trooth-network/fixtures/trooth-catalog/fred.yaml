@@ -1,0 +1,46 @@
+id: "fred"
+name: "Federal Reserve Economic Data (FRED)"
+description: "Economic research time-series database maintained by the Research Division of the Federal Reserve Bank of St. Louis, aggregating macroeconomic data from hundreds of regional and global sources."
+endpoints:
+  - name: "cpi_observations"
+    url: "https://api.stlouisfed.org/fred/series/observations"
+    method: "GET"
+    params:
+      series_id: "CPIAUCSL"
+      file_type: "json"
+auth:
+  type: "api_key"
+  env_var: "FRED_API_KEY"
+  notes: "Requires a free 32-character API key registered at research.stlouisfed.org."
+license:
+  spdx: "public-domain"
+  name: "FRED Terms of Use and Public Economic Data"
+  url: "https://fred.stlouisfed.org/docs/api/terms_of_use.html"
+  redistribution_allowed: true
+  attribution_required: true
+  attribution_text: "Federal Reserve Bank of St. Louis"
+  notes: "FRED API is provided freely for public and commercial integration under terms of use. Upstream federal series are public domain."
+refresh_cadence: "monthly"
+declared_lineage:
+  role: "derivative"
+  upstream_sources:
+    - "bls"
+    - "bea"
+    - "us-treasury"
+  notes: "Republishes primary BLS series (e.g., CPIAUCSL). Demonstrates measurable republication lag against primary BLS releases."
+freshness_field: "observations[0].date"
+fields:
+  - name: "observations[].date"
+    type: "string"
+    description: "Observation date formatted as YYYY-MM-DD."
+  - name: "observations[].value"
+    type: "string"
+    description: "Observation value formatted as numeric string or '.' for missing values."
+quirks:
+  - "Requires free API key passed as query parameter `api_key`."
+  - "Missing values are represented as '.' string instead of null or NaN."
+  - "Values are derivative republications and lag primary BLS releases by minutes to hours."
+cost:
+  model: "free"
+  rate_limit: "120 requests per minute."
+  pricing_url: "https://fred.stlouisfed.org/docs/api/terms_of_use.html"

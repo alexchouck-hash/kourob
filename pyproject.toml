@@ -32,6 +32,10 @@ contracts = ["datacontract-cli>=0.10"]
 distill = ["torch>=2.3", "transformers>=4.42", "peft>=0.11", "scikit-learn>=1.5", "onnx>=1.16"]
 docs = ["mkdocs-material>=9.5"]
 all = ["kourob[mcp,a2a,rest,contracts,docs]"]
+ui = [
+    "pandas>=2.2",
+    "streamlit>=1.38",
+]
 
 [project.scripts]
 kourob = "kourob.cli:main"
@@ -49,6 +53,7 @@ packages = ["src/kourob"]
 
 [dependency-groups]
 dev = [
+  "jsonschema>=4.22",
   "pytest>=8.2",
   "pytest-cov>=5.0",
   "ruff>=0.5",
@@ -76,7 +81,7 @@ ignore = [
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["tests", "evals"]
-addopts = "-ra --strict-markers --strict-config"
+addopts = "-ra --strict-markers --strict-config -m 'not slow'"
 markers = [
   "m1: acceptance criteria for milestone M1 (brief section 12)",
   "m2: acceptance criteria for milestone M2",
@@ -84,6 +89,7 @@ markers = [
   "m4: acceptance criteria for milestone M4",
   "m5: acceptance criteria for milestone M5",
   "eval: a milestone-gating eval, not a unit test",
+  "slow: a replay measured in tens of minutes; run on purpose with -m slow, never by default",
 ]
 xfail_strict = true
 

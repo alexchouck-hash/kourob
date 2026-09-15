@@ -1,0 +1,43 @@
+{
+  "dimensions": {
+    "completeness_by_segment": {
+      "overall_pct": 100.0,
+      "segments": {
+        "cpi_observations": 100.0
+      }
+    },
+    "correction_latency": {
+      "events_evaluated": 0,
+      "p50_seconds": null,
+      "p95_seconds": null
+    },
+    "freshness_lag": {
+      "p50_seconds": 3547255.0,
+      "p95_seconds": 3547261.3,
+      "sample_count": 2
+    },
+    "internal_consistency": {
+      "consistent_snapshots_pct": 100.0,
+      "contradictions_count": 0
+    },
+    "revision_behavior": {
+      "revised_records_count": 0,
+      "revision_rate_pct": 0.0,
+      "total_records_count": 0
+    },
+    "schema_stability": {
+      "schema_changes_count": 0,
+      "stable_snapshots_pct": 100.0
+    }
+  },
+  "generated_at": "2026-09-11T01:21:24Z",
+  "method_version": "0.1",
+  "schema_version": "0.1",
+  "scoring_window": {
+    "end": "2026-09-11T01:21:02Z",
+    "snapshot_count": 2,
+    "start": "2026-09-11T01:20:48Z"
+  },
+  "source_id": "fred",
+  "source_name": "Federal Reserve Economic Data (FRED)"
+}

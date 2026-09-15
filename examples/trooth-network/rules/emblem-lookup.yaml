@@ -1,0 +1,31 @@
+# A T0 rule: what Modafied's benchmark says about one source, with the notice attached.
+#
+# "modafied grade of nws", "how is usgs-earthquake rated", "benchmark for open-meteo". The
+# answer names the grade, the points, the rank, the trace id and the emblem url, and ends with
+# Modafied's own notice, because an emblem shown without it is not the emblem Modafied issued.
+id: emblem-lookup
+description: The newest verified Modafied attestation held for one source.
+match: '(?i)(?:modafied|benchmark|grade|graded|rated|rating|emblem)\b.*?\b(?P<source_id>[a-z0-9]+(?:-[a-z0-9]+)*)\s*\??$'
+confidence: 1.0
+sql: |
+  SELECT
+    id,
+    json_extract_string(payload, '$.source_id')          AS source_id,
+    json_extract_string(payload, '$.source_name')        AS source_name,
+    json_extract_string(payload, '$.grade')              AS grade,
+    json_extract_string(payload, '$.points')             AS points,
+    json_extract_string(payload, '$.graded_dimensions')  AS graded_dimensions,
+    json_extract_string(payload, '$.rank_position')      AS rank_position,
+    json_extract_string(payload, '$.rank_of')            AS rank_of,
+    json_extract_string(payload, '$.category')           AS category,
+    json_extract_string(payload, '$.trace_id')           AS trace_id,
+    json_extract_string(payload, '$.emblem_full')        AS emblem_full,
+    json_extract_string(payload, '$.scorecard_page_url') AS scorecard_page_url,
+    json_extract_string(payload, '$.method_version')     AS method_version,
+    json_extract_string(payload, '$.notice')             AS notice
+  FROM silver
+  WHERE schema_ref = 'emblem.v1'
+    AND json_extract_string(payload, '$.source_id') = lower($source_id)
+  ORDER BY ts DESC
+  LIMIT 1
+render: "Modafied grade {grade} for {source_name} ({source_id}): {points} points across {graded_dimensions} of 6 dimensions, ranked {rank_position} of {rank_of} in {category}, method {method_version}, trace {trace_id}. Emblem {emblem_full}; scorecard {scorecard_page_url}. {notice}"
