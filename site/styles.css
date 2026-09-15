@@ -1207,7 +1207,7 @@ code, pre {
   }
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 1100px) {
   .nav-links {
     display: none;
   }

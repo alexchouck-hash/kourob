@@ -167,6 +167,85 @@
       margin: 0.35rem 0 0.15rem;
     }
 
+    /* ---- Verification: threads, steps, ledger results ---- */
+    .step-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 1.1rem 1.25rem;
+      margin-bottom: 0.9rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .step-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.6rem;
+    }
+    .step-node { font-family: var(--font-mono); font-weight: 600; font-size: 0.92rem; }
+    .pill {
+      font-size: 0.68rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 0.18rem 0.5rem;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+    .pill-bridge { background: rgba(16, 185, 129, 0.15); color: var(--tier-t0); }
+    .pill-referral { background: rgba(245, 158, 11, 0.15); color: var(--brand-amber); }
+    .pill-reject { background: rgba(244, 63, 94, 0.15); color: var(--brand-rose); }
+    .pill-tier { background: rgba(56, 189, 248, 0.15); color: var(--tier-t1); }
+    .step-answer {
+      font-size: 0.88rem;
+      color: var(--text-primary);
+      background: var(--bg-surface-elevated);
+      border-radius: 10px;
+      padding: 0.7rem 0.85rem;
+      margin: 0 0 0.7rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .step-meta {
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      display: grid;
+      gap: 0.3rem;
+    }
+    .step-meta b { color: var(--text-secondary); font-weight: 600; }
+    .step-meta .rcpt { cursor: pointer; text-decoration: underline dotted; }
+    .signed-dump {
+      margin-top: 0.7rem;
+      background: var(--bg-code);
+      color: var(--text-code);
+      border-radius: 10px;
+      padding: 0.75rem 0.85rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      line-height: 1.5;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .verify-out {
+      margin-top: 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      display: grid;
+      gap: 0.35rem;
+    }
+    .verify-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.6rem;
+      padding: 0.35rem 0;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .verify-ok { color: var(--tier-t0); }
+    .verify-bad { color: var(--brand-rose); }
+    .verify-note { color: var(--text-muted); font-family: var(--font-sans); font-size: 0.8rem; }
+
     .note {
       border-left: 3px solid var(--brand-amber);
       background: var(--bg-surface-elevated);
@@ -227,7 +306,7 @@
       </p>
       <div class="hero-ctas">
         <a href="#network" class="btn btn-primary">Explore the Network &rarr;</a>
-        <a href="#build" class="btn btn-secondary">Build It Locally</a>
+        <a href="#verify" class="btn btn-secondary">Verify Real Receipts</a>
       </div>
     </div>
   </section>
@@ -302,7 +381,7 @@
         <div>
           <div class="net-ask-row" role="group" aria-label="Example questions">
             <button class="net-ask" data-ask="weather">"nws observation at KJFK"</button>
-            <button class="net-ask" data-ask="model">"open-meteo model wind"</button>
+            <button class="net-ask" data-ask="model">"open-meteo observation at KJFK"</button>
             <button class="net-ask" data-ask="quake">"largest earthquake in the last hour"</button>
             <button class="net-ask" data-ask="cpi">"what is the latest cpi"</button>
             <button class="net-ask" data-ask="reset">Show all routes</button>
@@ -482,6 +561,52 @@
           </div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- Verify it yourself -->
+  <section class="section" id="verify">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">KNP-2 &middot; Receipts &amp; Ledger</span>
+        <h2 class="section-title">Real Receipts, Verified In Your Browser</h2>
+        <p class="section-desc">
+          Everything below came out of an actual run of the seven cells &mdash; real questions,
+          real answers, real ed25519 signatures. Nothing here is a mock-up of a receipt, and you
+          do not have to take that on faith: your browser recovers each node's public key from its
+          <code>did:key</code>, checks every signature, and walks every hash chain, with no server
+          involved.
+        </p>
+      </div>
+
+      <div class="net-ask-row" id="thread-picker" role="group" aria-label="Questions that were asked"></div>
+
+      <div class="net-layout">
+        <div id="thread-steps"></div>
+
+        <aside class="net-detail">
+          <h3>Check the ledgers</h3>
+          <p>
+            Seven chains, every record signed by the node that wrote it and hashed into the one
+            before it. Verification runs on your machine, over <code>network.json</code> as
+            served.
+          </p>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin:1rem 0 0;">
+            <button id="verify-run" class="btn btn-primary" style="padding:0.55rem 0.9rem;">Verify all signatures</button>
+            <button id="verify-tamper" class="btn btn-secondary" style="padding:0.55rem 0.9rem;">Tamper with one byte</button>
+          </div>
+          <div id="verify-out" class="verify-out" aria-live="polite"></div>
+        </aside>
+      </div>
+
+      <p class="note" style="margin-top:1.5rem;">
+        <strong>What this does and does not prove.</strong> It proves these records were signed by
+        the keys behind those <code>did:key</code>s and that no one has edited the history since:
+        change one byte and the check fails, which is what the tamper button does. It does not
+        prove a node was honest when it signed &mdash; a compromised node can sign false records
+        going forward. That needs the transparency log in KNP-4, and saying so is better than
+        implying tamper-proofing that isn't there.
+      </p>
     </div>
   </section>
 
@@ -832,6 +957,254 @@
     });
 
     render('trooth-desk');
+  })();
+  </script>
+
+  <script>
+  // --- Real receipts from a real run, verified here in the browser ---
+  (function () {
+    const picker = document.getElementById('thread-picker');
+    const stepsEl = document.getElementById('thread-steps');
+    const outEl = document.getElementById('verify-out');
+    const runBtn = document.getElementById('verify-run');
+    const tamperBtn = document.getElementById('verify-tamper');
+    if (!picker || !stepsEl) return;
+
+    const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+    const enc = new TextEncoder();
+    let DATA = null;
+
+    function esc(t) {
+      return String(t).replace(/[&<>"]/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+      });
+    }
+
+    // Bitcoin-alphabet base58: what did:key and the signatures are written in.
+    function b58decode(text) {
+      let n = 0n;
+      for (const ch of text) {
+        const i = B58.indexOf(ch);
+        if (i < 0) throw new Error('not base58: ' + ch);
+        n = n * 58n + BigInt(i);
+      }
+      const bytes = [];
+      while (n > 0n) { bytes.unshift(Number(n & 255n)); n >>= 8n; }
+      let pad = 0;
+      while (pad < text.length && text[pad] === '1') pad++;
+      const out = new Uint8Array(pad + bytes.length);
+      out.set(bytes, pad);
+      return out;
+    }
+
+    // did:key:z<base58(0xed01 || raw key)>. This is why no registry is needed to check a
+    // signature: the key is inside the name.
+    function keyFromDid(did) {
+      const decoded = b58decode(did.replace(/^did:key:z/, ''));
+      if (decoded[0] !== 0xed || decoded[1] !== 0x01) throw new Error('did:key is not ed25519');
+      return decoded.slice(2);
+    }
+
+    async function sha256Hex(bytes) {
+      const digest = await crypto.subtle.digest('SHA-256', bytes);
+      return Array.from(new Uint8Array(digest))
+        .map(function (b) { return b.toString(16).padStart(2, '0'); })
+        .join('');
+    }
+
+    let ed25519 = null;
+    function importKey(raw) {
+      return crypto.subtle.importKey('raw', raw, { name: 'Ed25519' }, false, ['verify']);
+    }
+    async function ed25519Available() {
+      if (ed25519 !== null) return ed25519;
+      try {
+        await importKey(keyFromDid(DATA.nodes[0].did));
+        ed25519 = true;
+      } catch (e) {
+        ed25519 = false;
+      }
+      return ed25519;
+    }
+
+    // One node's chain: every signature against that node's own key, every prev against the
+    // record before it, and the first record against the genesis anchor bound to its did.
+    async function verifyLedger(name, ledger, tamperAt) {
+      const canVerify = await ed25519Available();
+      const key = canVerify ? await importKey(keyFromDid(ledger.did)) : null;
+      let prev = ledger.genesis_prev;
+      let sigOk = 0;
+      let chainOk = 0;
+      let broke = null;
+
+      for (let i = 0; i < ledger.records.length; i++) {
+        const record = ledger.records[i];
+        let signed = record.signed;
+        if (tamperAt && tamperAt.node === name && tamperAt.index === i) {
+          // Flip one digit inside the bytes that were signed. Nothing else changes.
+          signed = signed.replace(/[0-9](?=["*,])/, function (d) {
+            return String((Number(d) + 1) % 10);
+          });
+        }
+        const bytes = enc.encode(signed);
+        const body = JSON.parse(signed);
+
+        if (body.prev === prev) {
+          chainOk++;
+        } else if (!broke) {
+          broke = record.id + ': prev does not match the record before it';
+        }
+
+        if (canVerify) {
+          const ok = await crypto.subtle.verify('Ed25519', key, b58decode(record.sig), bytes);
+          if (ok) sigOk++;
+          else if (!broke) broke = record.id + ': signature does not verify';
+        }
+        prev = 'sha256:' + (await sha256Hex(bytes));
+      }
+      return { name: name, records: ledger.records.length, sigOk: sigOk, chainOk: chainOk, broke: broke, canVerify: canVerify };
+    }
+
+    async function verifyAll(tamperAt) {
+      const names = Object.keys(DATA.ledgers);
+      outEl.innerHTML = '<div class="verify-note">Checking ' + names.length + ' chains...</div>';
+      const results = [];
+      for (const name of names) {
+        results.push(await verifyLedger(name, DATA.ledgers[name], tamperAt));
+      }
+
+      const canVerify = results.length > 0 && results[0].canVerify;
+      const records = results.reduce(function (n, r) { return n + r.records; }, 0);
+      const intact = results.filter(function (r) { return !r.broke; }).length;
+      const firstBreak = results.find(function (r) { return r.broke; });
+
+      let html = results.map(function (r) {
+        const ok = !r.broke;
+        const detail = !ok
+          ? 'BROKEN'
+          : r.records === 0
+            ? 'no traffic yet'
+            : (r.canVerify ? r.sigOk + ' signed / ' + r.chainOk + ' chained' : r.chainOk + ' chained');
+        return '<div class="verify-row"><span>' + esc(r.name) + '</span><span class="' +
+          (ok ? 'verify-ok' : 'verify-bad') + '">' + detail + '</span></div>';
+      }).join('');
+
+      html += '<div class="verify-row"><span><b>' + records + ' records</b></span><span class="' +
+        (intact === results.length ? 'verify-ok' : 'verify-bad') + '">' + intact + '/' +
+        results.length + ' chains intact</span></div>';
+
+      if (tamperAt) {
+        html += '<div class="verify-note">One digit was flipped inside <code>' + esc(tamperAt.node) +
+          '</code> record ' + tamperAt.index + ' before checking. The signature covers those exact ' +
+          'bytes, so it fails - and every record after it is unverifiable too.</div>';
+      }
+      if (!canVerify) {
+        html += '<div class="verify-note">This browser has no Ed25519 in WebCrypto, so only the ' +
+          'SHA-256 hash chain was checked. Signatures verify in current Chrome, Safari and Firefox.</div>';
+      }
+      if (firstBreak) {
+        html += '<div class="verify-note verify-bad">' + esc(firstBreak.broke) + '</div>';
+      }
+      outEl.innerHTML = html;
+    }
+
+    function receiptOf(id) {
+      const entries = Object.keys(DATA.ledgers);
+      for (const name of entries) {
+        const found = DATA.ledgers[name].records.find(function (r) { return r.id === id; });
+        if (found) return { name: name, record: found };
+      }
+      return null;
+    }
+
+    function renderThread(key) {
+      const thread = DATA.threads.find(function (t) { return t.key === key; });
+      if (!thread) return;
+      Array.from(picker.children).forEach(function (b) {
+        b.classList.toggle('active', b.dataset.thread === key);
+      });
+
+      const head =
+        '<div class="step-card" style="border-color: var(--accent-color);">' +
+        '<div class="step-head"><span class="step-node">' + esc(thread.question) + '</span>' +
+        '<span class="pill pill-tier">' + esc(thread.caller) + '</span></div>' +
+        '<p style="margin:0; color: var(--text-secondary); font-size:0.88rem;">' +
+        esc(thread.note) + '</p></div>';
+
+      const steps = thread.steps.map(function (step, i) {
+        const kind = step.scope_result;
+        const pillKind = kind === 'bridge' ? 'bridge' : (kind === 'referral' ? 'referral' : 'reject');
+        const pill = '<span class="pill pill-' + pillKind + '">' + esc(kind) + '</span>';
+        const tier = step.tier
+          ? '<span class="pill pill-tier">' + esc(step.tier) + ' ' + esc(step.determinism || '') + '</span>'
+          : '';
+        const hops = step.path.length > 1
+          ? '<div><b>hops</b> ' + step.path.map(esc).join(' &rarr; ') + '</div>'
+          : '';
+        const hints = step.hints.length
+          ? '<div><b>route handed back</b> ' + step.hints.map(function (h) { return esc(h.to); }).join(', ') + '</div>'
+          : '';
+        const cites = step.citations.length
+          ? '<div><b>cites</b> ' + step.citations.map(esc).join(', ') + '</div>'
+          : '';
+        const receipts = step.receipts.map(function (id) {
+          return '<span class="rcpt" data-receipt="' + esc(id) + '">' + esc(id) + '</span>';
+        }).join(' ');
+        return '<div class="step-card">' +
+          '<div class="step-head"><span class="step-node">' + (i + 1) + '. asked ' +
+          esc(step.asked) + '</span>' + pill + tier + '</div>' +
+          '<p class="step-answer">' + esc(step.rendered) + '</p>' +
+          '<div class="step-meta">' + hops + hints + cites +
+          '<div><b>receipts</b> ' + receipts + '</div></div>' +
+          '<div class="signed-dump" hidden></div></div>';
+      }).join('');
+
+      stepsEl.innerHTML = head + steps;
+
+      stepsEl.querySelectorAll('.rcpt').forEach(function (el) {
+        el.addEventListener('click', function () {
+          const found = receiptOf(el.dataset.receipt);
+          if (!found) return;
+          const dump = el.closest('.step-card').querySelector('.signed-dump');
+          const pretty = JSON.stringify(JSON.parse(found.record.signed), null, 1);
+          dump.textContent = found.name + ' signed exactly these bytes:\n\n' + pretty +
+            '\n\nsignature (base58)\n' + found.record.sig;
+          dump.hidden = false;
+        });
+      });
+    }
+
+    fetch('network.json').then(function (r) { return r.json(); }).then(function (data) {
+      DATA = data;
+      picker.innerHTML = DATA.threads.map(function (t) {
+        const again = t.key.indexOf('-again') > -1 ? ' (asked again)' : '';
+        return '<button class="net-ask" data-thread="' + esc(t.key) + '">"' +
+          esc(t.question) + '"' + again + '</button>';
+      }).join('');
+      picker.querySelectorAll('button').forEach(function (b) {
+        b.addEventListener('click', function () { renderThread(b.dataset.thread); });
+      });
+      renderThread(DATA.threads[0].key);
+      const total = Object.keys(DATA.ledgers).reduce(function (n, k) {
+        return n + DATA.ledgers[k].records.length;
+      }, 0);
+      outEl.innerHTML = '<div class="verify-note">' + total + ' signed records across ' +
+        Object.keys(DATA.ledgers).length + ' chains, waiting to be checked.</div>';
+    }).catch(function () {
+      stepsEl.innerHTML = '<div class="step-card">Could not load <code>network.json</code>.</div>';
+    });
+
+    if (runBtn) runBtn.addEventListener('click', function () { verifyAll(null); });
+    if (tamperBtn) {
+      tamperBtn.addEventListener('click', function () {
+        const names = Object.keys(DATA.ledgers).filter(function (n) {
+          return DATA.ledgers[n].records.length > 0;
+        });
+        const node = names[Math.floor(Math.random() * names.length)];
+        const index = Math.floor(Math.random() * DATA.ledgers[node].records.length);
+        verifyAll({ node: node, index: index });
+      });
+    }
   })();
   </script>
 </body>
