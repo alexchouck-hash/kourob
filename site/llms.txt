@@ -81,9 +81,39 @@ exclusions and referral targets); receipts that chain across separately owned ce
 metered per hop and summed along the chain; `kourob publish --trooth` turning any node into a listed
 data provider with a six-dimension scorecard; and `credits.md` generated from what the cells hold.
 
+## Worked Example: A Document Served By A Node
+
+Page: https://alexchouck-hash.github.io/kourob/maude.html
+
+`examples/maude-method-node/` is one cell holding one markdown document: a method note on counting
+distinct events in FDA MAUDE data, where a report count and an event count are different numbers
+because one event can produce several reports. The page is not written; it is answered. Every claim
+on it came back from a real request to the node, carries the event id it cited, the heading in the
+source file that event came from, the tier that answered, and the signed receipt it was charged to.
+
+Build and ask:
+```bash
+kourob init examples/maude-method-node --scope "the MAUDE distinct-event method and what its numbers may claim"
+kourob ingest examples/maude-method-node/source --from-markdown --node examples/maude-method-node
+kourob loop run compile --node examples/maude-method-node
+kourob query "what is the-acceptance-floor" --node examples/maude-method-node
+uv run python examples/maude-method-node/export_site.py --out site/maude.json
+```
+
+What it demonstrates: the markdown in-port turning a document into `note.v1` events keyed by
+heading; the compile loop emitting a page per key with a citation on every claim; T0 answering all
+23 topics from a mined note-lookup rule at 0.00005 credits a call; and a ledger whose ed25519
+signatures and SHA-256 chain the browser verifies for itself, with a button that tampers with one
+record so a reader can watch the check fail.
+
+What it does not demonstrate: live serving (the page is static, because the HTTP transport is not
+built), any tier above T0, or any processing of actual FDA data. The precision and recall figures
+in the document are design targets and are labelled as such.
+
 ## Repository & Links
 
 - GitHub: https://github.com/alexchouck-hash/kourob
 - Specifications: https://github.com/alexchouck-hash/kourob/tree/main/docs/protocols
 - License: Apache-2.0
 - Examples: https://alexchouck-hash.github.io/kourob/examples.html
+- Method note: https://alexchouck-hash.github.io/kourob/maude.html

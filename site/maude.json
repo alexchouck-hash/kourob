@@ -1,0 +1,1308 @@
+{
+  "generated_at": "2026-09-15T05:28:41.227851+00:00",
+  "node": {
+    "name": "maude-method-node",
+    "did": "did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o",
+    "scope": "the MAUDE distinct-event method and what its numbers may claim",
+    "autonomy": "A0",
+    "source_file": "examples/maude-method-node/source/maude-distinct-events.md",
+    "genesis_prev": "sha256:adae77f75f0c89afb5d29637ec8444187007bef18f4a84b48e33fe320dc054d2"
+  },
+  "counts": {
+    "events": 23,
+    "answers": 23,
+    "records": 23
+  },
+  "sections": [
+    {
+      "title": "The problem",
+      "blurb": "Why a report count and an event count are different numbers.",
+      "answers": [
+        {
+          "topic": "the-question",
+          "question": "what is the-question",
+          "rendered": "An RA/QA lead asks a question that sounds like it has a lookup answer: how many adverse events were reported for this product code in the last twelve months. The FDA public MAUDE search returns a number in a second, and that number is the count of reports on file rather than the count of events. [evt_01M2HRKW0DFGS89YYKSKEVRND3]",
+          "tier": "T0",
+          "determinism": "derived",
+          "scope_result": "in_scope",
+          "citations": [
+            "evt_01M2HRKW0DFGS89YYKSKEVRND3"
+          ],
+          "receipt": "rcpt_01M2HRKW52BAJB82GTHEYH5F2E",
+          "decided_by": "rule:note-lookup",
+          "tiers_tried": [
+            "T0"
+          ],
+          "latency_ms": 98.86,
+          "cost_credits": 0.0001,
+          "price_credits": 5e-05
+        },
+        {
+          "topic": "why-reports-outnumber-events",
+          "question": "what is why-reports-outnumber-events",
+          "rendered": "A single event can generate a manufacturer report, a user facility report, and a voluntary report, filed separately by three parties who never spoke to each other. Follow-up submissions to an earlier report are separate records again. Identifiers are dirty enough that one device appears under several spellings of its brand name, so naive grouping does not collapse them. [evt_01M2HRKW0DFGS89YYKSKEVRND4]",
+          "tier": "T0",
+          "determinism": "derived",
+          "scope_result": "in_scope",
+          "citations": [
+            "evt_01M2HRKW0DFGS89YYKSKEVRND4"
+          ],
+          "receipt": "rcpt_01M2HRKWCSGTK2HX4FJ4D4BZZG",
+          "decided_by": "rule:note-lookup",
+          "tiers_tried": [
+            "T0"
+          ],
+          "latency_ms": 183.89,
+          "cost_credits": 0.0001,
+          "price_credits": 5e-05
+        },
+        {
+          "topic": "why-the-error-matters",
+          "question": "what is why-the-error-matters",
+          "rendered": "Count reports and call them events and every downstream number moves: the trend, the quarter over quarter comparison, the figure that goes into a complaint trend report or a CAPA input. The error is systematic rather than random, so it does not average out across a larger window. [evt_01M2HRKW0DFGS89YYKSKEVRND5]",
+          "tier": "T0",
+          "determinism": "derived",
+          "scope_result": "in_scope",
+          "citations": [
+            "evt_01M2HRKW0DFGS89YYKSKEVRND5"
+          ],
+          "receipt": "rcpt_01M2HRKWMZEZ0KBGECGXM9TEN2",
+          "decided_by": "rule:note-lookup",
+          "tiers_tried": [
+            "T0"
+          ],
+          "latency_ms": 200.91,
+          "cost_credits": 0.0001,
+          "price_credits": 5e-05
+        },
+        {
+          "topic": "why-the-corrected-number-is-not-published",
+          "question": "what is why-the-corrected-number-is-not-published",
+          "rendered": "Correcting the count requires a method, a method requires a validation set, and a validation set requires somebody to hand-label pairs of reports as the same event or not. That work is unglamorous, it has to be redone whenever the method changes, and there is no published place to put the result, so the raw number stays in circulation. [evt_01M2HRKW0DFGS89YYKSKEVRND6]",
+          "tier": "T0",
+          "determinism": "derived",
+          "scope_result": "in_scope",
+          "citations": [
+            "evt_01M2HRKW0DFGS89YYKSKEVRND6"
+          ],
+          "receipt": "rcpt_01M2HRKWYMZZ3ZFX4BQY2BRD61",
+          "decided_by": "rule:note-lookup",
+          "tiers_tried": [
+            "T0"
+          ],
+          "latency_ms": 226.7,
+          "cost_credits": 0.0001,
+          "price_credits": 5e-05
+        }
+      ]
+    },
+    {
+      "title": "What the data cannot say",
+      "blurb": "Three structural limits, each fixed by the dataset rather than by the method.",
+      "answers": [
+        {
+          "topic": "no-denominator",
+          "question": "what is no-denominator",
+          "rendered": "MAUDE contains counts, not rates. Nothing about how many devices are in use is in the file, so no count in it can be turned into a rate, and differences between product codes reflect market size, reporting practices, and reporting requirements as much as anything about a device. [evt_01M2HRKW0DFGS89YYKSKEVRND7]",
+          "tier": "T0",
+          "determinism": "derived",
+          "scope_result": "in_scope",
+          "citations": [
+            "evt_01M2HRKW0DFGS89YYKSKEVRND7"
+          ],
+          "receipt": "rcpt_01M2HRKX8Z2Z5YCYB13G3EQ5V8",
+          "decided_by": "rule:note-lookup",
+          "tiers_tried": [
+            "T0"
+          ],
+          "latency_ms": 256.76,
+          "cost_credits": 0.0001,
+          "price_credits": 5e-05
+        },
+        {
+          "topic": "a-report-is-not-a-finding",
+          "question": "what is a-report-is-not-a-finding",
+          "rendered": "An MDR is a report rather than a finding. The FDA does not verify reports, and a report does not establish that a device caused the event described in it. [evt_01M2HRKW0DFGS89YYKSKEVRND8]",
+          "tier": "T0",
+          "determinism": "derived",
+          "scope_result": "in_scope",
+          "citations": [
+            "evt_01M2HRKW0DFGS89YYKSKEVRND8"
+          ],
+          "receipt": "rcpt_01M2HRKXKFW95Y0B3EHNT0XEVK",
+          "decided_by": "rule:note-lookup",
+          "tiers_tried": [
+            "T0"
+          ],
+          "latency_ms": 228.26,
+          "cost_credits": 0.0001,
+          "price_credits": 5e-05
+        },
+        {
+          "topic": "the-programme-boundary",
+          "question": "what is the-programme-boundary",
+          "rendered": "The FDA has run summary reporting programmes under which certain events were reported in aggregate rather than as individual public MDRs. Where a product code is affected, counts are not comparable across that boundary, and the output says so rather than silently joining the series. [evt_01M2HRKW0DFGS89YYKSKEVRND9]",
+          "tier": "T0",
+          "determinism": "derived",
+          "scope_result": "in_scope",
+          "citations": [
+            "evt_01M2HRKW0DFGS89YYKSKEVRND9"
+          ],
+          "receipt": "rcpt_01M2HRKXXW16AVYVW8WDCP14Z6",
+          "decided_by": "rule:note-lookup",
+          "tiers_tried": [
+            "T0"
+          ],
+          "latency_ms": 279.11,
+          "cost_credits": 0.0001,
+          "price_credits": 5e-05
+        }
+      ]
+    },
+    {
+      "title": "The method",
+      "blurb": "Two deterministic passes, versioned, published in full.",
+      "answers": [
+        {
+          "topic": "the-method",
+          "question": "what is the-method",
+          "rendered": "Two passes, both deterministic, both versioned. The goal is an estimate of distinct real-world events rather than perfect record linkage, and the method states that limit in those words rather than leaving a reader to infer it. [evt_01M2HRKW0DFGS89YYKSKEVRNDA]",
+          "tier": "T0",
+          "determinism": "derived",
+          "scope_result": "in_scope",
+          "citations": [
+            "evt_01M2HRKW0DFGS89YYKSKEVRNDA"
+          ],
+          "receipt": "rcpt_01M2HRKY8NFHXXH0NPG1KP9E41",
+          "decided_by": "rule:note-lookup",
+          "tiers_tried": [
+            "T0"
+          ],
+          "latency_ms": 248.22,
+          "cost_credits": 0.0001,
+          "price_credits": 5e-05
+        },
+        {
+          "topic": "exact-linkage",
+          "question": "what is exact-linkage",
+          "rendered": "Pass one groups records that share an event key where one is present, and groups follow-up submissions to their initial submission through the shared report number root. [evt_01M2HRKW0DFGS89YYKSKEVRNDB]",
+          "tier": "T0",
+          "determinism": "derived",
+          "scope_result": "in_scope",
+          "citations": [
+            "evt_01M2HRKW0DFGS89YYKSKEVRNDB"
+          ],
+          "receipt": "rcpt_01M2HRKYKF6ACR11MKGN1FYWS3",
+          "decided_by": "rule:note-lookup",
+          "tiers_tried": [
+            "T0"
+          ],
+          "latency_ms": 263.57,
+          "cost_credits": 0.0001,
+          "price_credits": 5e-05
+        },
+        {
+          "topic": "fuzzy-linkage",
+          "question": "what is fuzzy-linkage",
+          "rendered": "Pass two works within a single product code. Two records are a candidate pair when the normalised manufacturer name matches, and the date of event falls within plus or minus 3 days, and the event type matches, and at least one of the normalised brand name, lot number, or model number matches. [evt_01M2HRKW0DFGS89YYKSKEVRNDC]",
+          "tier": "T0",
+          "determinism": "derived",
+          "scope_result": "in_scope",
+          "citations": [
+            "evt_01M2HRKW0DFGS89YYKSKEVRNDC"
+          ],
+          "receipt": "rcpt_01M2HRKYZBXZZEYXC4JNMJKZH7",
+          "decided_by": "rule:note-lookup",
+          "tiers_tried": [
+            "T0"
+          ],
+          "latency_ms": 279.72,
+          "cost_credits": 0.0001,
+          "price_credits": 5e-05
+        },
+        {
+          "topic": "confirming-a-pair",
+          "question": "what is confirming-a-pair",
+          "rendered": "A candidate pair is confirmed when the two records share an identical product problems set, or when their event descriptions reach a MinHash Jaccard similarity of 0.6 or above. Confirmed pairs resolve into clusters by union-find, and one cluster is one estimated event. [evt_01M2HRKW0DFGS89YYKSKEVRNDD]",
+          "tier": "T0",
+          "determinism": "derived",
+          "scope_result": "in_scope",
+          "citations": [
+            "evt_01M2HRKW0DFGS89YYKSKEVRNDD"
+          ],
+          "receipt": "rcpt_01M2HRKZANR2259EAVDWP9KNGN",
+          "decided_by": "rule:note-lookup",
+          "tiers_tried": [
+            "T0"
+          ],
+          "latency_ms": 313.34,
+          "cost_credits": 0.0001,
+          "price_credits": 5e-05
+        },
+        {
+          "topic": "duplicate-rate",
+          "question": "what is duplicate-rate",
+          "rendered": "Raw reports is the count of records carrying the product code, dedup events is the count of clusters remaining after both passes, and duplicate rate is one minus dedup events divided by raw reports. It is reported as an estimate with the method version attached. [evt_01M2HRKW0DFGS89YYKSKEVRNDE]",
+          "tier": "T0",
+          "determinism": "derived",
+          "scope_result": "in_scope",
+          "citations": [
+            "evt_01M2HRKW0DFGS89YYKSKEVRNDE"
+          ],
+          "receipt": "rcpt_01M2HRKZR5D6FWVZWYZZ092M10",
+          "decided_by": "rule:note-lookup",
+          "tiers_tried": [
+            "T0"
+          ],
+          "latency_ms": 340.48,
+          "cost_credits": 0.0001,
+          "price_credits": 5e-05
+        },
+        {
+          "topic": "versioning-the-method",
+          "question": "what is versioning-the-method",
+          "rendered": "Every figure published from this method carries its method version. The method is never changed quietly: a change bumps the version, the prior version outputs are kept, and the change is written into the amendments log. [evt_01M2HRKW0DFGS89YYKSKEVRNDF]",
+          "tier": "T0",
+          "determinism": "derived",
+          "scope_result": "in_scope",
+          "citations": [
+            "evt_01M2HRKW0DFGS89YYKSKEVRNDF"
+          ],
+          "receipt": "rcpt_01M2HRM05Q4425N79F3M5VTMDQ",
+          "decided_by": "rule:note-lookup",
+          "tiers_tried": [
+            "T0"
+          ],
+          "latency_ms": 321.68,
+          "cost_credits": 0.0001,
+          "price_credits": 5e-05
+        }
+      ]
+    },
+    {
+      "title": "How we know whether it works",
+      "blurb": "The part usually left out: the validation set and the floor the build enforces.",
+      "answers": [
+        {
+          "topic": "the-validation-set",
+          "question": "what is the-validation-set",
+          "rendered": "A sample of candidate pairs per product code is labelled by hand as duplicate, not duplicate, or unsure, and where more than one person labels, inter-annotator agreement is measured and published with the result. [evt_01M2HRKW0DFGS89YYKSKEVRNDG]",
+          "tier": "T0",
+          "determinism": "derived",
+          "scope_result": "in_scope",
+          "citations": [
+            "evt_01M2HRKW0DFGS89YYKSKEVRNDG"
+          ],
+          "receipt": "rcpt_01M2HRM0JZW8GZ9BX2J845N3FB",
+          "decided_by": "rule:note-lookup",
+          "tiers_tried": [
+            "T0"
+          ],
+          "latency_ms": 314.26,
+          "cost_credits": 0.0001,
+          "price_credits": 5e-05
+        },
+        {
+          "topic": "holding-the-gold-out",
+          "question": "what is holding-the-gold-out",
+          "rendered": "The labelled set is held out. The clustering code never reads it, and the build fails if it does. [evt_01M2HRKW0DFGS89YYKSKEVRNDH]",
+          "tier": "T0",
+          "determinism": "derived",
+          "scope_result": "in_scope",
+          "citations": [
+            "evt_01M2HRKW0DFGS89YYKSKEVRNDH"
+          ],
+          "receipt": "rcpt_01M2HRM0ZBNKWXP0N2RM2QA7P8",
+          "decided_by": "rule:note-lookup",
+          "tiers_tried": [
+            "T0"
+          ],
+          "latency_ms": 308.73,
+          "cost_credits": 0.0001,
+          "price_credits": 5e-05
+        },
+        {
+          "topic": "the-acceptance-floor",
+          "question": "what is the-acceptance-floor",
+          "rendered": "Precision against the labelled set targets 0.85 or above and recall targets 0.70 or above. Both are design targets rather than measured results, because the labelled set does not exist yet. [evt_01M2HRKW0DFGS89YYKSKEVRNDJ]",
+          "tier": "T0",
+          "determinism": "derived",
+          "scope_result": "in_scope",
+          "citations": [
+            "evt_01M2HRKW0DFGS89YYKSKEVRNDJ"
+          ],
+          "receipt": "rcpt_01M2HRM1C26CAZAAKRW42C0CDS",
+          "decided_by": "rule:note-lookup",
+          "tiers_tried": [
+            "T0"
+          ],
+          "latency_ms": 315.75,
+          "cost_credits": 0.0001,
+          "price_credits": 5e-05
+        },
+        {
+          "topic": "enforcing-the-floor",
+          "question": "what is enforcing-the-floor",
+          "rendered": "The publishing pipeline refuses to deploy a scorecard whose precision sits below the published floor. That is a build step rather than a promise. [evt_01M2HRKW0DFGS89YYKSKEVRNDK]",
+          "tier": "T0",
+          "determinism": "derived",
+          "scope_result": "in_scope",
+          "citations": [
+            "evt_01M2HRKW0DFGS89YYKSKEVRNDK"
+          ],
+          "receipt": "rcpt_01M2HRM1SEFZHVMDQM9M5C3RCN",
+          "decided_by": "rule:note-lookup",
+          "tiers_tried": [
+            "T0"
+          ],
+          "latency_ms": 341.85,
+          "cost_credits": 0.0001,
+          "price_credits": 5e-05
+        },
+        {
+          "topic": "the-fixture-rule",
+          "question": "what is the-fixture-rule",
+          "rendered": "Until a real labelled set exists the pipeline runs against a fixture set marked synthetic in its own header, and the scorecard generator refuses to publish a card built from it, writing the card to a fixtures directory instead. The pipeline can be tested end to end without one unvalidated number reaching a published page. [evt_01M2HRKW0GVTWXDZCFNJJ864FE]",
+          "tier": "T0",
+          "determinism": "derived",
+          "scope_result": "in_scope",
+          "citations": [
+            "evt_01M2HRKW0GVTWXDZCFNJJ864FE"
+          ],
+          "receipt": "rcpt_01M2HRM27JM3PMJ8XQ8VF09SGG",
+          "decided_by": "rule:note-lookup",
+          "tiers_tried": [
+            "T0"
+          ],
+          "latency_ms": 357.19,
+          "cost_credits": 0.0001,
+          "price_credits": 5e-05
+        }
+      ]
+    },
+    {
+      "title": "The review record",
+      "blurb": "What makes an export usable in a file somebody signs.",
+      "answers": [
+        {
+          "topic": "the-review-record",
+          "question": "what is the-review-record",
+          "rendered": "A duplicate rate that ends up in a post-market surveillance file has to carry who stood behind it. The reviewer enters a name and organisation, and both stay in the browser. [evt_01M2HRKW0GVTWXDZCFNJJ864FF]",
+          "tier": "T0",
+          "determinism": "derived",
+          "scope_result": "in_scope",
+          "citations": [
+            "evt_01M2HRKW0GVTWXDZCFNJJ864FF"
+          ],
+          "receipt": "rcpt_01M2HRM2NV5RE8DPXM01EVN95C",
+          "decided_by": "rule:note-lookup",
+          "tiers_tried": [
+            "T0"
+          ],
+          "latency_ms": 354.05,
+          "cost_credits": 0.0001,
+          "price_credits": 5e-05
+        },
+        {
+          "topic": "dispositioning-the-method",
+          "question": "what is dispositioning-the-method",
+          "rendered": "The reviewer dispositions three method statements, the deduplication method, the lag exclusions, and the spike threshold, as accepted, accepted with note, or rejected. The exported file header rows record the reviewer name, the dispositions, the method version, the source snapshot, and the timestamp, so the file arrives already carrying its own review record. [evt_01M2HRKW0GVTWXDZCFNJJ864FG]",
+          "tier": "T0",
+          "determinism": "derived",
+          "scope_result": "in_scope",
+          "citations": [
+            "evt_01M2HRKW0GVTWXDZCFNJJ864FG"
+          ],
+          "receipt": "rcpt_01M2HRM34490XCAEFD966HFAZV",
+          "decided_by": "rule:note-lookup",
+          "tiers_tried": [
+            "T0"
+          ],
+          "latency_ms": 359.19,
+          "cost_credits": 0.0001,
+          "price_credits": 5e-05
+        }
+      ]
+    },
+    {
+      "title": "The limits, stated on the output",
+      "blurb": "Carried by the answer itself, not by a footnote under it.",
+      "answers": [
+        {
+          "topic": "what-the-numbers-may-not-say",
+          "question": "what is what-the-numbers-may-not-say",
+          "rendered": "The method never produces a rate, never establishes causation, and never ranks devices or manufacturers. Every count it produces is an estimate from a published method with a published error rate, and the comparison surface never uses the words better or worse. [evt_01M2HRKW0GVTWXDZCFNJJ864FH]",
+          "tier": "T0",
+          "determinism": "derived",
+          "scope_result": "in_scope",
+          "citations": [
+            "evt_01M2HRKW0GVTWXDZCFNJJ864FH"
+          ],
+          "receipt": "rcpt_01M2HRM3JTFRZBHHQAPTB23GR1",
+          "decided_by": "rule:note-lookup",
+          "tiers_tried": [
+            "T0"
+          ],
+          "latency_ms": 382.99,
+          "cost_credits": 0.0001,
+          "price_credits": 5e-05
+        },
+        {
+          "topic": "what-is-not-built-yet",
+          "question": "what is what-is-not-built-yet",
+          "rendered": "The hand-labelled validation set does not exist, so precision and recall are targets rather than results. Revision behaviour needs several weekly snapshots before it reports anything. Coverage starts at a small allowlist of product codes rather than the whole database, and spike annotation matches recalls only, so a spike with no recall match is shown as unannotated rather than explained. [evt_01M2HRKW0GVTWXDZCFNJJ864FJ]",
+          "tier": "T0",
+          "determinism": "derived",
+          "scope_result": "in_scope",
+          "citations": [
+            "evt_01M2HRKW0GVTWXDZCFNJJ864FJ"
+          ],
+          "receipt": "rcpt_01M2HRM420WJ3XV4R0R44WSENB",
+          "decided_by": "rule:note-lookup",
+          "tiers_tried": [
+            "T0"
+          ],
+          "latency_ms": 393.47,
+          "cost_credits": 0.0001,
+          "price_credits": 5e-05
+        }
+      ]
+    },
+    {
+      "title": "About the node itself",
+      "blurb": "One claim the node holds about how it was built.",
+      "answers": [
+        {
+          "topic": "the-maude-distinct-event-method",
+          "question": "what is the-maude-distinct-event-method",
+          "rendered": "The source document held by this node. Each heading below carries exactly one paragraph, because the gate keys `note.v1` on topic and timestamp: a second paragraph under the same heading arrives as a contradiction of the first and is quarantined rather than stored. One heading, one claim, one page. A citation on any answer resolves to `maude-distinct-events.md#<heading>`, a place in this file, rather than to an opaque event id. [evt_01M2HRKW0DFGS89YYKSKEVRND2]",
+          "tier": "T0",
+          "determinism": "derived",
+          "scope_result": "in_scope",
+          "citations": [
+            "evt_01M2HRKW0DFGS89YYKSKEVRND2"
+          ],
+          "receipt": "rcpt_01M2HRM4HQNEF8BRY7NTCV139Q",
+          "decided_by": "rule:note-lookup",
+          "tiers_tried": [
+            "T0"
+          ],
+          "latency_ms": 407.24,
+          "cost_credits": 0.0001,
+          "price_credits": 5e-05
+        }
+      ]
+    }
+  ],
+  "answers": [
+    {
+      "topic": "the-question",
+      "question": "what is the-question",
+      "rendered": "An RA/QA lead asks a question that sounds like it has a lookup answer: how many adverse events were reported for this product code in the last twelve months. The FDA public MAUDE search returns a number in a second, and that number is the count of reports on file rather than the count of events. [evt_01M2HRKW0DFGS89YYKSKEVRND3]",
+      "tier": "T0",
+      "determinism": "derived",
+      "scope_result": "in_scope",
+      "citations": [
+        "evt_01M2HRKW0DFGS89YYKSKEVRND3"
+      ],
+      "receipt": "rcpt_01M2HRKW52BAJB82GTHEYH5F2E",
+      "decided_by": "rule:note-lookup",
+      "tiers_tried": [
+        "T0"
+      ],
+      "latency_ms": 98.86,
+      "cost_credits": 0.0001,
+      "price_credits": 5e-05
+    },
+    {
+      "topic": "why-reports-outnumber-events",
+      "question": "what is why-reports-outnumber-events",
+      "rendered": "A single event can generate a manufacturer report, a user facility report, and a voluntary report, filed separately by three parties who never spoke to each other. Follow-up submissions to an earlier report are separate records again. Identifiers are dirty enough that one device appears under several spellings of its brand name, so naive grouping does not collapse them. [evt_01M2HRKW0DFGS89YYKSKEVRND4]",
+      "tier": "T0",
+      "determinism": "derived",
+      "scope_result": "in_scope",
+      "citations": [
+        "evt_01M2HRKW0DFGS89YYKSKEVRND4"
+      ],
+      "receipt": "rcpt_01M2HRKWCSGTK2HX4FJ4D4BZZG",
+      "decided_by": "rule:note-lookup",
+      "tiers_tried": [
+        "T0"
+      ],
+      "latency_ms": 183.89,
+      "cost_credits": 0.0001,
+      "price_credits": 5e-05
+    },
+    {
+      "topic": "why-the-error-matters",
+      "question": "what is why-the-error-matters",
+      "rendered": "Count reports and call them events and every downstream number moves: the trend, the quarter over quarter comparison, the figure that goes into a complaint trend report or a CAPA input. The error is systematic rather than random, so it does not average out across a larger window. [evt_01M2HRKW0DFGS89YYKSKEVRND5]",
+      "tier": "T0",
+      "determinism": "derived",
+      "scope_result": "in_scope",
+      "citations": [
+        "evt_01M2HRKW0DFGS89YYKSKEVRND5"
+      ],
+      "receipt": "rcpt_01M2HRKWMZEZ0KBGECGXM9TEN2",
+      "decided_by": "rule:note-lookup",
+      "tiers_tried": [
+        "T0"
+      ],
+      "latency_ms": 200.91,
+      "cost_credits": 0.0001,
+      "price_credits": 5e-05
+    },
+    {
+      "topic": "why-the-corrected-number-is-not-published",
+      "question": "what is why-the-corrected-number-is-not-published",
+      "rendered": "Correcting the count requires a method, a method requires a validation set, and a validation set requires somebody to hand-label pairs of reports as the same event or not. That work is unglamorous, it has to be redone whenever the method changes, and there is no published place to put the result, so the raw number stays in circulation. [evt_01M2HRKW0DFGS89YYKSKEVRND6]",
+      "tier": "T0",
+      "determinism": "derived",
+      "scope_result": "in_scope",
+      "citations": [
+        "evt_01M2HRKW0DFGS89YYKSKEVRND6"
+      ],
+      "receipt": "rcpt_01M2HRKWYMZZ3ZFX4BQY2BRD61",
+      "decided_by": "rule:note-lookup",
+      "tiers_tried": [
+        "T0"
+      ],
+      "latency_ms": 226.7,
+      "cost_credits": 0.0001,
+      "price_credits": 5e-05
+    },
+    {
+      "topic": "no-denominator",
+      "question": "what is no-denominator",
+      "rendered": "MAUDE contains counts, not rates. Nothing about how many devices are in use is in the file, so no count in it can be turned into a rate, and differences between product codes reflect market size, reporting practices, and reporting requirements as much as anything about a device. [evt_01M2HRKW0DFGS89YYKSKEVRND7]",
+      "tier": "T0",
+      "determinism": "derived",
+      "scope_result": "in_scope",
+      "citations": [
+        "evt_01M2HRKW0DFGS89YYKSKEVRND7"
+      ],
+      "receipt": "rcpt_01M2HRKX8Z2Z5YCYB13G3EQ5V8",
+      "decided_by": "rule:note-lookup",
+      "tiers_tried": [
+        "T0"
+      ],
+      "latency_ms": 256.76,
+      "cost_credits": 0.0001,
+      "price_credits": 5e-05
+    },
+    {
+      "topic": "a-report-is-not-a-finding",
+      "question": "what is a-report-is-not-a-finding",
+      "rendered": "An MDR is a report rather than a finding. The FDA does not verify reports, and a report does not establish that a device caused the event described in it. [evt_01M2HRKW0DFGS89YYKSKEVRND8]",
+      "tier": "T0",
+      "determinism": "derived",
+      "scope_result": "in_scope",
+      "citations": [
+        "evt_01M2HRKW0DFGS89YYKSKEVRND8"
+      ],
+      "receipt": "rcpt_01M2HRKXKFW95Y0B3EHNT0XEVK",
+      "decided_by": "rule:note-lookup",
+      "tiers_tried": [
+        "T0"
+      ],
+      "latency_ms": 228.26,
+      "cost_credits": 0.0001,
+      "price_credits": 5e-05
+    },
+    {
+      "topic": "the-programme-boundary",
+      "question": "what is the-programme-boundary",
+      "rendered": "The FDA has run summary reporting programmes under which certain events were reported in aggregate rather than as individual public MDRs. Where a product code is affected, counts are not comparable across that boundary, and the output says so rather than silently joining the series. [evt_01M2HRKW0DFGS89YYKSKEVRND9]",
+      "tier": "T0",
+      "determinism": "derived",
+      "scope_result": "in_scope",
+      "citations": [
+        "evt_01M2HRKW0DFGS89YYKSKEVRND9"
+      ],
+      "receipt": "rcpt_01M2HRKXXW16AVYVW8WDCP14Z6",
+      "decided_by": "rule:note-lookup",
+      "tiers_tried": [
+        "T0"
+      ],
+      "latency_ms": 279.11,
+      "cost_credits": 0.0001,
+      "price_credits": 5e-05
+    },
+    {
+      "topic": "the-method",
+      "question": "what is the-method",
+      "rendered": "Two passes, both deterministic, both versioned. The goal is an estimate of distinct real-world events rather than perfect record linkage, and the method states that limit in those words rather than leaving a reader to infer it. [evt_01M2HRKW0DFGS89YYKSKEVRNDA]",
+      "tier": "T0",
+      "determinism": "derived",
+      "scope_result": "in_scope",
+      "citations": [
+        "evt_01M2HRKW0DFGS89YYKSKEVRNDA"
+      ],
+      "receipt": "rcpt_01M2HRKY8NFHXXH0NPG1KP9E41",
+      "decided_by": "rule:note-lookup",
+      "tiers_tried": [
+        "T0"
+      ],
+      "latency_ms": 248.22,
+      "cost_credits": 0.0001,
+      "price_credits": 5e-05
+    },
+    {
+      "topic": "exact-linkage",
+      "question": "what is exact-linkage",
+      "rendered": "Pass one groups records that share an event key where one is present, and groups follow-up submissions to their initial submission through the shared report number root. [evt_01M2HRKW0DFGS89YYKSKEVRNDB]",
+      "tier": "T0",
+      "determinism": "derived",
+      "scope_result": "in_scope",
+      "citations": [
+        "evt_01M2HRKW0DFGS89YYKSKEVRNDB"
+      ],
+      "receipt": "rcpt_01M2HRKYKF6ACR11MKGN1FYWS3",
+      "decided_by": "rule:note-lookup",
+      "tiers_tried": [
+        "T0"
+      ],
+      "latency_ms": 263.57,
+      "cost_credits": 0.0001,
+      "price_credits": 5e-05
+    },
+    {
+      "topic": "fuzzy-linkage",
+      "question": "what is fuzzy-linkage",
+      "rendered": "Pass two works within a single product code. Two records are a candidate pair when the normalised manufacturer name matches, and the date of event falls within plus or minus 3 days, and the event type matches, and at least one of the normalised brand name, lot number, or model number matches. [evt_01M2HRKW0DFGS89YYKSKEVRNDC]",
+      "tier": "T0",
+      "determinism": "derived",
+      "scope_result": "in_scope",
+      "citations": [
+        "evt_01M2HRKW0DFGS89YYKSKEVRNDC"
+      ],
+      "receipt": "rcpt_01M2HRKYZBXZZEYXC4JNMJKZH7",
+      "decided_by": "rule:note-lookup",
+      "tiers_tried": [
+        "T0"
+      ],
+      "latency_ms": 279.72,
+      "cost_credits": 0.0001,
+      "price_credits": 5e-05
+    },
+    {
+      "topic": "confirming-a-pair",
+      "question": "what is confirming-a-pair",
+      "rendered": "A candidate pair is confirmed when the two records share an identical product problems set, or when their event descriptions reach a MinHash Jaccard similarity of 0.6 or above. Confirmed pairs resolve into clusters by union-find, and one cluster is one estimated event. [evt_01M2HRKW0DFGS89YYKSKEVRNDD]",
+      "tier": "T0",
+      "determinism": "derived",
+      "scope_result": "in_scope",
+      "citations": [
+        "evt_01M2HRKW0DFGS89YYKSKEVRNDD"
+      ],
+      "receipt": "rcpt_01M2HRKZANR2259EAVDWP9KNGN",
+      "decided_by": "rule:note-lookup",
+      "tiers_tried": [
+        "T0"
+      ],
+      "latency_ms": 313.34,
+      "cost_credits": 0.0001,
+      "price_credits": 5e-05
+    },
+    {
+      "topic": "duplicate-rate",
+      "question": "what is duplicate-rate",
+      "rendered": "Raw reports is the count of records carrying the product code, dedup events is the count of clusters remaining after both passes, and duplicate rate is one minus dedup events divided by raw reports. It is reported as an estimate with the method version attached. [evt_01M2HRKW0DFGS89YYKSKEVRNDE]",
+      "tier": "T0",
+      "determinism": "derived",
+      "scope_result": "in_scope",
+      "citations": [
+        "evt_01M2HRKW0DFGS89YYKSKEVRNDE"
+      ],
+      "receipt": "rcpt_01M2HRKZR5D6FWVZWYZZ092M10",
+      "decided_by": "rule:note-lookup",
+      "tiers_tried": [
+        "T0"
+      ],
+      "latency_ms": 340.48,
+      "cost_credits": 0.0001,
+      "price_credits": 5e-05
+    },
+    {
+      "topic": "versioning-the-method",
+      "question": "what is versioning-the-method",
+      "rendered": "Every figure published from this method carries its method version. The method is never changed quietly: a change bumps the version, the prior version outputs are kept, and the change is written into the amendments log. [evt_01M2HRKW0DFGS89YYKSKEVRNDF]",
+      "tier": "T0",
+      "determinism": "derived",
+      "scope_result": "in_scope",
+      "citations": [
+        "evt_01M2HRKW0DFGS89YYKSKEVRNDF"
+      ],
+      "receipt": "rcpt_01M2HRM05Q4425N79F3M5VTMDQ",
+      "decided_by": "rule:note-lookup",
+      "tiers_tried": [
+        "T0"
+      ],
+      "latency_ms": 321.68,
+      "cost_credits": 0.0001,
+      "price_credits": 5e-05
+    },
+    {
+      "topic": "the-validation-set",
+      "question": "what is the-validation-set",
+      "rendered": "A sample of candidate pairs per product code is labelled by hand as duplicate, not duplicate, or unsure, and where more than one person labels, inter-annotator agreement is measured and published with the result. [evt_01M2HRKW0DFGS89YYKSKEVRNDG]",
+      "tier": "T0",
+      "determinism": "derived",
+      "scope_result": "in_scope",
+      "citations": [
+        "evt_01M2HRKW0DFGS89YYKSKEVRNDG"
+      ],
+      "receipt": "rcpt_01M2HRM0JZW8GZ9BX2J845N3FB",
+      "decided_by": "rule:note-lookup",
+      "tiers_tried": [
+        "T0"
+      ],
+      "latency_ms": 314.26,
+      "cost_credits": 0.0001,
+      "price_credits": 5e-05
+    },
+    {
+      "topic": "holding-the-gold-out",
+      "question": "what is holding-the-gold-out",
+      "rendered": "The labelled set is held out. The clustering code never reads it, and the build fails if it does. [evt_01M2HRKW0DFGS89YYKSKEVRNDH]",
+      "tier": "T0",
+      "determinism": "derived",
+      "scope_result": "in_scope",
+      "citations": [
+        "evt_01M2HRKW0DFGS89YYKSKEVRNDH"
+      ],
+      "receipt": "rcpt_01M2HRM0ZBNKWXP0N2RM2QA7P8",
+      "decided_by": "rule:note-lookup",
+      "tiers_tried": [
+        "T0"
+      ],
+      "latency_ms": 308.73,
+      "cost_credits": 0.0001,
+      "price_credits": 5e-05
+    },
+    {
+      "topic": "the-acceptance-floor",
+      "question": "what is the-acceptance-floor",
+      "rendered": "Precision against the labelled set targets 0.85 or above and recall targets 0.70 or above. Both are design targets rather than measured results, because the labelled set does not exist yet. [evt_01M2HRKW0DFGS89YYKSKEVRNDJ]",
+      "tier": "T0",
+      "determinism": "derived",
+      "scope_result": "in_scope",
+      "citations": [
+        "evt_01M2HRKW0DFGS89YYKSKEVRNDJ"
+      ],
+      "receipt": "rcpt_01M2HRM1C26CAZAAKRW42C0CDS",
+      "decided_by": "rule:note-lookup",
+      "tiers_tried": [
+        "T0"
+      ],
+      "latency_ms": 315.75,
+      "cost_credits": 0.0001,
+      "price_credits": 5e-05
+    },
+    {
+      "topic": "enforcing-the-floor",
+      "question": "what is enforcing-the-floor",
+      "rendered": "The publishing pipeline refuses to deploy a scorecard whose precision sits below the published floor. That is a build step rather than a promise. [evt_01M2HRKW0DFGS89YYKSKEVRNDK]",
+      "tier": "T0",
+      "determinism": "derived",
+      "scope_result": "in_scope",
+      "citations": [
+        "evt_01M2HRKW0DFGS89YYKSKEVRNDK"
+      ],
+      "receipt": "rcpt_01M2HRM1SEFZHVMDQM9M5C3RCN",
+      "decided_by": "rule:note-lookup",
+      "tiers_tried": [
+        "T0"
+      ],
+      "latency_ms": 341.85,
+      "cost_credits": 0.0001,
+      "price_credits": 5e-05
+    },
+    {
+      "topic": "the-fixture-rule",
+      "question": "what is the-fixture-rule",
+      "rendered": "Until a real labelled set exists the pipeline runs against a fixture set marked synthetic in its own header, and the scorecard generator refuses to publish a card built from it, writing the card to a fixtures directory instead. The pipeline can be tested end to end without one unvalidated number reaching a published page. [evt_01M2HRKW0GVTWXDZCFNJJ864FE]",
+      "tier": "T0",
+      "determinism": "derived",
+      "scope_result": "in_scope",
+      "citations": [
+        "evt_01M2HRKW0GVTWXDZCFNJJ864FE"
+      ],
+      "receipt": "rcpt_01M2HRM27JM3PMJ8XQ8VF09SGG",
+      "decided_by": "rule:note-lookup",
+      "tiers_tried": [
+        "T0"
+      ],
+      "latency_ms": 357.19,
+      "cost_credits": 0.0001,
+      "price_credits": 5e-05
+    },
+    {
+      "topic": "the-review-record",
+      "question": "what is the-review-record",
+      "rendered": "A duplicate rate that ends up in a post-market surveillance file has to carry who stood behind it. The reviewer enters a name and organisation, and both stay in the browser. [evt_01M2HRKW0GVTWXDZCFNJJ864FF]",
+      "tier": "T0",
+      "determinism": "derived",
+      "scope_result": "in_scope",
+      "citations": [
+        "evt_01M2HRKW0GVTWXDZCFNJJ864FF"
+      ],
+      "receipt": "rcpt_01M2HRM2NV5RE8DPXM01EVN95C",
+      "decided_by": "rule:note-lookup",
+      "tiers_tried": [
+        "T0"
+      ],
+      "latency_ms": 354.05,
+      "cost_credits": 0.0001,
+      "price_credits": 5e-05
+    },
+    {
+      "topic": "dispositioning-the-method",
+      "question": "what is dispositioning-the-method",
+      "rendered": "The reviewer dispositions three method statements, the deduplication method, the lag exclusions, and the spike threshold, as accepted, accepted with note, or rejected. The exported file header rows record the reviewer name, the dispositions, the method version, the source snapshot, and the timestamp, so the file arrives already carrying its own review record. [evt_01M2HRKW0GVTWXDZCFNJJ864FG]",
+      "tier": "T0",
+      "determinism": "derived",
+      "scope_result": "in_scope",
+      "citations": [
+        "evt_01M2HRKW0GVTWXDZCFNJJ864FG"
+      ],
+      "receipt": "rcpt_01M2HRM34490XCAEFD966HFAZV",
+      "decided_by": "rule:note-lookup",
+      "tiers_tried": [
+        "T0"
+      ],
+      "latency_ms": 359.19,
+      "cost_credits": 0.0001,
+      "price_credits": 5e-05
+    },
+    {
+      "topic": "what-the-numbers-may-not-say",
+      "question": "what is what-the-numbers-may-not-say",
+      "rendered": "The method never produces a rate, never establishes causation, and never ranks devices or manufacturers. Every count it produces is an estimate from a published method with a published error rate, and the comparison surface never uses the words better or worse. [evt_01M2HRKW0GVTWXDZCFNJJ864FH]",
+      "tier": "T0",
+      "determinism": "derived",
+      "scope_result": "in_scope",
+      "citations": [
+        "evt_01M2HRKW0GVTWXDZCFNJJ864FH"
+      ],
+      "receipt": "rcpt_01M2HRM3JTFRZBHHQAPTB23GR1",
+      "decided_by": "rule:note-lookup",
+      "tiers_tried": [
+        "T0"
+      ],
+      "latency_ms": 382.99,
+      "cost_credits": 0.0001,
+      "price_credits": 5e-05
+    },
+    {
+      "topic": "what-is-not-built-yet",
+      "question": "what is what-is-not-built-yet",
+      "rendered": "The hand-labelled validation set does not exist, so precision and recall are targets rather than results. Revision behaviour needs several weekly snapshots before it reports anything. Coverage starts at a small allowlist of product codes rather than the whole database, and spike annotation matches recalls only, so a spike with no recall match is shown as unannotated rather than explained. [evt_01M2HRKW0GVTWXDZCFNJJ864FJ]",
+      "tier": "T0",
+      "determinism": "derived",
+      "scope_result": "in_scope",
+      "citations": [
+        "evt_01M2HRKW0GVTWXDZCFNJJ864FJ"
+      ],
+      "receipt": "rcpt_01M2HRM420WJ3XV4R0R44WSENB",
+      "decided_by": "rule:note-lookup",
+      "tiers_tried": [
+        "T0"
+      ],
+      "latency_ms": 393.47,
+      "cost_credits": 0.0001,
+      "price_credits": 5e-05
+    },
+    {
+      "topic": "the-maude-distinct-event-method",
+      "question": "what is the-maude-distinct-event-method",
+      "rendered": "The source document held by this node. Each heading below carries exactly one paragraph, because the gate keys `note.v1` on topic and timestamp: a second paragraph under the same heading arrives as a contradiction of the first and is quarantined rather than stored. One heading, one claim, one page. A citation on any answer resolves to `maude-distinct-events.md#<heading>`, a place in this file, rather than to an opaque event id. [evt_01M2HRKW0DFGS89YYKSKEVRND2]",
+      "tier": "T0",
+      "determinism": "derived",
+      "scope_result": "in_scope",
+      "citations": [
+        "evt_01M2HRKW0DFGS89YYKSKEVRND2"
+      ],
+      "receipt": "rcpt_01M2HRM4HQNEF8BRY7NTCV139Q",
+      "decided_by": "rule:note-lookup",
+      "tiers_tried": [
+        "T0"
+      ],
+      "latency_ms": 407.24,
+      "cost_credits": 0.0001,
+      "price_credits": 5e-05
+    }
+  ],
+  "events": {
+    "evt_01M2HRKW0DFGS89YYKSKEVRND3": {
+      "id": "evt_01M2HRKW0DFGS89YYKSKEVRND3",
+      "schema_ref": "note.v1",
+      "ts": "2026-09-15T05:28:41.227851+00:00",
+      "source": "maude-distinct-events.md#the-question",
+      "channel": "push",
+      "topic": "the-question",
+      "body": "An RA/QA lead asks a question that sounds like it has a lookup answer: how many adverse events were reported for this product code in the last twelve months. The FDA public MAUDE search returns a number in a second, and that number is the count of reports on file rather than the count of events."
+    },
+    "evt_01M2HRKW0DFGS89YYKSKEVRND4": {
+      "id": "evt_01M2HRKW0DFGS89YYKSKEVRND4",
+      "schema_ref": "note.v1",
+      "ts": "2026-09-15T05:28:41.227851+00:00",
+      "source": "maude-distinct-events.md#why-reports-outnumber-events",
+      "channel": "push",
+      "topic": "why-reports-outnumber-events",
+      "body": "A single event can generate a manufacturer report, a user facility report, and a voluntary report, filed separately by three parties who never spoke to each other. Follow-up submissions to an earlier report are separate records again. Identifiers are dirty enough that one device appears under several spellings of its brand name, so naive grouping does not collapse them."
+    },
+    "evt_01M2HRKW0DFGS89YYKSKEVRND5": {
+      "id": "evt_01M2HRKW0DFGS89YYKSKEVRND5",
+      "schema_ref": "note.v1",
+      "ts": "2026-09-15T05:28:41.227851+00:00",
+      "source": "maude-distinct-events.md#why-the-error-matters",
+      "channel": "push",
+      "topic": "why-the-error-matters",
+      "body": "Count reports and call them events and every downstream number moves: the trend, the quarter over quarter comparison, the figure that goes into a complaint trend report or a CAPA input. The error is systematic rather than random, so it does not average out across a larger window."
+    },
+    "evt_01M2HRKW0DFGS89YYKSKEVRND6": {
+      "id": "evt_01M2HRKW0DFGS89YYKSKEVRND6",
+      "schema_ref": "note.v1",
+      "ts": "2026-09-15T05:28:41.227851+00:00",
+      "source": "maude-distinct-events.md#why-the-corrected-number-is-not-published",
+      "channel": "push",
+      "topic": "why-the-corrected-number-is-not-published",
+      "body": "Correcting the count requires a method, a method requires a validation set, and a validation set requires somebody to hand-label pairs of reports as the same event or not. That work is unglamorous, it has to be redone whenever the method changes, and there is no published place to put the result, so the raw number stays in circulation."
+    },
+    "evt_01M2HRKW0DFGS89YYKSKEVRND7": {
+      "id": "evt_01M2HRKW0DFGS89YYKSKEVRND7",
+      "schema_ref": "note.v1",
+      "ts": "2026-09-15T05:28:41.227851+00:00",
+      "source": "maude-distinct-events.md#no-denominator",
+      "channel": "push",
+      "topic": "no-denominator",
+      "body": "MAUDE contains counts, not rates. Nothing about how many devices are in use is in the file, so no count in it can be turned into a rate, and differences between product codes reflect market size, reporting practices, and reporting requirements as much as anything about a device."
+    },
+    "evt_01M2HRKW0DFGS89YYKSKEVRND8": {
+      "id": "evt_01M2HRKW0DFGS89YYKSKEVRND8",
+      "schema_ref": "note.v1",
+      "ts": "2026-09-15T05:28:41.227851+00:00",
+      "source": "maude-distinct-events.md#a-report-is-not-a-finding",
+      "channel": "push",
+      "topic": "a-report-is-not-a-finding",
+      "body": "An MDR is a report rather than a finding. The FDA does not verify reports, and a report does not establish that a device caused the event described in it."
+    },
+    "evt_01M2HRKW0DFGS89YYKSKEVRND9": {
+      "id": "evt_01M2HRKW0DFGS89YYKSKEVRND9",
+      "schema_ref": "note.v1",
+      "ts": "2026-09-15T05:28:41.227851+00:00",
+      "source": "maude-distinct-events.md#the-programme-boundary",
+      "channel": "push",
+      "topic": "the-programme-boundary",
+      "body": "The FDA has run summary reporting programmes under which certain events were reported in aggregate rather than as individual public MDRs. Where a product code is affected, counts are not comparable across that boundary, and the output says so rather than silently joining the series."
+    },
+    "evt_01M2HRKW0DFGS89YYKSKEVRNDA": {
+      "id": "evt_01M2HRKW0DFGS89YYKSKEVRNDA",
+      "schema_ref": "note.v1",
+      "ts": "2026-09-15T05:28:41.227851+00:00",
+      "source": "maude-distinct-events.md#the-method",
+      "channel": "push",
+      "topic": "the-method",
+      "body": "Two passes, both deterministic, both versioned. The goal is an estimate of distinct real-world events rather than perfect record linkage, and the method states that limit in those words rather than leaving a reader to infer it."
+    },
+    "evt_01M2HRKW0DFGS89YYKSKEVRNDB": {
+      "id": "evt_01M2HRKW0DFGS89YYKSKEVRNDB",
+      "schema_ref": "note.v1",
+      "ts": "2026-09-15T05:28:41.227851+00:00",
+      "source": "maude-distinct-events.md#exact-linkage",
+      "channel": "push",
+      "topic": "exact-linkage",
+      "body": "Pass one groups records that share an event key where one is present, and groups follow-up submissions to their initial submission through the shared report number root."
+    },
+    "evt_01M2HRKW0DFGS89YYKSKEVRNDC": {
+      "id": "evt_01M2HRKW0DFGS89YYKSKEVRNDC",
+      "schema_ref": "note.v1",
+      "ts": "2026-09-15T05:28:41.227851+00:00",
+      "source": "maude-distinct-events.md#fuzzy-linkage",
+      "channel": "push",
+      "topic": "fuzzy-linkage",
+      "body": "Pass two works within a single product code. Two records are a candidate pair when the normalised manufacturer name matches, and the date of event falls within plus or minus 3 days, and the event type matches, and at least one of the normalised brand name, lot number, or model number matches."
+    },
+    "evt_01M2HRKW0DFGS89YYKSKEVRNDD": {
+      "id": "evt_01M2HRKW0DFGS89YYKSKEVRNDD",
+      "schema_ref": "note.v1",
+      "ts": "2026-09-15T05:28:41.227851+00:00",
+      "source": "maude-distinct-events.md#confirming-a-pair",
+      "channel": "push",
+      "topic": "confirming-a-pair",
+      "body": "A candidate pair is confirmed when the two records share an identical product problems set, or when their event descriptions reach a MinHash Jaccard similarity of 0.6 or above. Confirmed pairs resolve into clusters by union-find, and one cluster is one estimated event."
+    },
+    "evt_01M2HRKW0DFGS89YYKSKEVRNDE": {
+      "id": "evt_01M2HRKW0DFGS89YYKSKEVRNDE",
+      "schema_ref": "note.v1",
+      "ts": "2026-09-15T05:28:41.227851+00:00",
+      "source": "maude-distinct-events.md#duplicate-rate",
+      "channel": "push",
+      "topic": "duplicate-rate",
+      "body": "Raw reports is the count of records carrying the product code, dedup events is the count of clusters remaining after both passes, and duplicate rate is one minus dedup events divided by raw reports. It is reported as an estimate with the method version attached."
+    },
+    "evt_01M2HRKW0DFGS89YYKSKEVRNDF": {
+      "id": "evt_01M2HRKW0DFGS89YYKSKEVRNDF",
+      "schema_ref": "note.v1",
+      "ts": "2026-09-15T05:28:41.227851+00:00",
+      "source": "maude-distinct-events.md#versioning-the-method",
+      "channel": "push",
+      "topic": "versioning-the-method",
+      "body": "Every figure published from this method carries its method version. The method is never changed quietly: a change bumps the version, the prior version outputs are kept, and the change is written into the amendments log."
+    },
+    "evt_01M2HRKW0DFGS89YYKSKEVRNDG": {
+      "id": "evt_01M2HRKW0DFGS89YYKSKEVRNDG",
+      "schema_ref": "note.v1",
+      "ts": "2026-09-15T05:28:41.227851+00:00",
+      "source": "maude-distinct-events.md#the-validation-set",
+      "channel": "push",
+      "topic": "the-validation-set",
+      "body": "A sample of candidate pairs per product code is labelled by hand as duplicate, not duplicate, or unsure, and where more than one person labels, inter-annotator agreement is measured and published with the result."
+    },
+    "evt_01M2HRKW0DFGS89YYKSKEVRNDH": {
+      "id": "evt_01M2HRKW0DFGS89YYKSKEVRNDH",
+      "schema_ref": "note.v1",
+      "ts": "2026-09-15T05:28:41.227851+00:00",
+      "source": "maude-distinct-events.md#holding-the-gold-out",
+      "channel": "push",
+      "topic": "holding-the-gold-out",
+      "body": "The labelled set is held out. The clustering code never reads it, and the build fails if it does."
+    },
+    "evt_01M2HRKW0DFGS89YYKSKEVRNDJ": {
+      "id": "evt_01M2HRKW0DFGS89YYKSKEVRNDJ",
+      "schema_ref": "note.v1",
+      "ts": "2026-09-15T05:28:41.227851+00:00",
+      "source": "maude-distinct-events.md#the-acceptance-floor",
+      "channel": "push",
+      "topic": "the-acceptance-floor",
+      "body": "Precision against the labelled set targets 0.85 or above and recall targets 0.70 or above. Both are design targets rather than measured results, because the labelled set does not exist yet."
+    },
+    "evt_01M2HRKW0DFGS89YYKSKEVRNDK": {
+      "id": "evt_01M2HRKW0DFGS89YYKSKEVRNDK",
+      "schema_ref": "note.v1",
+      "ts": "2026-09-15T05:28:41.227851+00:00",
+      "source": "maude-distinct-events.md#enforcing-the-floor",
+      "channel": "push",
+      "topic": "enforcing-the-floor",
+      "body": "The publishing pipeline refuses to deploy a scorecard whose precision sits below the published floor. That is a build step rather than a promise."
+    },
+    "evt_01M2HRKW0GVTWXDZCFNJJ864FE": {
+      "id": "evt_01M2HRKW0GVTWXDZCFNJJ864FE",
+      "schema_ref": "note.v1",
+      "ts": "2026-09-15T05:28:41.227851+00:00",
+      "source": "maude-distinct-events.md#the-fixture-rule",
+      "channel": "push",
+      "topic": "the-fixture-rule",
+      "body": "Until a real labelled set exists the pipeline runs against a fixture set marked synthetic in its own header, and the scorecard generator refuses to publish a card built from it, writing the card to a fixtures directory instead. The pipeline can be tested end to end without one unvalidated number reaching a published page."
+    },
+    "evt_01M2HRKW0GVTWXDZCFNJJ864FF": {
+      "id": "evt_01M2HRKW0GVTWXDZCFNJJ864FF",
+      "schema_ref": "note.v1",
+      "ts": "2026-09-15T05:28:41.227851+00:00",
+      "source": "maude-distinct-events.md#the-review-record",
+      "channel": "push",
+      "topic": "the-review-record",
+      "body": "A duplicate rate that ends up in a post-market surveillance file has to carry who stood behind it. The reviewer enters a name and organisation, and both stay in the browser."
+    },
+    "evt_01M2HRKW0GVTWXDZCFNJJ864FG": {
+      "id": "evt_01M2HRKW0GVTWXDZCFNJJ864FG",
+      "schema_ref": "note.v1",
+      "ts": "2026-09-15T05:28:41.227851+00:00",
+      "source": "maude-distinct-events.md#dispositioning-the-method",
+      "channel": "push",
+      "topic": "dispositioning-the-method",
+      "body": "The reviewer dispositions three method statements, the deduplication method, the lag exclusions, and the spike threshold, as accepted, accepted with note, or rejected. The exported file header rows record the reviewer name, the dispositions, the method version, the source snapshot, and the timestamp, so the file arrives already carrying its own review record."
+    },
+    "evt_01M2HRKW0GVTWXDZCFNJJ864FH": {
+      "id": "evt_01M2HRKW0GVTWXDZCFNJJ864FH",
+      "schema_ref": "note.v1",
+      "ts": "2026-09-15T05:28:41.227851+00:00",
+      "source": "maude-distinct-events.md#what-the-numbers-may-not-say",
+      "channel": "push",
+      "topic": "what-the-numbers-may-not-say",
+      "body": "The method never produces a rate, never establishes causation, and never ranks devices or manufacturers. Every count it produces is an estimate from a published method with a published error rate, and the comparison surface never uses the words better or worse."
+    },
+    "evt_01M2HRKW0GVTWXDZCFNJJ864FJ": {
+      "id": "evt_01M2HRKW0GVTWXDZCFNJJ864FJ",
+      "schema_ref": "note.v1",
+      "ts": "2026-09-15T05:28:41.227851+00:00",
+      "source": "maude-distinct-events.md#what-is-not-built-yet",
+      "channel": "push",
+      "topic": "what-is-not-built-yet",
+      "body": "The hand-labelled validation set does not exist, so precision and recall are targets rather than results. Revision behaviour needs several weekly snapshots before it reports anything. Coverage starts at a small allowlist of product codes rather than the whole database, and spike annotation matches recalls only, so a spike with no recall match is shown as unannotated rather than explained."
+    },
+    "evt_01M2HRKW0DFGS89YYKSKEVRND2": {
+      "id": "evt_01M2HRKW0DFGS89YYKSKEVRND2",
+      "schema_ref": "note.v1",
+      "ts": "2026-09-15T05:28:41.227851+00:00",
+      "source": "maude-distinct-events.md#the-maude-distinct-event-method",
+      "channel": "push",
+      "topic": "the-maude-distinct-event-method",
+      "body": "The source document held by this node. Each heading below carries exactly one paragraph, because the gate keys `note.v1` on topic and timestamp: a second paragraph under the same heading arrives as a contradiction of the first and is quarantined rather than stored. One heading, one claim, one page. A citation on any answer resolves to `maude-distinct-events.md#<heading>`, a place in this file, rather than to an opaque event id."
+    }
+  },
+  "records": [
+    {
+      "id": "rcpt_01M2HRKW52BAJB82GTHEYH5F2E",
+      "kind": "receipt",
+      "seq": 0,
+      "signed": "{\"caller\":\"site-export\",\"citations\":[\"evt_01M2HRKW0DFGS89YYKSKEVRND3\"],\"cost_credits\":0.0001,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\"],\"id\":\"rcpt_01M2HRKW52BAJB82GTHEYH5F2E\",\"model_version\":\"rule:note-lookup\",\"node\":\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\",\"prev\":\"sha256:adae77f75f0c89afb5d29637ec8444187007bef18f4a84b48e33fe320dc054d2\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:0725f73e5801744cb99b6f598d9169389ce798217f4ed79aeb08ecf9c918b81f\",\"response_hash\":\"sha256:43d71b8e9c8fdeb9d8266c4fd17b976a849ce6d432ed306e3ff51ba3897c2d22\",\"scope_result\":\"in_scope\",\"settle_key\":\"sha256:a9c3ce62e804c15d05f31fcecafb7fdb0c0dead98a19f3de3f993429a3c6f808\",\"tier_used\":\"T0\",\"ts\":\"2026-09-15T05:28:41.378725+00:00\",\"upstream\":[]}",
+      "sig": "3a2jvMgkutQ5CZH3Xeo9e2ALpSdAf6Kw6MzFdRQ5Lh5KhKMLoumEMMVmUGvWW7JaWzpgyByDkks9NhTP97u25SSb"
+    },
+    {
+      "id": "rcpt_01M2HRKWCSGTK2HX4FJ4D4BZZG",
+      "kind": "receipt",
+      "seq": 1,
+      "signed": "{\"caller\":\"site-export\",\"citations\":[\"evt_01M2HRKW0DFGS89YYKSKEVRND4\"],\"cost_credits\":0.0001,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\"],\"id\":\"rcpt_01M2HRKWCSGTK2HX4FJ4D4BZZG\",\"model_version\":\"rule:note-lookup\",\"node\":\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\",\"prev\":\"sha256:beb848d9271b59e04ea0f54fad1162761a3244c98ad3ead7b1a9f18026f3df50\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:c25d90760e9a144bfc6c45c01e671dbe768a935a868c89fae0f5077e72ad55d4\",\"response_hash\":\"sha256:52ae819d6a03609f2271022ea29aa313183e9340f8e86adbe551b896e910b1f0\",\"scope_result\":\"in_scope\",\"settle_key\":\"sha256:c82c8c9963a82c4816a9e01c6280960cd5941279575f0af9e91baef94bfd1bac\",\"tier_used\":\"T0\",\"ts\":\"2026-09-15T05:28:41.625803+00:00\",\"upstream\":[]}",
+      "sig": "2nhXokkF4DceTqeNjCMPWhzaP2cDAqnQCFgoiFuq2K63r2afqUSeQS9uHei8n9ssv994qQwLArHgoyVbNiLT9H6i"
+    },
+    {
+      "id": "rcpt_01M2HRKWMZEZ0KBGECGXM9TEN2",
+      "kind": "receipt",
+      "seq": 2,
+      "signed": "{\"caller\":\"site-export\",\"citations\":[\"evt_01M2HRKW0DFGS89YYKSKEVRND5\"],\"cost_credits\":0.0001,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\"],\"id\":\"rcpt_01M2HRKWMZEZ0KBGECGXM9TEN2\",\"model_version\":\"rule:note-lookup\",\"node\":\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\",\"prev\":\"sha256:bd36bb686415456533d5f7fdecd32deeb6c7b73e4cc28a0e2a469436c2a99457\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:fcbf6ab922d3d6a78967eb6837adfc3cf24322366df7936383e3118eeb24e448\",\"response_hash\":\"sha256:262fd1a41f8722aadc7e602aa221f70d5e961aac5ee9675acf526f5ebce2d166\",\"scope_result\":\"in_scope\",\"settle_key\":\"sha256:c74f632d0fb1c4510690b6aea5b496168ef52dc91312003f1f64a949cc1b6310\",\"tier_used\":\"T0\",\"ts\":\"2026-09-15T05:28:41.887440+00:00\",\"upstream\":[]}",
+      "sig": "3dwPiRJuCYrMzKxfJW5SPse4nFs6tWMdU2P6zj4swZeeAjzStvr9GVfjcNwYtCdEyHFSpY65PJYEDNnWCraDudWd"
+    },
+    {
+      "id": "rcpt_01M2HRKWYMZZ3ZFX4BQY2BRD61",
+      "kind": "receipt",
+      "seq": 3,
+      "signed": "{\"caller\":\"site-export\",\"citations\":[\"evt_01M2HRKW0DFGS89YYKSKEVRND6\"],\"cost_credits\":0.0001,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\"],\"id\":\"rcpt_01M2HRKWYMZZ3ZFX4BQY2BRD61\",\"model_version\":\"rule:note-lookup\",\"node\":\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\",\"prev\":\"sha256:0a13a5c8304ab529f5decfbc76868ffd0ada1e261548ba63f4ae2690dbb438d6\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:79cbc87349b928161f9fb8e96d8465609ca72acca958f1c85a163ef4de1437a1\",\"response_hash\":\"sha256:b8a183b561a2695736eda5640b25d8856cb5df5d9bcffb0ef20a1cca9b2128e8\",\"scope_result\":\"in_scope\",\"settle_key\":\"sha256:dbec3f1087757441c3cb152f386a5d9308f67f183683262f1badce21cf8307a1\",\"tier_used\":\"T0\",\"ts\":\"2026-09-15T05:28:42.196024+00:00\",\"upstream\":[]}",
+      "sig": "2TSGKhQFbuXeZtXpecBP6nXyJgkyGre8VyH3AsfiYNX7okqCjuxjnKaXMsVCFEs7om99rLJQHrEtbH9SbVhgCx5v"
+    },
+    {
+      "id": "rcpt_01M2HRKX8Z2Z5YCYB13G3EQ5V8",
+      "kind": "receipt",
+      "seq": 4,
+      "signed": "{\"caller\":\"site-export\",\"citations\":[\"evt_01M2HRKW0DFGS89YYKSKEVRND7\"],\"cost_credits\":0.0001,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\"],\"id\":\"rcpt_01M2HRKX8Z2Z5YCYB13G3EQ5V8\",\"model_version\":\"rule:note-lookup\",\"node\":\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\",\"prev\":\"sha256:642b6e227b2c70a6c1bfe4536211866ce218f10270300d9797674558df57273f\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:891da41eb06a38097a1ac79b6ef6d8cdaf5a42bc04f2e9350b16dd9228e4f0dc\",\"response_hash\":\"sha256:db1fea78450f46c0210033ce896f907798c29e06fd84d66ce4517d81f07ab2fd\",\"scope_result\":\"in_scope\",\"settle_key\":\"sha256:b4a412fca0791a1cc6137d2207f1295da2c3eaf81345b8a13eba7c76b6c96f1a\",\"tier_used\":\"T0\",\"ts\":\"2026-09-15T05:28:42.527834+00:00\",\"upstream\":[]}",
+      "sig": "2bvKF1zT3Gi3fuLxxukQiUpY8YZb6ee5wLoi12oqWNAKMDWAcz2qnqpfLPybiARtaHpragrD4RsAieyfTC9itf75"
+    },
+    {
+      "id": "rcpt_01M2HRKXKFW95Y0B3EHNT0XEVK",
+      "kind": "receipt",
+      "seq": 5,
+      "signed": "{\"caller\":\"site-export\",\"citations\":[\"evt_01M2HRKW0DFGS89YYKSKEVRND8\"],\"cost_credits\":0.0001,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\"],\"id\":\"rcpt_01M2HRKXKFW95Y0B3EHNT0XEVK\",\"model_version\":\"rule:note-lookup\",\"node\":\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\",\"prev\":\"sha256:52eb406b918e3b0fa9a30ff2df98b312d2604d8c4fabfe1cf59abb39425b005c\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:0f5221c02ee2dd8b8f135474ce4f0749749db08361410a169134cac25264f733\",\"response_hash\":\"sha256:b511b708effe60164aa695a60896889e2c81361bcc60b494f2dccf5fe1e058be\",\"scope_result\":\"in_scope\",\"settle_key\":\"sha256:c1a58ba7522f080409f55d9fbfae5f58eb30eab149db791364e669a5f2b14d06\",\"tier_used\":\"T0\",\"ts\":\"2026-09-15T05:28:42.863160+00:00\",\"upstream\":[]}",
+      "sig": "5mnvXsg5vkpU6tvNWvpmQCeB2cnWBcoRiAffCsE7khncQbBoPTYNDZvQR1A4sfVot75hUmUAXzgqmd8rPLxTapGZ"
+    },
+    {
+      "id": "rcpt_01M2HRKXXW16AVYVW8WDCP14Z6",
+      "kind": "receipt",
+      "seq": 6,
+      "signed": "{\"caller\":\"site-export\",\"citations\":[\"evt_01M2HRKW0DFGS89YYKSKEVRND9\"],\"cost_credits\":0.0001,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\"],\"id\":\"rcpt_01M2HRKXXW16AVYVW8WDCP14Z6\",\"model_version\":\"rule:note-lookup\",\"node\":\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\",\"prev\":\"sha256:6fddeaf802b5f21c184f2c3272ed470d2af4ebc58955d1bcdbed7b9d40b3d4fb\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:c98ff9bd60f309cd34e70058b40621faf5de28d3f580ffe186a79c4b0b39fad8\",\"response_hash\":\"sha256:5eca1602167f7f6ceee9e80bd05c3a385c37b6e0e644c66cc0fdae4b35647db0\",\"scope_result\":\"in_scope\",\"settle_key\":\"sha256:d08bdc0c1854b0f60dfe012699e2e860bd489477acc38514cf81e1baf24a26a0\",\"tier_used\":\"T0\",\"ts\":\"2026-09-15T05:28:43.196348+00:00\",\"upstream\":[]}",
+      "sig": "4JKPYC48vsPHSAz2YgXv13Xzgj33BuXSbKP2nTsktSR26LBDZ5kYY86FrqiqvhHUdyxHqsssfTyyjSiGbSFAxaKa"
+    },
+    {
+      "id": "rcpt_01M2HRKY8NFHXXH0NPG1KP9E41",
+      "kind": "receipt",
+      "seq": 7,
+      "signed": "{\"caller\":\"site-export\",\"citations\":[\"evt_01M2HRKW0DFGS89YYKSKEVRNDA\"],\"cost_credits\":0.0001,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\"],\"id\":\"rcpt_01M2HRKY8NFHXXH0NPG1KP9E41\",\"model_version\":\"rule:note-lookup\",\"node\":\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\",\"prev\":\"sha256:3c8b5e3972b5327b5b7f45f923b918c191bc0cd4bd717d275c3d050b126d7fc7\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:014a4f236aece2f171491eb3bf46dcf370f6d01bd1e1aa86d5a5521325a6a417\",\"response_hash\":\"sha256:84feae87b9c143b37d105d134c56a00219855b60f94d9ff58e9bc3c2a5268766\",\"scope_result\":\"in_scope\",\"settle_key\":\"sha256:49528fa9c5637c558aefb6532e8f4d820fb59802ce168d47f49bfce8a67184b0\",\"tier_used\":\"T0\",\"ts\":\"2026-09-15T05:28:43.541980+00:00\",\"upstream\":[]}",
+      "sig": "4wnkSDG981amf3tXWYjLSbaRpshpMcuAim7cYevqe6hVN9JKMdzaefeeN9ahzzCVvrvihuvnSwMPhXrzJu67BDu6"
+    },
+    {
+      "id": "rcpt_01M2HRKYKF6ACR11MKGN1FYWS3",
+      "kind": "receipt",
+      "seq": 8,
+      "signed": "{\"caller\":\"site-export\",\"citations\":[\"evt_01M2HRKW0DFGS89YYKSKEVRNDB\"],\"cost_credits\":0.0001,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\"],\"id\":\"rcpt_01M2HRKYKF6ACR11MKGN1FYWS3\",\"model_version\":\"rule:note-lookup\",\"node\":\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\",\"prev\":\"sha256:0fbf92d0cc67c601ea909f12064dc926c1c03f2a751e8f51ce4dbfc355a4526a\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:aed67cc33513a38d89b55a2ac29d11645141e3cd57d7c3120574d855f9e4b3f2\",\"response_hash\":\"sha256:44342ceba636323ad8b010c1b34586155375f19e93ddbdc721531cf54df6e0b4\",\"scope_result\":\"in_scope\",\"settle_key\":\"sha256:dc58d736672d3fa4d034286009f6fe98eab1276da527ee57c2ca80dbf92705c4\",\"tier_used\":\"T0\",\"ts\":\"2026-09-15T05:28:43.887282+00:00\",\"upstream\":[]}",
+      "sig": "2M3vmgdTzmy6toGD7swn4AFzXdaxPLBxNS7MbFzzxE5U1AYXnEhN9bNMNgYy5qreadSY6PYUiFN5ZMuQFuDMFZWD"
+    },
+    {
+      "id": "rcpt_01M2HRKYZBXZZEYXC4JNMJKZH7",
+      "kind": "receipt",
+      "seq": 9,
+      "signed": "{\"caller\":\"site-export\",\"citations\":[\"evt_01M2HRKW0DFGS89YYKSKEVRNDC\"],\"cost_credits\":0.0001,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\"],\"id\":\"rcpt_01M2HRKYZBXZZEYXC4JNMJKZH7\",\"model_version\":\"rule:note-lookup\",\"node\":\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\",\"prev\":\"sha256:41df8720dd8bc5732c17e85c5cb0850c38e5ad530039fcab6cfdb28878491a41\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:a12336ecf88ad1bd4d5c6d084b892d7b5f77587baf0e1811c36f2f61ad65742d\",\"response_hash\":\"sha256:5c0a7d3096eea1c4cd2df97ee4ce766763203022b9e00c8c993c84693fc67de0\",\"scope_result\":\"in_scope\",\"settle_key\":\"sha256:4312f4095a4ee1062a0ce653925f7f986417b03c4c5d665c02fb92f866366f1a\",\"tier_used\":\"T0\",\"ts\":\"2026-09-15T05:28:44.268593+00:00\",\"upstream\":[]}",
+      "sig": "4tTBwupwWWqZh4CzB4hnazWGxcWKu62EoFwBTwr94bq6Qc2tso2gwiZPKoxb1RtrURb1jbMjcBiRNmA1X5Z6KP4f"
+    },
+    {
+      "id": "rcpt_01M2HRKZANR2259EAVDWP9KNGN",
+      "kind": "receipt",
+      "seq": 10,
+      "signed": "{\"caller\":\"site-export\",\"citations\":[\"evt_01M2HRKW0DFGS89YYKSKEVRNDD\"],\"cost_credits\":0.0001,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\"],\"id\":\"rcpt_01M2HRKZANR2259EAVDWP9KNGN\",\"model_version\":\"rule:note-lookup\",\"node\":\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\",\"prev\":\"sha256:ca43760ebba9d47e671ccb184469cb39f0acef83055057de2db05fb4490d64fc\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:5ee274cbb0f9dc93ac3c0e807dcde2543674cb93e0e3f117b02802e75ac9e397\",\"response_hash\":\"sha256:2732235573e7917aa00410acf3dfea0d9a7f85e563c7386071953b9b6a5dc3bf\",\"scope_result\":\"in_scope\",\"settle_key\":\"sha256:98b5a4eb6c1cb70f35df95bb6dded2050ec0892629d4ae827c9019e5383f9faf\",\"tier_used\":\"T0\",\"ts\":\"2026-09-15T05:28:44.629457+00:00\",\"upstream\":[]}",
+      "sig": "47gVqUzqF5nktNvcFC6yFH2f5wWD9pXChjA1XmJeHoJwBPwwvy43KcTitkZXxLZqabC8yza5qDJ6jyUABhhr3G3T"
+    },
+    {
+      "id": "rcpt_01M2HRKZR5D6FWVZWYZZ092M10",
+      "kind": "receipt",
+      "seq": 11,
+      "signed": "{\"caller\":\"site-export\",\"citations\":[\"evt_01M2HRKW0DFGS89YYKSKEVRNDE\"],\"cost_credits\":0.0001,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\"],\"id\":\"rcpt_01M2HRKZR5D6FWVZWYZZ092M10\",\"model_version\":\"rule:note-lookup\",\"node\":\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\",\"prev\":\"sha256:82bec950be31c692701edeb97cbb46f594e8c0b5c42c259a1bd04c5f681dc3f5\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:c98738410a91244704214a449e6c09e7944f048292bc33399cf5221d71ee8275\",\"response_hash\":\"sha256:82848e35f30d390f04237820e5d3536e22e1fd62bf27760ce285b80a21db5720\",\"scope_result\":\"in_scope\",\"settle_key\":\"sha256:df68cf1d0feb18f28999add9e325546ae09fb02e6873eaf36bc8ba7cf68e185b\",\"tier_used\":\"T0\",\"ts\":\"2026-09-15T05:28:45.061124+00:00\",\"upstream\":[]}",
+      "sig": "5E4YL7B6Kw3m92JrFVPFV5GNnJeGGEmLpKZhGKsFtaEqEBjjhuu81JYszqctt1bkV7hpbeatcVhuMsqZoEAzizYa"
+    },
+    {
+      "id": "rcpt_01M2HRM05Q4425N79F3M5VTMDQ",
+      "kind": "receipt",
+      "seq": 12,
+      "signed": "{\"caller\":\"site-export\",\"citations\":[\"evt_01M2HRKW0DFGS89YYKSKEVRNDF\"],\"cost_credits\":0.0001,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\"],\"id\":\"rcpt_01M2HRM05Q4425N79F3M5VTMDQ\",\"model_version\":\"rule:note-lookup\",\"node\":\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\",\"prev\":\"sha256:14fee8d82069a3f279be0d9a90f139526a0f04720ebe20c9372f3a7f40ff8ecf\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:ec1636d54ea1068f8e2737490294e502f4f22807218c09127cec2f457b6c4c9a\",\"response_hash\":\"sha256:e09d14dd01731d43cbc5f14ee51b06db20bd1947428bae228b0253b1a65c83b7\",\"scope_result\":\"in_scope\",\"settle_key\":\"sha256:5609797bb937bf33a52383d9dfe2c9b7b81a9286c65f29f37d3a5550e0266801\",\"tier_used\":\"T0\",\"ts\":\"2026-09-15T05:28:45.495946+00:00\",\"upstream\":[]}",
+      "sig": "2p35SMURpWTXgQHcugGHnCfnaPSyQ7PWyAbhZfG7KtzSJpJXvwLswS9GHrhgKkAwYZa9GB6dNS66mqVVT2Dxv6XA"
+    },
+    {
+      "id": "rcpt_01M2HRM0JZW8GZ9BX2J845N3FB",
+      "kind": "receipt",
+      "seq": 13,
+      "signed": "{\"caller\":\"site-export\",\"citations\":[\"evt_01M2HRKW0DFGS89YYKSKEVRNDG\"],\"cost_credits\":0.0001,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\"],\"id\":\"rcpt_01M2HRM0JZW8GZ9BX2J845N3FB\",\"model_version\":\"rule:note-lookup\",\"node\":\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\",\"prev\":\"sha256:931b212c34be00d72d6b81d724e9a63dbc293707d77526395427a6a3f8c57333\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:174f013e49397f38ac4aa267f0c171a2d10db36a76c5e262f57d15039e3ef509\",\"response_hash\":\"sha256:0ce4049283122b61a4cbb7eeedf7e32333d0730c7a8eb3fa24c8b745dfc4bba2\",\"scope_result\":\"in_scope\",\"settle_key\":\"sha256:55c007985ff1b9476e2f7a6db36e5418682a180394128c8f820b08c9a9021750\",\"tier_used\":\"T0\",\"ts\":\"2026-09-15T05:28:45.919686+00:00\",\"upstream\":[]}",
+      "sig": "rUaMpiCwzz4NV1ohkd1VLY24RX8fxhSJHyzLxiR5dy9XLtcqHwBhbZ9iHX1F1mU28JBxwLhmdkp72W1QEn8hcCH"
+    },
+    {
+      "id": "rcpt_01M2HRM0ZBNKWXP0N2RM2QA7P8",
+      "kind": "receipt",
+      "seq": 14,
+      "signed": "{\"caller\":\"site-export\",\"citations\":[\"evt_01M2HRKW0DFGS89YYKSKEVRNDH\"],\"cost_credits\":0.0001,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\"],\"id\":\"rcpt_01M2HRM0ZBNKWXP0N2RM2QA7P8\",\"model_version\":\"rule:note-lookup\",\"node\":\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\",\"prev\":\"sha256:abc9475fbe3603972250376733af3f66abfb93373ec49869d08ec2fc64ac3537\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:bd0f815e0a5dc0111d03cd0c4ba8412ef1b8a076f4d11fa2ed9b52ffb72e44ad\",\"response_hash\":\"sha256:365a53f553a6bc58b5357459900e07676aeee4e5e22887ec20ab2d1be47c705a\",\"scope_result\":\"in_scope\",\"settle_key\":\"sha256:f7547b999d2fbb8fecf4e6b730fdf36bb60a2de94827d6c0642f3c93048cb91e\",\"tier_used\":\"T0\",\"ts\":\"2026-09-15T05:28:46.315568+00:00\",\"upstream\":[]}",
+      "sig": "PPUpzsyuihPJLpxZ9ppvpAohVTnK17JQV2CUNEbNfhv7Pc8ML95MtHhcdHEJAYHgm56iLoMxBe2C5SL7Qg7SRFQ"
+    },
+    {
+      "id": "rcpt_01M2HRM1C26CAZAAKRW42C0CDS",
+      "kind": "receipt",
+      "seq": 15,
+      "signed": "{\"caller\":\"site-export\",\"citations\":[\"evt_01M2HRKW0DFGS89YYKSKEVRNDJ\"],\"cost_credits\":0.0001,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\"],\"id\":\"rcpt_01M2HRM1C26CAZAAKRW42C0CDS\",\"model_version\":\"rule:note-lookup\",\"node\":\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\",\"prev\":\"sha256:0fd25a8f0f540dceff6b1e925295006710f87819ba98d1697369bb54536247d3\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:cc7f16aaf03f1ec7530329e4b6e794f0adbd289dab8ace7ed3ad833ca533c8d6\",\"response_hash\":\"sha256:520f8df950d22d3daafe045d189274ae4fe87c6d81cae8c482cf5b6f9ff33239\",\"scope_result\":\"in_scope\",\"settle_key\":\"sha256:5e6356c43f3485b3a133ace70b0ef89c14f85f58ccd4dd1cafd7ade05433b2d2\",\"tier_used\":\"T0\",\"ts\":\"2026-09-15T05:28:46.722458+00:00\",\"upstream\":[]}",
+      "sig": "5uqEMCFUK8b7MKSUc2MFJne7xsuLEUEtPWQRjqNVau29bTndYwKMfcVFaYQCs2jBPrCA9eUewYyA1ZWQV9eLwij8"
+    },
+    {
+      "id": "rcpt_01M2HRM1SEFZHVMDQM9M5C3RCN",
+      "kind": "receipt",
+      "seq": 16,
+      "signed": "{\"caller\":\"site-export\",\"citations\":[\"evt_01M2HRKW0DFGS89YYKSKEVRNDK\"],\"cost_credits\":0.0001,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\"],\"id\":\"rcpt_01M2HRM1SEFZHVMDQM9M5C3RCN\",\"model_version\":\"rule:note-lookup\",\"node\":\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\",\"prev\":\"sha256:0cd22351bce401d1481f63e52d125f7d0d97f4aea6c10340aba80b9f6ea7ed30\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:23d3b50277eca0591a3f86d9aabb60df9dfe7bab3fc8d46e58c78e4f61a2581e\",\"response_hash\":\"sha256:f4439d7d94456c185d0a84eda09415e092534ae8f5400c6816f58ec5e32ad459\",\"scope_result\":\"in_scope\",\"settle_key\":\"sha256:221daaaec1dbabd162235615db05b1d0151b21dd7fd8e13d9275601a717377cf\",\"tier_used\":\"T0\",\"ts\":\"2026-09-15T05:28:47.150048+00:00\",\"upstream\":[]}",
+      "sig": "4TN3TQxitrCSVDahVsqBU7L5BndS3uWX9kx819iNcFoJQBgawT2p1hwbTgHPiy8swCzKTKRdY5FCjqkcvFoFU3Ni"
+    },
+    {
+      "id": "rcpt_01M2HRM27JM3PMJ8XQ8VF09SGG",
+      "kind": "receipt",
+      "seq": 17,
+      "signed": "{\"caller\":\"site-export\",\"citations\":[\"evt_01M2HRKW0GVTWXDZCFNJJ864FE\"],\"cost_credits\":0.0001,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\"],\"id\":\"rcpt_01M2HRM27JM3PMJ8XQ8VF09SGG\",\"model_version\":\"rule:note-lookup\",\"node\":\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\",\"prev\":\"sha256:dd4fa9eeabf00ec4c78d0384b96ca1b560fdf95ee09699b028e6b4f97c703f38\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:d4fa79d3086b43a9aa1d0a7cb2eb856f063de4ffdf1e1ffea16cd3d1376119d3\",\"response_hash\":\"sha256:4ef5874675ccfdc3bf7b099d429a60b4b4b101014afec20384e7daa6a6f06848\",\"scope_result\":\"in_scope\",\"settle_key\":\"sha256:64078994d8eeaba5d151647c611e737ed1b00ecce7d7ca8d1cde69f99922af60\",\"tier_used\":\"T0\",\"ts\":\"2026-09-15T05:28:47.602109+00:00\",\"upstream\":[]}",
+      "sig": "16fG4wuwRXQJqm37hYBjHH7iJ6eVizzMUvRaLKDqzrp14RXLaxwYrJJzuvnwc6zWrAMKhEswxELAFG2mPqcPoVV"
+    },
+    {
+      "id": "rcpt_01M2HRM2NV5RE8DPXM01EVN95C",
+      "kind": "receipt",
+      "seq": 18,
+      "signed": "{\"caller\":\"site-export\",\"citations\":[\"evt_01M2HRKW0GVTWXDZCFNJJ864FF\"],\"cost_credits\":0.0001,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\"],\"id\":\"rcpt_01M2HRM2NV5RE8DPXM01EVN95C\",\"model_version\":\"rule:note-lookup\",\"node\":\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\",\"prev\":\"sha256:2bd43aef1bf883ea96abbc621524922cec52010622bdae21eaf2b6b7c9db7e61\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:26d2e9d02f69db7e5f7116bc78f697186ce0b14fc90a342247b170416a48c797\",\"response_hash\":\"sha256:ef5cdc25d24d253a3a3a84fa39ae73d8e98bc9793c45e6006f9ea3893f439904\",\"scope_result\":\"in_scope\",\"settle_key\":\"sha256:65e5fe237257e9588ae75a66a6eaba4c12958f213cc3ab80f10bf4034069270e\",\"tier_used\":\"T0\",\"ts\":\"2026-09-15T05:28:48.059582+00:00\",\"upstream\":[]}",
+      "sig": "5RtuHdjALUmmb6RjTG7z7fE1MeCaCm5KpjT9dksFL1sJYEChmTgzoPb8cwEbScirGvMRespdv8i831ch5JSoTYuQ"
+    },
+    {
+      "id": "rcpt_01M2HRM34490XCAEFD966HFAZV",
+      "kind": "receipt",
+      "seq": 19,
+      "signed": "{\"caller\":\"site-export\",\"citations\":[\"evt_01M2HRKW0GVTWXDZCFNJJ864FG\"],\"cost_credits\":0.0001,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\"],\"id\":\"rcpt_01M2HRM34490XCAEFD966HFAZV\",\"model_version\":\"rule:note-lookup\",\"node\":\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\",\"prev\":\"sha256:827d92e46f7bc00454795266512def1845c008ce6c45b994a3f30ebeebeb821e\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:6007e5a517ed2d8a9b73bfca30ff11a9cef530cfb9f46cd2e83a9b3528bc5b72\",\"response_hash\":\"sha256:00a71ca35380da948dae8883aa0f3b290de5016dd9f108b9e99d8b783cf23cf9\",\"scope_result\":\"in_scope\",\"settle_key\":\"sha256:543be38efb25c13090a8833be57865d3d46b5d714fcd566396ff6a0c0b19a517\",\"tier_used\":\"T0\",\"ts\":\"2026-09-15T05:28:48.516641+00:00\",\"upstream\":[]}",
+      "sig": "538vkFnSecRVeFvAkeVouRYd6eZfipDo6oYdm623rcuHDcBWTCAKwTqRzRQ9ezkaTctQ1hmM7nsHjcqgmSfCKF3N"
+    },
+    {
+      "id": "rcpt_01M2HRM3JTFRZBHHQAPTB23GR1",
+      "kind": "receipt",
+      "seq": 20,
+      "signed": "{\"caller\":\"site-export\",\"citations\":[\"evt_01M2HRKW0GVTWXDZCFNJJ864FH\"],\"cost_credits\":0.0001,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\"],\"id\":\"rcpt_01M2HRM3JTFRZBHHQAPTB23GR1\",\"model_version\":\"rule:note-lookup\",\"node\":\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\",\"prev\":\"sha256:97098ff1d3951b66da54008449d5a617583af94d33d8428109893b2e45e47090\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:e8989afe96d3e64bf1a19e330276bdd6a51711547d292c56e91adcf791377a51\",\"response_hash\":\"sha256:addd1dd27e75272d9dd726377e8d0c8cc0ebcfe1f8ecd29e6d0d33073a7f386e\",\"scope_result\":\"in_scope\",\"settle_key\":\"sha256:fc614879c62a83a21b1d652fc0f5d7f4a6dcccfbcf6834111164089d885f0d4d\",\"tier_used\":\"T0\",\"ts\":\"2026-09-15T05:28:48.986268+00:00\",\"upstream\":[]}",
+      "sig": "2Hkh2B1zhwnoMJRapgBB6tr2MThkVNVpd1FTSreojSw5SSfzE4ZGd4vbFZfpyd5BSNWp6kjAM8pLDNjrm9n4gvPv"
+    },
+    {
+      "id": "rcpt_01M2HRM420WJ3XV4R0R44WSENB",
+      "kind": "receipt",
+      "seq": 21,
+      "signed": "{\"caller\":\"site-export\",\"citations\":[\"evt_01M2HRKW0GVTWXDZCFNJJ864FJ\"],\"cost_credits\":0.0001,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\"],\"id\":\"rcpt_01M2HRM420WJ3XV4R0R44WSENB\",\"model_version\":\"rule:note-lookup\",\"node\":\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\",\"prev\":\"sha256:18e63ce07df7c3b411d5aee7d4c3af8289977941e8e78d2a1db41c8d7cbc7938\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:e343d490b12a8da3c61d24fba0d68bed0bbe6edb7fbd9af19a6807f7fc3bf3ff\",\"response_hash\":\"sha256:1ae1c6034d45ab80c27d74234cc7d602da98227b44c0f2e6649e57e01ec5fe91\",\"scope_result\":\"in_scope\",\"settle_key\":\"sha256:c4b7620a83012f6193bcd55be98806990ef869aa3e300fdb27b5b875793d3010\",\"tier_used\":\"T0\",\"ts\":\"2026-09-15T05:28:49.472576+00:00\",\"upstream\":[]}",
+      "sig": "2Gu8v6fieUN6mTAnSQtbMUHQqgUopZXfx1SmmgXZtdzHnTNg7Y7KhpKM3iNzX2jxhBfKw6BXtjtB6VxJoQQMwCMh"
+    },
+    {
+      "id": "rcpt_01M2HRM4HQNEF8BRY7NTCV139Q",
+      "kind": "receipt",
+      "seq": 22,
+      "signed": "{\"caller\":\"site-export\",\"citations\":[\"evt_01M2HRKW0DFGS89YYKSKEVRND2\"],\"cost_credits\":0.0001,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\"],\"id\":\"rcpt_01M2HRM4HQNEF8BRY7NTCV139Q\",\"model_version\":\"rule:note-lookup\",\"node\":\"did:key:z6MkjbduYtq7HpMYAx6uYdZDGruNcQ1RZ4MWTCmFDT32Hj4o\",\"prev\":\"sha256:1154f6e8ac721d0f05b691866e8526b9c466ff21ea752a0f864b4f6cd31c5736\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:a859daf6a9039122dd574476591914933312d49e72b4463b6e865a982c6ccfbd\",\"response_hash\":\"sha256:5e4b174bde0916985e88fd99fcc8a8bb3d314f5aa978f729049321b1738bad95\",\"scope_result\":\"in_scope\",\"settle_key\":\"sha256:cdace9e5c845838bf31648c9925926d39a4fbd1607bcdac009931e6ae32fe15d\",\"tier_used\":\"T0\",\"ts\":\"2026-09-15T05:28:49.975340+00:00\",\"upstream\":[]}",
+      "sig": "4oNXaHWpnU51hecrCyFxAm3Fy4FRJYyP97VXPLWugYHT379bRCHDyftkB3Nyn1jxVTBc1ToTMwjsdsZnE3iDcxVc"
+    }
+  ]
+}
