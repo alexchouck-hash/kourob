@@ -13,6 +13,7 @@ the shared strategy.
 | [drafts/launch-benchmark.md](drafts/launch-benchmark.md) | the Phase 0 post |
 | [drafts/developer-one-pager.md](drafts/developer-one-pager.md) | the link sent to a named developer, Phase 1 |
 | [drafts/outreach.md](drafts/outreach.md) | ten developers, providers, replica operators |
+| [drafts/10xand-case-study-maude-distinct-events.md](drafts/10xand-case-study-maude-distinct-events.md) | the 10xAnd method case study on public MAUDE data, with its claims register |
 
 ## The rule that governs all of it
 
