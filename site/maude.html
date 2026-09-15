@@ -188,6 +188,74 @@
     .byline .mark span { color: var(--brand-amber); }
 
     .pilot-note { color: var(--text-muted); font-size: 0.88rem; margin-top: 0.9rem; }
+
+    /* ---- the five cells ---- */
+    .cell-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+    .cell-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-top: 3px solid var(--brand-cyan);
+      border-radius: 0 0 12px 12px;
+      padding: 0.9rem 1rem;
+      display: grid;
+      gap: 0.35rem;
+      align-content: start;
+      min-width: 0;
+    }
+    .cell-card.cell-desk { border-top-color: var(--brand-amber); }
+    .cell-name {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--text-primary);
+    }
+    .cell-blurb { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.45; }
+    .cell-facts {
+      display: flex;
+      gap: 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .cell-did {
+      font-size: 0.62rem;
+      color: var(--text-muted);
+      overflow-wrap: anywhere;
+      line-height: 1.35;
+    }
+
+    /* ---- which cell answered, and how the question got there ---- */
+    .claim-topic { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem 0.7rem; }
+    .held-by {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      color: #fff;
+      background: var(--tier-t1);
+      text-transform: none;
+    }
+    .held-by-none { background: var(--brand-rose); }
+
+    .route { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600; }
+    .route-bridge { color: var(--brand-amber); }
+    .route-direct { color: var(--tier-t0); }
+    .route-reject { color: var(--brand-rose); }
+    .route-hops { color: var(--text-muted); font-size: 0.72rem; }
+
+    .claim-refused { border-left: 3px solid var(--brand-rose); }
+    .claim-asked { margin: 0 0 0.6rem; font-size: 0.85rem; }
+
+    .verify-total { border-top: 1px solid var(--border-strong); margin-top: 0.3rem; }
   </style>
 </head>
 <body>
@@ -226,23 +294,20 @@
 
     <section class="section">
       <div class="container">
-        <p class="eyebrow">Worked example &middot; one node, one document</p>
+        <p class="eyebrow">Worked example &middot; five cells, one document</p>
         <p class="byline">
           <span class="mark">10x<span>And</span></span>
-          <span>Method note, authored by the alliance and served by a KouroB node.</span>
+          <span>Method note, authored by the alliance and assembled by a KouroB network.</span>
         </p>
         <h1>A MAUDE report count is not an event count.</h1>
         <p class="lead">
-          This page is not written. It is answered. Every claim below came back from a KouroB node
-          that was built from one markdown file, asked the question in the open, and charged for
-          the answer. The event id under each claim resolves to a heading in that file, and the
-          receipt id resolves to a signed record in the node's ledger, which your browser checks
-          at the bottom of this page.
+          Every claim below was answered by a cell that owns it, cited to the event it came from,
+          and charged to a signed receipt. The questions went to a desk that holds nothing and
+          knows only who does. Which cell vouched for each sentence is on the sentence, the route
+          it travelled is beside it, and the whole thing is checkable at the bottom of this page.
         </p>
 
-        <dl class="run-facts" id="run-facts">
-          <div><dt>node</dt><dd>loading&hellip;</dd></div>
-        </dl>
+        <div class="cell-grid" id="cell-table"></div>
 
         <div class="doc-block" id="doc-control" style="margin-top:1.25rem"></div>
       </div>
@@ -276,14 +341,34 @@ uv run python examples/maude-method-node/export_site.py --out site/maude.json</c
 
     <div id="sections" class="container"></div>
 
+    <section class="section" id="refused">
+      <div class="container">
+        <h2>What the network refused</h2>
+        <p class="lead">
+          Two questions were put to the desk on purpose that no cell holds. Neither was answered,
+          both were receipted, and neither returned a citation. A network that cannot say no is a
+          network whose yes means nothing.
+        </p>
+        <div class="claims" id="refusals"></div>
+      </div>
+    </section>
+
+    <section class="section" id="who-wrote-this">
+      <div class="container">
+        <h2>Who wrote this</h2>
+        <p class="lead" id="prose-note">loading&hellip;</p>
+      </div>
+    </section>
+
     <section class="section" id="verify">
       <div class="container">
         <h2>Verify it yourself</h2>
         <p class="lead">
-          The export carries each ledger record as the exact bytes it was signed over, plus its
-          signature. Your browser decodes the public key out of the node's <code>did:key</code>,
-          checks every signature with WebCrypto, and walks each record's <code>prev</code> back to
-          the genesis anchor. Then break one on purpose and watch the chain fail from there on.
+          The export carries every cell's ledger records as the exact bytes each was signed over,
+          plus its signature. Your browser decodes each public key out of that cell's own
+          <code>did:key</code>, checks every signature with WebCrypto, and walks each record's
+          <code>prev</code> back to its genesis anchor. Five chains, each signed by a different
+          key. Then break one on purpose and watch only that cell fail.
         </p>
         <div class="verify-panel">
           <div class="verify-actions">
@@ -320,25 +405,26 @@ uv run python examples/maude-method-node/export_site.py --out site/maude.json</c
         <h2>What this page does not do</h2>
         <ul class="gap-list">
           <li>
-            <strong>It is static.</strong> The node ran when the export ran. A static page cannot
-            answer a new question, so the questions are fixed and the answers are the ones that run
-            got. Serving live queries needs the HTTP transport, which is not built.
+            <strong>It is static.</strong> The five cells ran when the export ran. A static page
+            cannot answer a new question, so the questions are fixed and the answers are the ones
+            that run got. Live querying needs the HTTP transport; today cells talk only on disk.
           </li>
           <li>
-            <strong>Every answer here is T0.</strong> A mined rule binds <code>what is &lt;topic&gt;</code>
-            to a stored note, which is why each one costs a scan and cites exactly one event.
-            Nothing on this page exercises the distilled model at T1 or the frontier tier at T3.
+            <strong>Every answer here is T0.</strong> A rule binds <code>what is &lt;topic&gt;</code>
+            to a stored note, which is why each claim costs a scan, cites exactly one event, and can
+            be diffed against the line of source it came from. Nothing here exercises the distilled
+            model at T1 or a frontier model at T3.
           </li>
           <li>
-            <strong>No FDA data has been processed.</strong> The node holds the method, not a run of
-            it. Precision and recall in "the acceptance floor" are design targets, not measured
-            results, because the hand-labelled validation set does not exist yet.
+            <strong>No FDA data has been processed.</strong> The network holds the method, not a run
+            of it. The precision and recall figures under "whether it works" are design targets, and
+            the cell that owns them says so in the same sentence, because that is the only cell
+            allowed to answer the question at all.
           </li>
           <li>
-            <strong>One heading, one claim.</strong> The gate keys <code>note.v1</code> on topic and
-            timestamp, so a second paragraph under the same heading arrives as a contradiction of the
-            first and is quarantined. The source document is written around that, and the limitation
-            is filed rather than hidden.
+            <strong>The split is small on purpose.</strong> Four domains is enough to show a desk
+            routing, a bridge becoming a direct route, and a refusal with a receipt. It is not a
+            claim that four is the right number for anything else.
           </li>
         </ul>
       </div>

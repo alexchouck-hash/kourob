@@ -1,9 +1,11 @@
-/* The MAUDE method note, rendered from one real node run and verified in the browser.
+/* The MAUDE method note, assembled by a network of cells and verified in the browser.
  *
- * Everything on the page comes out of site/maude.json, which examples/maude-method-node/
- * export_site.py wrote by building the node from source, asking it every question, and
- * dumping the ledger as the exact bytes each record was signed over. Nothing here is
- * written by hand, so a claim on the page cannot drift from the event it cites.
+ * Everything on the page comes out of site/maude.json, which
+ * examples/method-network/export_site.py wrote by building five cells from source, putting
+ * every section question to a desk that holds nothing, following the routes the desk handed
+ * back, and dumping each cell's ledger as the exact bytes it signed. Nothing here is written
+ * by hand, so a claim on the page cannot drift from the event it cites or from the cell that
+ * vouched for it.
  */
 (function () {
   'use strict';
@@ -20,7 +22,7 @@
    */
   var OFFER = {
     doc: '10X-CS-001',
-    rev: 'REV A',
+    rev: 'REV B',
     method: 'maudescope dedup v0.1',
     claims: 'counts and estimates only; no rate, no ranking, no causation',
     validation: 'design targets; no labelled set exists yet',
@@ -32,11 +34,14 @@
     bookUrl: null     // {{CALENDLY_URL}}
   };
 
-  // A value the operator has not supplied yet. Says so, in place, in their accent colour.
-  function orUnset(value, what) {
-    return value ? esc(value) : '<span class="unset" title="Set this in OFFER at the top of ' +
-      'maude.js">' + esc(what) + ' not set</span>';
-  }
+  // What each cell is for, in one line, for readers who will not read a scope summary.
+  var CELL_BLURB = {
+    'fda-facts': 'what the dataset structurally is',
+    'maude-method': 'how distinct events are estimated',
+    'eval-gates': 'whether the method works, and what has actually been measured',
+    'claims-policy': 'what any output may and may not say',
+    'method-desk': 'holds nothing; routes every question to whoever owns it'
+  };
 
   function esc(s) {
     return String(s === null || s === undefined ? '' : s)
@@ -48,9 +53,29 @@
     return String(id).length > 22 ? String(id).slice(0, 18) + '…' : String(id);
   }
 
+  // A value the operator has not supplied yet. Says so, in place, in their accent colour.
+  function orUnset(value, what) {
+    return value ? esc(value) : '<span class="unset" title="Set this in OFFER at the top of ' +
+      'maude.js">' + esc(what) + ' not set</span>';
+  }
+
   // ------------------------------------------------------------------- render
 
-  // One claim: what the node answered, the event it cited, and what the hop cost.
+  // How the question reached its answer: bridged through the desk, or straight to the cell
+  // the desk had already named. The second is what referral learning looks like.
+  function routeHtml(answer) {
+    var path = answer.path || [];
+    if (answer.scope_result === 'bridge') {
+      return '<span class="route route-bridge">bridged via method-desk</span> ' +
+        '<span class="route-hops">' + esc(answer.hop_count) + ' hops</span>';
+    }
+    if (path.length > 1) {
+      return '<span class="route route-direct">direct to ' + esc(path[path.length - 1]) +
+        '</span> <span class="route-hops">route already known</span>';
+    }
+    return '<span class="route">' + esc(answer.scope_result) + '</span>';
+  }
+
   function claimHtml(answer, events) {
     var event = events[answer.citations[0]] || {};
     // The rendered answer ends with its own citation in brackets; the id is shown
@@ -60,13 +85,15 @@
       '<article class="claim" id="' + esc(answer.topic) + '">' +
         '<h3 class="claim-topic">' +
           '<a href="#' + esc(answer.topic) + '">' + esc(answer.topic.replace(/-/g, ' ')) + '</a>' +
+          '<span class="held-by" title="the cell that vouched for this claim">' +
+            esc(answer.answered_by) + '</span>' +
         '</h3>' +
         '<p class="claim-body">' + esc(body) + '</p>' +
         '<dl class="claim-meta">' +
           '<div><dt>asked</dt><dd><code>' + esc(answer.question) + '</code></dd></div>' +
+          '<div><dt>route</dt><dd>' + routeHtml(answer) + '</dd></div>' +
           '<div><dt>tier</dt><dd><span class="tier-pill">' + esc(answer.tier) + '</span> ' +
             esc(answer.determinism) + '</dd></div>' +
-          '<div><dt>bound by</dt><dd><code>' + esc(answer.decided_by || 'n/a') + '</code></dd></div>' +
           '<div><dt>cites</dt><dd><code title="' + esc(answer.citations[0]) + '">' +
             esc(short(answer.citations[0])) + '</code></dd></div>' +
           '<div><dt>source</dt><dd><code>' + esc(event.source || 'n/a') + '</code></dd></div>' +
@@ -78,17 +105,41 @@
       '</article>';
   }
 
+  function refusalHtml(refusal) {
+    return '' +
+      '<article class="claim claim-refused">' +
+        '<h3 class="claim-topic"><span>refused</span>' +
+          '<span class="held-by held-by-none">no cell holds this</span></h3>' +
+        '<p class="claim-asked"><code>' + esc(refusal.question) + '</code></p>' +
+        '<p class="claim-body">' + esc(refusal.rendered) + '</p>' +
+        '<dl class="claim-meta">' +
+          '<div><dt>why asked</dt><dd>' + esc(refusal.why_asked) + '</dd></div>' +
+          '<div><dt>scope</dt><dd><span class="route route-reject">' +
+            esc(refusal.scope_result) + '</span></dd></div>' +
+          '<div><dt>citations</dt><dd>none, which is the point</dd></div>' +
+          '<div><dt>receipt</dt><dd><code title="' + esc(refusal.receipt) + '">' +
+            esc(short(refusal.receipt)) + '</code></dd></div>' +
+        '</dl>' +
+      '</article>';
+  }
+
   function render() {
-    var head = document.getElementById('run-facts');
-    head.innerHTML = '' +
-      '<div><dt>node</dt><dd><code>' + esc(DATA.node.name) + '</code></dd></div>' +
-      '<div><dt>did:key</dt><dd><code class="did" title="' + esc(DATA.node.did) + '">' +
-        esc(DATA.node.did) + '</code></dd></div>' +
-      '<div><dt>scope</dt><dd>' + esc(DATA.node.scope) + '</dd></div>' +
-      '<div><dt>autonomy</dt><dd>' + esc(DATA.node.autonomy) + ' (every change is a proposal)</dd></div>' +
-      '<div><dt>held</dt><dd>' + esc(DATA.counts.events) + ' events, one per heading</dd></div>' +
-      '<div><dt>served</dt><dd>' + esc(DATA.counts.answers) + ' answers, ' +
-        esc(DATA.counts.records) + ' signed receipts</dd></div>';
+    var cells = DATA.cells;
+    var names = Object.keys(cells);
+
+    document.getElementById('cell-table').innerHTML = names.map(function (name) {
+      var cell = cells[name];
+      return '' +
+        '<div class="cell-card' + (name === DATA.network.desk ? ' cell-desk' : '') + '">' +
+          '<div class="cell-name">' + esc(name) + '</div>' +
+          '<div class="cell-blurb">' + esc(CELL_BLURB[name] || cell.scope) + '</div>' +
+          '<div class="cell-facts">' +
+            '<span>' + esc(cell.events) + ' events</span>' +
+            '<span>' + esc(cell.records.length) + ' receipts</span>' +
+          '</div>' +
+          '<code class="cell-did" title="' + esc(cell.did) + '">' + esc(cell.did) + '</code>' +
+        '</div>';
+    }).join('');
 
     document.getElementById('doc-control').innerHTML = '' +
       '<div class="doc-id"><span>' + esc(OFFER.doc) + '</span>' +
@@ -99,9 +150,9 @@
         '<div><dt>Method</dt><dd>' + esc(OFFER.method) + '</dd></div>' +
         '<div><dt>Validation</dt><dd>' + esc(OFFER.validation) + '</dd></div>' +
         '<div><dt>Claims</dt><dd>' + esc(OFFER.claims) + '</dd></div>' +
-        '<div><dt>Served by</dt><dd>' + esc(DATA.node.name) + ', ' +
-          esc(DATA.counts.answers) + ' answers, ' + esc(DATA.counts.records) +
-          ' signed receipts</dd></div>' +
+        '<div><dt>Assembled by</dt><dd>' + esc(DATA.network.cells) + ' cells, ' +
+          esc(DATA.counts.answers) + ' answers, ' + esc(DATA.counts.refusals) +
+          ' refusals, ' + esc(DATA.counts.records) + ' signed receipts</dd></div>' +
       '</dl>';
 
     var book = OFFER.bookUrl
@@ -118,8 +169,7 @@
         '<div><dt>Next step</dt><dd>' + book + '</dd></div>' +
       '</dl>';
 
-    var body = document.getElementById('sections');
-    body.innerHTML = DATA.sections.map(function (section) {
+    document.getElementById('sections').innerHTML = DATA.sections.map(function (section) {
       return '' +
         '<section class="method-section">' +
           '<header class="section-head">' +
@@ -131,6 +181,16 @@
           '</div>' +
         '</section>';
     }).join('');
+
+    document.getElementById('refusals').innerHTML = DATA.refusals.map(refusalHtml).join('');
+
+    // Say plainly whether a model wrote anything. It did not, unless it did.
+    document.getElementById('prose-note').innerHTML = DATA.network.prose.generated
+      ? 'Connective prose on this page was generated at T3 by a model call through ' +
+        '<code>runner/</code>, and every such claim is marked T3 in its own metadata.'
+      : 'No model wrote any sentence on this page. Every claim is a T0 lookup against a stored ' +
+        'event, which is why each one can be diffed against the source line it came from. ' +
+        'Reason recorded by the export: <code>' + esc(DATA.network.prose.note) + '</code>';
   }
 
   // -------------------------------------------------------------- verification
@@ -151,8 +211,8 @@
     return out;
   }
 
-  // did:key:z<base58(0xed01 || raw key)>. The public key is inside the name, which is
-  // why checking a signature needs no registry and no server.
+  // did:key:z<base58(0xed01 || raw key)>. The public key is inside the name, which is why
+  // checking a signature needs no registry and no server.
   function keyFromDid(did) {
     var decoded = b58decode(did.replace(/^did:key:z/, ''));
     if (decoded[0] !== 0xed || decoded[1] !== 0x01) throw new Error('did:key is not ed25519');
@@ -169,22 +229,24 @@
     return crypto.subtle.importKey('raw', raw, { name: 'Ed25519' }, false, ['verify']);
   }
 
-  async function verifyChain(tamperIndex) {
+  // One cell's chain: every signature against that cell's own key, every prev against the
+  // record before it, and the first record against the genesis anchor bound to its did.
+  async function verifyCell(name, cell, tamper) {
     var canVerify = true;
     var key = null;
     try {
-      key = await importKey(keyFromDid(DATA.node.did));
+      key = await importKey(keyFromDid(cell.did));
     } catch (e) {
       canVerify = false;
     }
 
-    var prev = DATA.node.genesis_prev;
+    var prev = cell.genesis_prev;
     var sigOk = 0, chainOk = 0, broke = null;
 
-    for (var i = 0; i < DATA.records.length; i++) {
-      var record = DATA.records[i];
+    for (var i = 0; i < cell.records.length; i++) {
+      var record = cell.records[i];
       var signed = record.signed;
-      if (tamperIndex === i) {
+      if (tamper && tamper.cell === name && tamper.index === i) {
         // Flip one digit inside the bytes that were signed. Nothing else changes.
         signed = signed.replace(/[0-9](?=["*,])/, function (d) {
           return String((Number(d) + 1) % 10);
@@ -203,37 +265,57 @@
       }
       prev = 'sha256:' + (await sha256Hex(bytes));
     }
-    return { total: DATA.records.length, sigOk: sigOk, chainOk: chainOk, broke: broke, canVerify: canVerify };
+    return {
+      name: name, total: cell.records.length, sigOk: sigOk,
+      chainOk: chainOk, broke: broke, canVerify: canVerify
+    };
   }
 
-  async function runVerify(tamperIndex) {
+  async function runVerify(tamper) {
     var out = document.getElementById('verify-out');
-    out.innerHTML = '<div class="verify-note">Checking ' + DATA.records.length + ' records…</div>';
-    var r = await verifyChain(tamperIndex);
-    var intact = !r.broke;
-    var html = '';
-    html += '<div class="verify-row"><span>hash chain, each <code>prev</code> against the record before it</span>' +
-      '<span class="' + (r.chainOk === r.total ? 'verify-ok' : 'verify-bad') + '">' +
-      r.chainOk + '/' + r.total + '</span></div>';
-    html += '<div class="verify-row"><span>ed25519 signatures against the node’s own <code>did:key</code></span>' +
-      '<span class="' + (r.canVerify ? (r.sigOk === r.total ? 'verify-ok' : 'verify-bad') : 'verify-note') + '">' +
-      (r.canVerify ? r.sigOk + '/' + r.total : 'unavailable') + '</span></div>';
-    if (r.broke) {
-      html += '<div class="verify-row verify-bad"><span>first break</span><span><code>' +
-        esc(r.broke) + '</code></span></div>';
+    var names = Object.keys(DATA.cells);
+    out.innerHTML = '<div class="verify-note">Checking ' + names.length + ' chains…</div>';
+
+    var results = [];
+    for (var i = 0; i < names.length; i++) {
+      results.push(await verifyCell(names[i], DATA.cells[names[i]], tamper));
     }
-    if (tamperIndex !== null && tamperIndex !== undefined) {
-      html += '<div class="verify-note">One digit was flipped inside record ' + (tamperIndex + 1) +
-        ' before checking. Its signature no longer verifies, and the record after it no longer ' +
-        'matches the hash of what it follows, so the edit shows up twice and cannot be quietly ' +
-        'patched in one place.</div>';
-    } else if (intact) {
-      html += '<div class="verify-note">Nothing was taken on trust. The public key came out of the ' +
-        '<code>did:key</code>, and the bytes checked are the bytes shown.</div>';
+
+    var records = 0, intact = 0;
+    var canVerify = results.length > 0 && results[0].canVerify;
+    var html = results.map(function (r) {
+      records += r.total;
+      if (!r.broke) intact++;
+      var detail = r.canVerify
+        ? r.sigOk + '/' + r.total + ' signed, ' + r.chainOk + '/' + r.total + ' chained'
+        : r.chainOk + '/' + r.total + ' chained';
+      return '<div class="verify-row"><span><code>' + esc(r.name) + '</code></span><span class="' +
+        (r.broke ? 'verify-bad' : 'verify-ok') + '">' + esc(detail) + '</span></div>';
+    }).join('');
+
+    html += '<div class="verify-row verify-total"><span><b>' + records +
+      ' records across ' + results.length + ' cells</b></span><span class="' +
+      (intact === results.length ? 'verify-ok' : 'verify-bad') + '">' + intact + '/' +
+      results.length + ' chains intact</span></div>';
+
+    var firstBreak = results.filter(function (r) { return r.broke; })[0];
+    if (tamper) {
+      html += '<div class="verify-note">One digit was flipped inside record ' + (tamper.index + 1) +
+        ' of <code>' + esc(tamper.cell) + '</code> before checking. Its signature no longer ' +
+        'verifies, and the record after it no longer matches the hash of what it follows, so ' +
+        'the edit shows up twice and cannot be quietly patched in one place. The other cells ' +
+        'are untouched and still verify, because each cell signs its own chain.</div>';
+    } else if (intact === results.length) {
+      html += '<div class="verify-note">Nothing was taken on trust. Each public key came out of ' +
+        'its own <code>did:key</code>, and the bytes checked are the bytes shown.</div>';
     }
-    if (!r.canVerify) {
-      html += '<div class="verify-note">This browser has no Ed25519 in WebCrypto, so only the SHA-256 ' +
-        'chain was checked. Signatures verify in current Chrome, Safari and Firefox.</div>';
+    if (firstBreak && firstBreak.broke) {
+      html += '<div class="verify-row"><span>first break</span><span class="verify-bad"><code>' +
+        esc(firstBreak.broke) + '</code></span></div>';
+    }
+    if (!canVerify) {
+      html += '<div class="verify-note">This browser has no Ed25519 in WebCrypto, so only the ' +
+        'SHA-256 chains were checked. Signatures verify in current Chrome, Safari and Firefox.</div>';
     }
     out.innerHTML = html;
   }
@@ -250,16 +332,19 @@
       render();
       document.getElementById('verify-run').addEventListener('click', function () { runVerify(null); });
       document.getElementById('verify-tamper').addEventListener('click', function () {
-        runVerify(Math.floor(DATA.records.length / 2));
+        var name = Object.keys(DATA.cells).filter(function (n) {
+          return DATA.cells[n].records.length > 1;
+        })[0];
+        runVerify({ cell: name, index: Math.floor(DATA.cells[name].records.length / 2) });
       });
       return runVerify(null);
     })
     .catch(function (err) {
       var out = document.getElementById('verify-out');
-      if (out) out.innerHTML = '<div class="verify-row verify-bad"><span>could not load the run</span><span><code>' +
-        esc(err.message) + '</code></span></div>';
+      if (out) out.innerHTML = '<div class="verify-row"><span>could not load the run</span>' +
+        '<span class="verify-bad"><code>' + esc(err.message) + '</code></span></div>';
       var body = document.getElementById('sections');
       if (body) body.innerHTML = '<p class="claim-body">The export did not load. Rebuild it with ' +
-        '<code>uv run python examples/maude-method-node/export_site.py --out site/maude.json</code>.</p>';
+        '<code>uv run python examples/method-network/export_site.py --out site/maude.json</code>.</p>';
     });
 })();

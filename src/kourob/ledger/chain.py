@@ -42,8 +42,23 @@ def genesis_prev(did: str) -> str:
 
 
 def signed_view(record: dict[str, Any], fields: tuple[str, ...]) -> dict[str, Any]:
-    """Exactly the fields covered by the signature, in a canonical shape."""
-    return {name: record.get(name) for name in fields}
+    """Exactly the fields covered by the signature, in a canonical shape.
+
+    Whole numbers are widened to float. `canonical` is `json.dumps`, which writes `0` for an
+    int and `0.0` for a float, so the two do not sign to the same bytes; the store keeps a
+    credit in one column, so a receipt signed while that field held an int reads back holding
+    a float and stops verifying against its own signature. Every numeric field either tuple
+    covers is a quantity rather than a count - `cost_credits`, `price_credits`, `latency_s` -
+    so widening is lossless here, and it makes signing and verifying agree whatever the store
+    hands back. `bool` is an `int` in Python, and is left alone.
+    """
+    view: dict[str, Any] = {}
+    for name in fields:
+        value = record.get(name)
+        if isinstance(value, int) and not isinstance(value, bool):
+            value = float(value)
+        view[name] = value
+    return view
 
 
 def record_hash(record: dict[str, Any], fields: tuple[str, ...]) -> str:

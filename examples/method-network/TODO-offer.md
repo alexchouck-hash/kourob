@@ -28,8 +28,9 @@ not set rather than leaking the template.
   The page content is clean: it names no founder, no employer, and no client. The URL is the problem,
   and it is resolved by the neutral-org cutover in Phase 2 §1 or by not pointing 10xAnd traffic here.
   Carrying the branding on this domain was a decision made with that tradeoff on the table.
-- **Figures in the method.** Precision 0.85 and recall 0.70 are design targets and the source document
-  says so in the same sentence. They may not be restated anywhere as measured results until a
-  hand-labelled validation set exists.
+- **Figures in the method.** Precision 0.85 and recall 0.70 are design targets, and the cell that
+  owns them, `eval-gates`, says so in the same sentence as the number. It is the only cell allowed
+  to answer whether the method works, and its answer today is that nothing has been measured. Those
+  figures may not be restated anywhere as results until a hand-labelled validation set exists.
 - **No capture form.** The page has no email capture, so the newsletter disclosure and the double
   opt-in requirement in Phase 1 §1.5 do not apply to it. Adding one brings both back.
