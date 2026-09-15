@@ -106,6 +106,36 @@ def _records(node: node_mod.Node) -> list[dict[str, Any]]:
     return out
 
 
+def _telemetry(nodes: dict[str, node_mod.Node]) -> dict[str, dict[str, Any]]:
+    """Every request row in the network, keyed by the receipt it produced.
+
+    `decided_by` is the one-line reason plan 06 section 4.3 asks every routing decision to
+    carry; `tiers_tried` is what the cascade considered and rejected before the tier that
+    answered; `shape` is the class signature a class memo would key on.
+    """
+    out: dict[str, dict[str, Any]] = {}
+    for name, node in nodes.items():
+        if node.store.stats("requests")["rows"] == 0:
+            continue
+        for row in node.store.scan("requests", order_by="id"):
+            receipt = row.get("receipt_id")
+            if not receipt:
+                continue
+            tried = row.get("tiers_tried") or []
+            if isinstance(tried, str):
+                tried = [t for t in tried.split(",") if t]
+            out[receipt] = {
+                "node": name,
+                "decided_by": row.get("decided_by"),
+                "tiers_tried": list(tried),
+                "shape": row.get("shape"),
+                "latency_ms": round(float(row.get("latency_ms") or 0.0), 2),
+                "cost_credits": float(row.get("cost_credits") or 0.0),
+                "price_credits": float(row.get("price_credits") or 0.0),
+            }
+    return out
+
+
 def _event(store: ParquetDuckDBStore, event_id: str) -> dict[str, Any] | None:
     row = store.get("silver", event_id)
     if row is None:
@@ -151,8 +181,21 @@ def _ask(
             if found is not None:
                 events[event_id] = found
                 break
+    telemetry = _telemetry(nodes)
+    hops = [
+        {
+            "node": by_did.get(record.get("node"), "?"),
+            "receipt": record["id"],
+            **telemetry.get(record["id"], {}),
+        }
+        for record in chain.receipts
+    ]
     return {
         "asked": by_did.get(node.did, "?"),
+        "hops": hops,
+        "cost_credits": round(sum(h.get("cost_credits", 0.0) for h in hops), 6),
+        "price_credits": round(sum(h.get("price_credits", 0.0) for h in hops), 6),
+        "latency_ms": round(sum(h.get("latency_ms", 0.0) for h in hops), 2),
         "rendered": answered.rendered,
         "scope_result": str(answered.scope_result.value),
         "tier": answered.tier_used.value if answered.tier_used else None,
@@ -203,7 +246,20 @@ def _thread(
         if nxt is None:
             break
         here = nxt
-    return {"key": key, "question": question, "note": note, "caller": caller, "steps": steps}
+    return {
+        "key": key,
+        "question": question,
+        "note": note,
+        "caller": caller,
+        "steps": steps,
+        "totals": {
+            "asks": len(steps),
+            "hops": sum(len(step["hops"]) for step in steps),
+            "cost_credits": round(sum(step["cost_credits"] for step in steps), 6),
+            "price_credits": round(sum(step["price_credits"] for step in steps), 6),
+            "latency_ms": round(sum(step["latency_ms"] for step in steps), 2),
+        },
+    }
 
 
 def export(root: Path) -> dict[str, Any]:
