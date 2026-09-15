@@ -117,6 +117,77 @@
     .verify-note { color: var(--text-muted); font-size: 0.85rem; padding: 0.5rem 0; }
 
     .gap-list { display: grid; gap: 0.6rem; margin: 0; padding-left: 1.2rem; color: var(--text-secondary); }
+
+    /* ---- 10xAnd document-control device. Their signature element, kept in their
+       own accent (signal amber) so it reads as an inset artefact from another
+       property rather than as KouroB chrome. ---- */
+    .doc-block {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.55;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-strong);
+      border-top: 3px solid var(--brand-amber);
+      border-radius: 0 0 10px 10px;
+      padding: 1rem 1.15rem;
+      overflow-x: auto;
+    }
+    .doc-id {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      padding-bottom: 0.5rem;
+      margin-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .doc-id .rev { color: var(--text-muted); font-weight: 500; }
+    .doc-block dl {
+      margin: 0;
+      display: grid;
+      grid-template-columns: 9rem minmax(0, 1fr);
+      gap: 0.35rem 1rem;
+    }
+    .doc-block dt {
+      color: var(--text-muted);
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding-top: 0.12rem;
+    }
+    .doc-block dd { margin: 0; color: var(--text-secondary); overflow-wrap: anywhere; }
+    @media (max-width: 560px) {
+      .doc-block dl { grid-template-columns: 1fr; gap: 0.1rem; }
+      .doc-block dd { margin-bottom: 0.5rem; }
+    }
+
+    .unset {
+      color: var(--brand-amber);
+      border: 1px dashed var(--brand-amber);
+      border-radius: 4px;
+      padding: 0 0.35em;
+      font-size: 0.92em;
+    }
+
+    .byline {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.5rem 0.9rem;
+      margin: 0 0 0.35rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    .byline .mark {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      font-size: 1rem;
+    }
+    .byline .mark span { color: var(--brand-amber); }
+
+    .pilot-note { color: var(--text-muted); font-size: 0.88rem; margin-top: 0.9rem; }
   </style>
 </head>
 <body>
@@ -156,6 +227,10 @@
     <section class="section">
       <div class="container">
         <p class="eyebrow">Worked example &middot; one node, one document</p>
+        <p class="byline">
+          <span class="mark">10x<span>And</span></span>
+          <span>Method note, authored by the alliance and served by a KouroB node.</span>
+        </p>
         <h1>A MAUDE report count is not an event count.</h1>
         <p class="lead">
           This page is not written. It is answered. Every claim below came back from a KouroB node
@@ -168,6 +243,8 @@
         <dl class="run-facts" id="run-facts">
           <div><dt>node</dt><dd>loading&hellip;</dd></div>
         </dl>
+
+        <div class="doc-block" id="doc-control" style="margin-top:1.25rem"></div>
       </div>
     </section>
 
@@ -215,6 +292,26 @@ uv run python examples/maude-method-node/export_site.py --out site/maude.json</c
           </div>
           <div id="verify-out"></div>
         </div>
+      </div>
+    </section>
+
+    <section class="section" id="pilot">
+      <div class="container">
+        <h2>If this is your product code</h2>
+        <p class="lead">
+          The method above is free and the node that serves it is open. What it produces is a
+          finding: an estimated duplicate rate and a quarter sitting above its own baseline. It is
+          not the post-market surveillance analysis, the complaint trend report, or the CAPA input
+          that a notified body or an FDA investigator will accept. That is the engagement, and it
+          runs the same method over your own data alongside the public data, with a named human
+          reviewer on every document.
+        </p>
+        <div class="doc-block" id="pilot-block"></div>
+        <p class="pilot-note">
+          Fixed price, named reviewers, and a founding cohort. No clearance is promised by anyone,
+          for anything: these are services, and nothing on this page claims or implies clinical or
+          technical performance for any device.
+        </p>
       </div>
     </section>
 
@@ -294,7 +391,7 @@ uv run python examples/maude-method-node/export_site.py --out site/maude.json</c
 
     <div class="container footer-bottom">
       <div>&copy; 2026 KouroB Contributors. Licensed under Apache-2.0.</div>
-      <div>Method applied to public FDA data. Nothing here is a regulatory submission.</div>
+      <div>Method by 10xAnd, applied to public FDA data. Services, not devices: no clinical or technical device performance is claimed. Nothing here is a regulatory submission or a surveillance report.</div>
     </div>
   </footer>
 

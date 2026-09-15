@@ -4,13 +4,19 @@ One document, one node, one page. This cell holds a method note about counting d
 in FDA MAUDE data, and `site/maude.html` is that note rendered from a real run of it rather than
 written by hand.
 
-Nothing generated is committed here: keys are secret, Parquet is binary, pages are derived. Two
-files are the whole source of truth.
+Nothing generated is committed here: keys are secret, Parquet is binary, pages are derived. These
+three files are the whole source of truth.
 
 | File | What it is |
 |---|---|
 | `source/maude-distinct-events.md` | the document the node holds, one claim per heading |
 | `export_site.py` | builds the node, asks it every question, writes `site/maude.json` |
+| `TODO-offer.md` | the 10xAnd offer terms the operator still owes the page |
+
+The page carries 10xAnd branding and a pilot offer block. Its terms live in the `OFFER` object at
+the top of `site/maude.js` and nowhere else; anything unset renders as a visible marker rather than
+a raw `{{PLACEHOLDER}}`. See `TODO-offer.md`, including the one constraint this repository cannot
+satisfy: the hosting URL identifies the founder, which 10xAnd's own spec calls a launch blocker.
 
 ## Build and ask it yourself
 

@@ -12,6 +12,32 @@
   var enc = new TextEncoder();
   var DATA = null;
 
+  /* The 10xAnd offer terms. Everything here is the operator's to set, and every one of
+   * them is null until they do. A null renders as a visible "not set" marker rather than
+   * as a raw {{PLACEHOLDER}} string, because a mustache left showing on a live page is
+   * the failure the Phase 2 audit called out by name (G4), and rather than an invented
+   * number, which Hard Constraint 3 forbids outright. Set them here and nowhere else.
+   */
+  var OFFER = {
+    doc: '10X-CS-001',
+    rev: 'REV A',
+    method: 'maudescope dedup v0.1',
+    claims: 'counts and estimates only; no rate, no ranking, no causation',
+    validation: 'design targets; no labelled set exists yet',
+    offer: 'Post-market signal review, one product code',
+    scope: null,      // {{PMS_SCOPE}}
+    price: null,      // {{PRICE_BAND_PMS}}
+    leadTime: null,   // {{LEAD_TIME_PMS}}
+    slots: '3 founding clients',
+    bookUrl: null     // {{CALENDLY_URL}}
+  };
+
+  // A value the operator has not supplied yet. Says so, in place, in their accent colour.
+  function orUnset(value, what) {
+    return value ? esc(value) : '<span class="unset" title="Set this in OFFER at the top of ' +
+      'maude.js">' + esc(what) + ' not set</span>';
+  }
+
   function esc(s) {
     return String(s === null || s === undefined ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -63,6 +89,34 @@
       '<div><dt>held</dt><dd>' + esc(DATA.counts.events) + ' events, one per heading</dd></div>' +
       '<div><dt>served</dt><dd>' + esc(DATA.counts.answers) + ' answers, ' +
         esc(DATA.counts.records) + ' signed receipts</dd></div>';
+
+    document.getElementById('doc-control').innerHTML = '' +
+      '<div class="doc-id"><span>' + esc(OFFER.doc) + '</span>' +
+        '<span class="rev">' + esc(OFFER.rev) + '</span></div>' +
+      '<dl>' +
+        '<div><dt>Subject</dt><dd>Estimating distinct events from MAUDE report counts</dd></div>' +
+        '<div><dt>Data</dt><dd>openFDA device/event, public</dd></div>' +
+        '<div><dt>Method</dt><dd>' + esc(OFFER.method) + '</dd></div>' +
+        '<div><dt>Validation</dt><dd>' + esc(OFFER.validation) + '</dd></div>' +
+        '<div><dt>Claims</dt><dd>' + esc(OFFER.claims) + '</dd></div>' +
+        '<div><dt>Served by</dt><dd>' + esc(DATA.node.name) + ', ' +
+          esc(DATA.counts.answers) + ' answers, ' + esc(DATA.counts.records) +
+          ' signed receipts</dd></div>' +
+      '</dl>';
+
+    var book = OFFER.bookUrl
+      ? '<a href="' + esc(OFFER.bookUrl) + '" rel="noopener">book a call</a>'
+      : '<span class="unset" title="Set OFFER.bookUrl at the top of maude.js">booking link not configured</span>';
+    document.getElementById('pilot-block').innerHTML = '' +
+      '<div class="doc-id"><span>10X-SVC-PMS</span><span class="rev">' + esc(OFFER.rev) + '</span></div>' +
+      '<dl>' +
+        '<div><dt>Offer</dt><dd>' + esc(OFFER.offer) + '</dd></div>' +
+        '<div><dt>Scope</dt><dd>' + orUnset(OFFER.scope, 'scope') + '</dd></div>' +
+        '<div><dt>Price</dt><dd>' + orUnset(OFFER.price, 'price band') + '</dd></div>' +
+        '<div><dt>Lead time</dt><dd>' + orUnset(OFFER.leadTime, 'lead time') + '</dd></div>' +
+        '<div><dt>Slots</dt><dd>' + esc(OFFER.slots) + '</dd></div>' +
+        '<div><dt>Next step</dt><dd>' + book + '</dd></div>' +
+      '</dl>';
 
     var body = document.getElementById('sections');
     body.innerHTML = DATA.sections.map(function (section) {
