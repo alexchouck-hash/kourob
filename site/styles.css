@@ -258,12 +258,14 @@ code, pre {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1.25rem;
   height: 4.25rem;
 }
 
 .brand {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
   gap: 0.75rem;
   font-weight: 800;
   font-size: 1.35rem;
@@ -300,6 +302,7 @@ code, pre {
 
 .nav-links a {
   color: var(--text-secondary);
+  white-space: nowrap;
   font-size: 0.95rem;
   font-weight: 500;
   transition: color 0.2s ease;
@@ -313,6 +316,7 @@ code, pre {
 .nav-actions {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
   gap: 0.75rem;
 }
 
@@ -1194,12 +1198,24 @@ code, pre {
   }
 }
 
+@media (max-width: 1200px) {
+  .nav-links {
+    gap: 1.1rem;
+  }
+  .nav-links a {
+    font-size: 0.88rem;
+  }
+}
+
+@media (max-width: 1000px) {
+  .nav-links {
+    display: none;
+  }
+}
+
 @media (max-width: 768px) {
   .hero-title {
     font-size: 2.35rem;
-  }
-  .nav-links {
-    display: none;
   }
   .features-grid, .agent-grid {
     grid-template-columns: 1fr;
