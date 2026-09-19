@@ -53,9 +53,8 @@ def test_cheap_tiers_serve_most_traffic_by_day_thirty(tmp_path) -> None:
 @pytest.mark.xfail(reason=M5)
 def test_student_tracks_the_teacher_on_the_scope_classifier(tmp_path) -> None:
     """Brief section 12, M5: within 2 points of the teacher on gold."""
-    from kourob.testing import tennis_node_fixture
-
     from kourob.loops.distill.calibrate import compare_to_teacher
+    from kourob.testing import tennis_node_fixture
 
     node = tennis_node_fixture(tmp_path)
     scores = compare_to_teacher(node, task="scope_classifier")
@@ -70,7 +69,6 @@ def test_student_tracks_the_teacher_on_the_scope_classifier(tmp_path) -> None:
 def test_a_node_without_gold_cannot_enable_t1(tmp_path) -> None:
     """Brief section 15: distilled tiers copying teacher mistakes. Enforced, not advised."""
     from kourob.testing import tennis_node_fixture
-
     from kourob.tiers.t1_student import T1Student
 
     node = tennis_node_fixture(tmp_path, with_gold=False)

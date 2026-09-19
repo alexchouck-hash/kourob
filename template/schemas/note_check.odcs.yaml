@@ -1,0 +1,36 @@
+# The settling schema for note.v1. When one of these arrives, every answer about that topic
+# stops being provisional and gets an outcome from `source: reality` (KNP-2 section 6.1).
+#
+# This pairing is the point: a node whose answers are eventually settled by data it was
+# going to ingest anyway has a free, honest, self-labelling training set.
+apiVersion: v3.0.0
+kind: DataContract
+id: note_check.v1
+version: 1.0.0
+status: active
+name: Note check
+description: A later verdict on what a node said about a topic.
+schema:
+  - name: note_check
+    logicalType: object
+    physicalType: table
+    properties:
+      - name: topic
+        logicalType: string
+        required: true
+        pattern: "^[a-z0-9-]{2,64}$"
+      - name: verdict
+        logicalType: string
+        required: true
+        enum: [accepted, corrected, rejected]
+      - name: corrected_body
+        logicalType: string
+        required: false
+        description: What was true, when the verdict is corrected.
+      - name: ts
+        logicalType: date
+        required: true
+quality:
+  - rule: no_future_timestamps
+kourob:
+  key_fields: [topic, ts]

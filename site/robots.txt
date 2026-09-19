@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://alexchouck-hash.github.io/kourob/sitemap.xml
