@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Press and pitch assets — KouroB</title>
+  <meta name="description" content="Silent, looping pitch decks for the post-market data work, posted so there is a link to hand somebody rather than an attachment.">
+  <meta name="theme-color" content="#080c14">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2300d2ff'/><text y='70' x='20' font-size='65' font-family='monospace' font-weight='bold' fill='white'>K</text></svg>">
+  <style>
+    .press-intro { max-width: 60ch; }
+    .press-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin: 0 0 0.6rem;
+    }
+
+    .press-note {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-left: 3px solid var(--brand-amber);
+      border-radius: 0 14px 14px 0;
+      padding: 1.15rem 1.3rem;
+      margin: 2.5rem 0;
+      max-width: 70ch;
+    }
+    .press-note h2 { margin: 0 0 0.5rem; font-size: 1.05rem; }
+    .press-note p { margin: 0 0 0.6rem; color: var(--text-secondary); font-size: 0.93rem; }
+    .press-note p:last-child { margin-bottom: 0; }
+
+    .deck {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 1.3rem;
+      margin-bottom: 2rem;
+      max-width: 900px;
+    }
+    .deck-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 0.4rem 1rem;
+      margin-bottom: 0.4rem;
+    }
+    .deck-head h2 { margin: 0; font-size: 1.3rem; }
+    .deck-tagline {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .deck p { color: var(--text-secondary); font-size: 0.93rem; margin: 0 0 1.1rem; }
+
+    .deck-player {
+      display: block;
+      position: relative;
+      width: 100%;
+      padding: 0;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #1e2126;
+      cursor: pointer;
+      line-height: 0;
+    }
+    .deck-player:hover,
+    .deck-player:focus-visible { border-color: var(--brand-amber); }
+    .deck-player img { display: block; width: 100%; height: auto; }
+
+    .deck-play {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      padding: 0.6rem 1.4rem;
+      border-radius: 999px;
+      background: rgba(8, 12, 20, 0.82);
+      border: 1px solid var(--brand-amber);
+      color: #f2f0ea;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+    .deck-player.is-playing .deck-play { display: none; }
+
+    .deck-files {
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      margin-top: 0.9rem;
+      font-size: 0.86rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header class="site-nav">
+    <div class="container nav-inner">
+      <a href="index.html" class="brand">
+        <span class="brand-icon">K</span>
+        <span>KouroB</span>
+      </a>
+
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html#overview">Architecture</a></li>
+          <li><a href="index.html#simulator">Live Simulator</a></li>
+          <li><a href="index.html#tiers">5-Tier Cascade</a></li>
+          <li><a href="index.html#protocols">KNP Protocols</a></li>
+          <li><a href="examples.html">Examples</a></li>
+          <li><a href="maude.html">Method Note</a></li>
+          <li><a href="index.html#cli">CLI Runbook</a></li>
+          <li><a href="press.html" aria-current="page">Press</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <button id="theme-toggle" class="btn-icon" aria-label="Toggle theme" title="Toggle theme">🌙</button>
+        <a href="https://github.com/alexchouck-hash/kourob/tree/main/examples" class="btn btn-secondary" target="_blank" rel="noopener">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <section class="section">
+      <div class="container">
+        <p class="press-eyebrow">Press &middot; silent looping decks</p>
+        <h1>Press and pitch assets</h1>
+        <div class="press-intro">
+          <p>
+            Built for LinkedIn, email signatures and direct messages, and posted here so there is
+            a link to hand somebody rather than an attachment. Each one is a 16:9 GIF of about
+            forty seconds. They loop, and they are built to make sense entered at any frame.
+            Click a poster to play it.
+          </p>
+        </div>
+
+        <div class="press-note">
+          <h2>On the name</h2>
+          <p>
+            <strong>MedDevice Pulse</strong> is a working name for the post-market data work. It
+            is not settled, and the wordmark in this deck may change.
+          </p>
+          <p>
+            The deck describes a scorecard and a grading method. Read the
+            <a href="maude.html">method note</a> for how a count is actually produced and what it
+            does and does not support, and take that over anything a frame says in forty seconds.
+          </p>
+        </div>
+
+        <div class="deck">
+          <div class="deck-head">
+            <h2>Send me your product code</h2>
+            <span class="deck-tagline">Post-market data, graded</span>
+          </div>
+          <p>
+            For an RA/QA reader who already knows the duplicate problem. Same event, three
+            reports, one count. Runs through duplicate rate, the missing denominator, the
+            summary-reporting gap, and what ships with a graded slice. Ends on the honesty frame:
+            not a truth claim, not a certification.
+          </p>
+
+          <button
+            class="deck-player"
+            type="button"
+            data-still="press/08-meddevice-pulse-client.png"
+            data-animated="press/08-meddevice-pulse-client.gif"
+            aria-label="Play the deck: Send me your product code"
+          >
+            <img
+              src="press/08-meddevice-pulse-client.png"
+              alt="Closing frame of the MedDevice Pulse client deck"
+              width="1200"
+              height="675"
+              loading="lazy"
+              decoding="async"
+            >
+            <span class="deck-play" aria-hidden="true">Play</span>
+          </button>
+
+          <div class="deck-files">
+            <a href="press/08-meddevice-pulse-client.gif">GIF</a>
+            <a href="press/08-meddevice-pulse-client.png">Still frame</a>
+          </div>
+        </div>
+
+        <div class="press-note">
+          <h2>Decks that sit next to this one</h2>
+          <p>
+            Two decks argue the three-layer structure rather than the post-market work, and the
+            shared compute layer in them is this architecture. They are hosted under the
+            <a href="https://alexchouck-hash.github.io/trooth-site/press/">Trooth press page</a>
+            rather than copied here, because the wordmark on them is Trooth's and a deck should
+            live once.
+          </p>
+          <p>
+            <strong>The layer under every model</strong> has the frame that names the three parts
+            and says why they are kept apart. <strong>The compounding asset</strong> argues the
+            archive. Both are written for an investor, with the ask card cut, so read them as an
+            argument about structure and not as a description of what runs today.
+          </p>
+        </div>
+
+        <div class="press-note">
+          <h2>Using these</h2>
+          <p>
+            Reuse them as they are. No permission needed and no attribution required.
+          </p>
+          <p>
+            Do not edit a number inside a frame. Any figure shown is meant to come from a
+            published card, and an edited one no longer does.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="brand">
+          <span class="brand-icon">K</span>
+          <span>KouroB</span>
+        </a>
+        <p>
+          An open-source architecture and protocol for metered, provenance-tracked,
+          self-specializing nodes.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Architecture</h4>
+        <ul class="footer-links">
+          <li><a href="index.html#overview">Overview</a></li>
+          <li><a href="index.html#tiers">5-Tier Cascade</a></li>
+          <li><a href="index.html#protocols">KNP Protocols</a></li>
+          <li><a href="index.html#simulator">Live Simulator</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Examples</h4>
+        <ul class="footer-links">
+          <li><a href="examples.html#stack">The three layers</a></li>
+          <li><a href="examples.html#network">The seven-node network</a></li>
+          <li><a href="maude.html">Method note: MAUDE</a></li>
+          <li><a href="maude.html#verify">Verify the receipts</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <ul class="footer-links">
+          <li><a href="press.html">Press &amp; pitch assets</a></li>
+          <li><a href="https://github.com/alexchouck-hash/kourob" target="_blank" rel="noopener">GitHub Repository</a></li>
+          <li><a href="llms.txt">llms.txt (AI Manifest)</a></li>
+          <li><a href="https://github.com/alexchouck-hash/kourob/blob/main/LICENSE" target="_blank" rel="noopener">Apache-2.0 License</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="container footer-bottom">
+      <div>&copy; 2026 KouroB Contributors. Licensed under Apache-2.0.</div>
+      <div>Method by 10xAnd, applied to public FDA data. Services, not devices: no clinical or technical device performance is claimed. Nothing here is a regulatory submission or a surveillance report.</div>
+    </div>
+  </footer>
+
+  <script>
+    // One GIF is 2.7 MB. The still frame ships and the animation is fetched on click.
+    document.querySelectorAll('.deck-player').forEach(function (player) {
+      player.addEventListener('click', function () {
+        var image = player.querySelector('img');
+        if (!image) return;
+        if (player.classList.contains('is-playing')) {
+          image.src = player.dataset.still;
+          player.classList.remove('is-playing');
+        } else {
+          image.src = player.dataset.animated;
+          player.classList.add('is-playing');
+        }
+      });
+    });
+  </script>
+  <script src="app.js"></script>
+</body>
+</html>

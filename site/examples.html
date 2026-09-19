@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Examples — A Network of KouroB Nodes</title>
+  <meta name="description" content="The three-layer stack running: Trooth fetches inside an envelope, KouroB routes computation across seven nodes, Modafied grades. Real receipts, real per-hop cost, verified in your browser.">
+  <meta name="theme-color" content="#080c14">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2300d2ff'/><text y='70' x='20' font-size='65' font-family='monospace' font-weight='bold' fill='white'>K</text></svg>">
+  <style>
+    /* ---- Page-scoped: the stack, the topology, the routing tables, verification ---- */
+    .net-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 980px) {
+      .net-layout { grid-template-columns: 1fr; }
+    }
+
+    /* The three layers */
+    .layer-stack { display: grid; gap: 1rem; }
+    .layer {
+      display: grid;
+      grid-template-columns: 148px minmax(0, 1fr);
+      gap: 1.25rem;
+      align-items: start;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-left: 3px solid var(--border-strong);
+      border-radius: 0 14px 14px 0;
+      padding: 1.1rem 1.3rem;
+    }
+    @media (max-width: 720px) {
+      .layer { grid-template-columns: 1fr; gap: 0.5rem; }
+    }
+    .layer-kourob { border-left-color: var(--brand-cyan); }
+    .layer-trooth { border-left-color: var(--brand-emerald); }
+    .layer-modafied { border-left-color: var(--brand-purple); }
+    .layer-name { font-family: var(--font-mono); font-weight: 700; font-size: 1.05rem; }
+    .layer-role { font-size: 0.74rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .layer p { margin: 0 0 0.6rem; color: var(--text-secondary); font-size: 0.9rem; }
+    .layer-rule {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-primary);
+      background: var(--bg-surface-elevated);
+      border-radius: 8px;
+      padding: 0.45rem 0.65rem;
+      display: inline-block;
+    }
+
+    .net-canvas {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1rem;
+      box-shadow: var(--shadow-md);
+      overflow-x: auto;
+    }
+    .net-canvas svg { width: 100%; min-width: 620px; height: auto; display: block; }
+
+    .net-ask-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.9rem; }
+    .net-ask {
+      font: inherit;
+      font-size: 0.82rem;
+      cursor: pointer;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      transition: all 0.18s ease;
+    }
+    .net-ask:hover { border-color: var(--accent-color); color: var(--text-primary); }
+    .net-ask.active { border-color: var(--accent-color); color: var(--accent-color); background: var(--accent-glow); }
+
+    /* Node boxes in the SVG */
+    .node-g { cursor: pointer; }
+    .node-box {
+      fill: var(--bg-surface);
+      stroke: var(--border-strong);
+      stroke-width: 1.5;
+      rx: 10;
+      transition: stroke 0.2s ease, fill 0.2s ease;
+    }
+    .node-g:hover .node-box { stroke: var(--accent-color); }
+    .node-g.selected .node-box { stroke: var(--accent-color); stroke-width: 2.5; }
+    .node-g.lit .node-box { stroke: var(--brand-emerald); stroke-width: 2.5; }
+    .node-g.dim { opacity: 0.35; }
+    .node-name { fill: var(--text-primary); font: 600 13px var(--font-mono); }
+    .node-role { fill: var(--text-muted); font: 400 10.5px var(--font-sans); }
+    .node-dot { fill: var(--brand-amber); }
+    .node-g.holds .node-dot { fill: var(--brand-emerald); }
+
+    .edge { fill: none; stroke: var(--border-strong); stroke-width: 1.6; transition: stroke 0.2s ease, stroke-width 0.2s ease; }
+    .edge.lit { stroke: var(--brand-emerald); stroke-width: 3; }
+    .edge.dim { opacity: 0.25; }
+    .edge-label { fill: var(--text-muted); font: 400 9.5px var(--font-mono); }
+    .ask-label { fill: var(--text-secondary); font: 600 11px var(--font-mono); }
+
+    /* Detail panel */
+    .net-detail {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1.4rem;
+      box-shadow: var(--shadow-md);
+    }
+    .net-detail h3 { font-family: var(--font-mono); font-size: 1.05rem; margin-bottom: 0.25rem; }
+    .net-detail .detail-kind {
+      display: inline-block;
+      font-size: 0.7rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      margin-bottom: 0.9rem;
+    }
+    .kind-holds { background: rgba(16, 185, 129, 0.15); color: var(--tier-t0); }
+    .kind-desk { background: rgba(245, 158, 11, 0.15); color: var(--brand-amber); }
+    .net-detail p { color: var(--text-secondary); font-size: 0.9rem; }
+    .detail-rows { list-style: none; padding: 0; margin: 1rem 0 0; }
+    .detail-rows li {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr);
+      gap: 0.6rem;
+      padding: 0.5rem 0;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 0.83rem;
+      color: var(--text-secondary);
+    }
+    .detail-rows .k { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.76rem; }
+
+    /* Routing levels and phase status */
+    .level-table, .phase-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    .level-table th, .phase-table th {
+      text-align: left;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      padding: 0.6rem 0.75rem 0.6rem 0;
+      border-bottom: 1px solid var(--border-strong);
+    }
+    .level-table td, .phase-table td {
+      padding: 0.75rem 0.75rem 0.75rem 0;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      vertical-align: top;
+    }
+    .level-table td:first-child { font-family: var(--font-mono); color: var(--text-primary); white-space: nowrap; }
+    .state {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .state-live { background: rgba(16, 185, 129, 0.15); color: var(--tier-t0); }
+    .state-partial { background: rgba(56, 189, 248, 0.15); color: var(--tier-t1); }
+    .state-planned { background: rgba(245, 158, 11, 0.15); color: var(--brand-amber); }
+
+    .rank-list { counter-reset: rank; list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
+    .rank-list li {
+      display: grid;
+      grid-template-columns: 1.6rem minmax(0, 1fr);
+      gap: 0.75rem;
+      align-items: start;
+      background: var(--bg-surface-elevated);
+      border-radius: 10px;
+      padding: 0.6rem 0.8rem;
+      font-size: 0.87rem;
+      color: var(--text-secondary);
+    }
+    .rank-list li::before {
+      counter-increment: rank;
+      content: counter(rank);
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--accent-color);
+    }
+
+    /* Threads, hops, verification */
+    .step-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 1.1rem 1.25rem;
+      margin-bottom: 0.9rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .step-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem; }
+    .step-node { font-family: var(--font-mono); font-weight: 600; font-size: 0.92rem; }
+    .pill {
+      font-size: 0.68rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 0.18rem 0.5rem;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+    .pill-bridge { background: rgba(16, 185, 129, 0.15); color: var(--tier-t0); }
+    .pill-referral { background: rgba(245, 158, 11, 0.15); color: var(--brand-amber); }
+    .pill-reject { background: rgba(244, 63, 94, 0.15); color: var(--brand-rose); }
+    .pill-tier { background: rgba(56, 189, 248, 0.15); color: var(--tier-t1); }
+    .step-answer {
+      font-size: 0.88rem;
+      color: var(--text-primary);
+      background: var(--bg-surface-elevated);
+      border-radius: 10px;
+      padding: 0.7rem 0.85rem;
+      margin: 0 0 0.7rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .hop-table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 0.73rem; }
+    .hop-table th {
+      text-align: left;
+      color: var(--text-muted);
+      font-weight: 500;
+      padding: 0.3rem 0.6rem 0.3rem 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .hop-table td {
+      padding: 0.4rem 0.6rem 0.4rem 0;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      vertical-align: top;
+    }
+    .hop-table td.why { color: var(--text-primary); word-break: break-word; }
+    .hop-table .rcpt { cursor: pointer; text-decoration: underline dotted; }
+    .step-totals {
+      margin-top: 0.7rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .signed-dump {
+      margin-top: 0.7rem;
+      background: var(--bg-code);
+      color: var(--text-code);
+      border-radius: 10px;
+      padding: 0.75rem 0.85rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      line-height: 1.5;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .verify-out { margin-top: 1rem; font-family: var(--font-mono); font-size: 0.76rem; display: grid; gap: 0.35rem; }
+    .verify-row { display: flex; justify-content: space-between; gap: 0.6rem; padding: 0.35rem 0; border-top: 1px solid var(--border-subtle); }
+    .verify-ok { color: var(--tier-t0); }
+    .verify-bad { color: var(--brand-rose); }
+    .verify-note { color: var(--text-muted); font-family: var(--font-sans); font-size: 0.8rem; }
+
+    .note {
+      border-left: 3px solid var(--brand-amber);
+      background: var(--bg-surface-elevated);
+      padding: 0.9rem 1.1rem;
+      border-radius: 0 10px 10px 0;
+      color: var(--text-secondary);
+      font-size: 0.88rem;
+    }
+    .scroll-x { overflow-x: auto; }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header class="site-nav">
+    <div class="container nav-inner">
+      <a href="index.html" class="brand">
+        <span class="brand-icon">K</span>
+        <span>KouroB</span>
+      </a>
+
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html#overview">Architecture</a></li>
+          <li><a href="index.html#simulator">Live Simulator</a></li>
+          <li><a href="index.html#tiers">5-Tier Cascade</a></li>
+          <li><a href="index.html#protocols">KNP Protocols</a></li>
+          <li><a href="examples.html" aria-current="page">Examples</a></li>
+          <li><a href="maude.html">Method Note</a></li>
+          <li><a href="index.html#cli">CLI Runbook</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <button id="theme-toggle" class="btn-icon" aria-label="Toggle theme" title="Toggle theme">🌙</button>
+        <a href="https://github.com/alexchouck-hash/kourob/tree/main/examples" class="btn btn-secondary" target="_blank" rel="noopener">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-glow"></div>
+    <div class="container">
+      <div class="hero-badge">
+        <span class="status-dot"></span>
+        <span>Seven nodes &middot; Built in under a second &middot; Every number below is measured</span>
+      </div>
+      <h1 class="hero-title" style="max-width: 24ch;">
+        Three Layers, <span class="gradient-text">One Routing Principle</span>
+      </h1>
+      <p class="hero-subtitle" style="max-width: 72ch;">
+        Trooth fetches external data inside a provenance envelope. KouroB answers repeated
+        questions by routing them across small nodes instead of calling a frontier model.
+        Modafied grades sources and nodes with open code. This page is that stack actually
+        running &mdash; seven nodes on one machine, four questions asked for real, and the signed
+        record of every hop, which your browser checks for itself.
+      </p>
+      <div class="hero-ctas">
+        <a href="#network" class="btn btn-primary">Explore the Network &rarr;</a>
+        <a href="#verify" class="btn btn-secondary">Verify Real Receipts</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- The three layers -->
+  <section class="section" id="stack">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">The Stack</span>
+        <h2 class="section-title">Three Layers That Do Not Control Each Other</h2>
+        <p class="section-desc">
+          Both KouroB and Trooth route the same way &mdash; resolve against a registry, rank the
+          candidates, record what was rejected and why. They differ in what they route. Trooth
+          routes <em>fetches</em>: which source. KouroB routes <em>computation</em>: which nodes,
+          in what order. Modafied grades both and is operated by neither, because you cannot
+          honestly grade pipes you resell or nodes you run.
+        </p>
+      </div>
+
+      <div class="layer-stack">
+        <div class="layer layer-kourob">
+          <div>
+            <div class="layer-name">KouroB</div>
+            <div class="layer-role">routes computation</div>
+          </div>
+          <div>
+            <p>
+              A typed request arrives and the cheapest thing that can answer it does: a compiled
+              rule or a cached result first, a distilled local model next, a frontier model only on
+              a miss. Anything out of scope is referred to the node that holds it, with the route
+              handed back so the caller does not need the introduction twice.
+            </p>
+            <span class="layer-rule">never fetches an upstream directly</span>
+          </div>
+        </div>
+
+        <div class="layer layer-trooth">
+          <div>
+            <div class="layer-name">Trooth</div>
+            <div class="layer-role">fetches, inside an envelope</div>
+          </div>
+          <div>
+            <p>
+              External data arrives as a signed envelope with the bytes hashed and the fetch time
+              stamped, so provenance is inherited rather than reconstructed. In this example the
+              five source nodes hold envelopes for NWS, Open-Meteo, USGS, BLS and FRED. A fetch is
+              a hop like any other hop, which is what keeps every path uniform and traceable.
+            </p>
+            <span class="layer-rule">never runs a model &mdash; its routing is a lookup</span>
+          </div>
+        </div>
+
+        <div class="layer layer-modafied">
+          <div>
+            <div class="layer-name">Modafied</div>
+            <div class="layer-role">grades, independently</div>
+          </div>
+          <div>
+            <p>
+              Six dimensions per source &mdash; freshness lag, revision behaviour, correction
+              latency, completeness, schema stability, internal consistency &mdash; plus accuracy
+              only where a named anchor exists. The nodes here hold Modafied's emblem for each
+              source as an event, verified against its manifest before it was accepted.
+            </p>
+            <span class="layer-rule">never accepts a self-reported number</span>
+          </div>
+        </div>
+      </div>
+
+      <p class="note" style="margin-top: 1.5rem;">
+        The six dimensions are chosen so that gaming one degrades another: publishing early to win
+        freshness raises your revision rate; suppressing corrections to win revision rate raises
+        internal inconsistency; padding fields to win completeness raises schema instability. That
+        trap is published on purpose.
+      </p>
+    </div>
+  </section>
+
+  <!-- The network -->
+  <section class="section" id="network">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">trooth-network</span>
+        <h2 class="section-title">Seven Nodes, Two Of Them Holding Nothing</h2>
+        <p class="section-desc">
+          Click a node for its declared scope and what it holds. Or pick a question and watch which
+          nodes it touches. The route is not configured anywhere central: each routing node knows
+          only its own exclusions and the neighbour each one refers to, and the path is whatever
+          those local decisions add up to.
+        </p>
+      </div>
+
+      <div class="net-layout">
+        <div>
+          <div class="net-ask-row" role="group" aria-label="Example questions">
+            <button class="net-ask" data-ask="weather">"nws observation at KJFK"</button>
+            <button class="net-ask" data-ask="model">"open-meteo observation at KJFK"</button>
+            <button class="net-ask" data-ask="quake">"largest earthquake in the last hour"</button>
+            <button class="net-ask" data-ask="cpi">"what is the latest cpi"</button>
+            <button class="net-ask" data-ask="reset">Show all routes</button>
+          </div>
+
+          <div class="net-canvas">
+            <svg viewBox="0 0 860 478" role="img" aria-label="Topology of the seven-node trooth-network: a front routing node refers to a weather routing node and to three source nodes; the weather routing node refers to two more source nodes.">
+              <path class="edge" data-edge="front-weather" d="M200 232 C 265 232, 265 100, 330 100"/>
+              <path class="edge" data-edge="front-usgs"    d="M200 232 C 265 232, 265 232, 330 232"/>
+              <path class="edge" data-edge="front-bls"     d="M200 232 C 265 232, 265 320, 330 320"/>
+              <path class="edge" data-edge="front-fred"    d="M200 232 C 265 232, 265 408, 330 408"/>
+              <path class="edge" data-edge="weather-nws"        d="M500 100 C 565 100, 565 52, 630 52"/>
+              <path class="edge" data-edge="weather-openmeteo"  d="M500 100 C 565 100, 565 156, 630 156"/>
+
+              <text class="edge-label" x="238" y="150">weather|kjfk|nws...</text>
+              <text class="edge-label" x="238" y="224">earthquake|quake...</text>
+              <text class="edge-label" x="238" y="290">cpi|inflation...</text>
+              <text class="edge-label" x="238" y="378">fred|st louis...</text>
+              <text class="edge-label" x="536" y="68">nws|station...</text>
+              <text class="edge-label" x="536" y="146">open-meteo|grid...</text>
+
+              <text class="ask-label" x="42" y="196">a question arrives &darr;</text>
+
+              <g class="node-g selected" data-node="trooth-desk" tabindex="0" role="button" aria-label="trooth-desk">
+                <rect class="node-box" x="40" y="205" width="160" height="54"/>
+                <circle class="node-dot" cx="56" cy="222" r="4"/>
+                <text class="node-name" x="68" y="227">trooth-desk</text>
+                <text class="node-role" x="56" y="247">routing &middot; holds nothing</text>
+              </g>
+
+              <g class="node-g" data-node="weather-desk" tabindex="0" role="button" aria-label="weather-desk">
+                <rect class="node-box" x="330" y="73" width="170" height="54"/>
+                <circle class="node-dot" cx="346" cy="90" r="4"/>
+                <text class="node-name" x="358" y="95">weather-desk</text>
+                <text class="node-role" x="346" y="115">routing &middot; holds nothing</text>
+              </g>
+
+              <g class="node-g holds" data-node="nws-node" tabindex="0" role="button" aria-label="nws-node">
+                <rect class="node-box" x="630" y="25" width="185" height="54"/>
+                <circle class="node-dot" cx="646" cy="42" r="4"/>
+                <text class="node-name" x="658" y="47">nws-node</text>
+                <text class="node-role" x="646" y="67">fetch &middot; 3 events held</text>
+              </g>
+
+              <g class="node-g holds" data-node="open-meteo-node" tabindex="0" role="button" aria-label="open-meteo-node">
+                <rect class="node-box" x="630" y="129" width="185" height="54"/>
+                <circle class="node-dot" cx="646" cy="146" r="4"/>
+                <text class="node-name" x="658" y="151">open-meteo-node</text>
+                <text class="node-role" x="646" y="171">fetch &middot; 3 events held</text>
+              </g>
+
+              <g class="node-g holds" data-node="usgs-node" tabindex="0" role="button" aria-label="usgs-node">
+                <rect class="node-box" x="330" y="205" width="185" height="54"/>
+                <circle class="node-dot" cx="346" cy="222" r="4"/>
+                <text class="node-name" x="358" y="227">usgs-node</text>
+                <text class="node-role" x="346" y="247">fetch &middot; 3 events held</text>
+              </g>
+
+              <g class="node-g holds" data-node="bls-node" tabindex="0" role="button" aria-label="bls-node">
+                <rect class="node-box" x="330" y="293" width="185" height="54"/>
+                <circle class="node-dot" cx="346" cy="310" r="4"/>
+                <text class="node-name" x="358" y="315">bls-node</text>
+                <text class="node-role" x="346" y="335">fetch &middot; 3 events held</text>
+              </g>
+
+              <g class="node-g holds" data-node="fred-node" tabindex="0" role="button" aria-label="fred-node">
+                <rect class="node-box" x="330" y="381" width="185" height="54"/>
+                <circle class="node-dot" cx="346" cy="398" r="4"/>
+                <text class="node-name" x="358" y="403">fred-node</text>
+                <text class="node-role" x="346" y="423">fetch &middot; 2 events held</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <aside class="net-detail" id="net-detail" aria-live="polite"></aside>
+      </div>
+
+      <p class="note" style="margin-top: 1.5rem;">
+        <strong>Green dot</strong> = the node holds events and can answer. <strong>Amber dot</strong>
+        = it holds nothing and only routes. A routing node is still a full node: it meters, records
+        and signs its referral exactly like an answer, because the response envelope
+        <code>{data, rendered, citations, receipt_id}</code> has no exceptions &mdash; not for
+        errors, not for referrals.
+      </p>
+    </div>
+  </section>
+
+  <!-- Routing -->
+  <section class="section" id="routing">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Routing</span>
+        <h2 class="section-title">Four Levels, Each A Cache In Front Of The Next</h2>
+        <p class="section-desc">
+          The design goal is that cost per query falls as traffic rises. That only happens if the
+          expensive thinking is done once per class of question and replayed afterwards. Here is the
+          ladder, and honestly which rungs this example exercises today.
+        </p>
+      </div>
+
+      <div class="scroll-x">
+        <table class="level-table">
+          <thead>
+            <tr><th>Level</th><th>Triggered when</th><th>Mechanism</th><th>In this example</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>0 &middot; exact memo</td>
+              <td>The identical typed input has been seen before</td>
+              <td>Hash the canonical input, return the cached typed output. Free.</td>
+              <td><span class="state state-live">running</span></td>
+            </tr>
+            <tr>
+              <td>1 &middot; class memo</td>
+              <td>A question of a shape already seen</td>
+              <td>Key on a class signature and replay the path that worked, paying only for node inference.</td>
+              <td><span class="state state-partial">partly</span> &mdash; every request logs its shape and the route table replays learned routes, but paths are not yet memoized as first-class objects</td>
+            </tr>
+            <tr>
+              <td>2 &middot; planner</td>
+              <td>An unknown class, or a referral that patched a path</td>
+              <td>A frontier model plans a path under a hop budget and a hard cost ceiling and returns what it rejected. Async: a miss is an honest <code>202 queued</code>, never a silent expensive fallback.</td>
+              <td><span class="state state-planned">planned</span> &mdash; today a miss cascades to a frontier tier inside one node rather than to a budgeted planner across nodes</td>
+            </tr>
+            <tr>
+              <td>3 &middot; distilled planner</td>
+              <td>Enough graded plans exist</td>
+              <td>A small classifier proposes the path; the frontier model verifies a sample.</td>
+              <td><span class="state state-planned">planned</span> &mdash; needs a corpus that does not exist yet</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="net-layout" style="margin-top: 2.5rem;">
+        <div>
+          <h3 style="font-size:1.15rem; margin-bottom:0.75rem;">Ranking a hop, lexicographically</h3>
+          <p style="color: var(--text-secondary); font-size:0.92rem; margin-top:0;">
+            Among the nodes registered for a task, candidates are eliminated in a fixed order rather
+            than scored by a weighted formula. The reason is not elegance: with a lexicographic
+            order <em>every rejection has a one-line reason</em>, and that reason can be recorded and
+            read back afterwards. A weighted product gives you a number nobody can argue with
+            specifically.
+          </p>
+          <ol class="rank-list">
+            <li>Drop any node without a current grade.</li>
+            <li>Drop any node below the accuracy floor for the class, on its named anchor.</li>
+            <li>Drop any node whose p95 latency breaks the caller's budget.</li>
+            <li>Of what is left, take the lowest declared cost.</li>
+            <li>On a tie, the most recently regraded.</li>
+          </ol>
+        </div>
+
+        <aside class="net-detail">
+          <h3>What this run recorded</h3>
+          <p>
+            Every hop in the next section carries the decision that produced it &mdash; the
+            exclusion that matched, the rule that bound, the neighbour that was bridged to &mdash;
+            with what the cascade tried first. These are read out of the network's own request log,
+            not written for the page.
+          </p>
+          <ul class="detail-rows">
+            <li><span class="k">decided by</span><span>the one-line reason this hop happened</span></li>
+            <li><span class="k">tried</span><span>tiers attempted and rejected before the one that answered</span></li>
+            <li><span class="k">shape</span><span>the class signature a class memo would key on</span></li>
+            <li><span class="k">cost</span><span>what the hop cost to serve, and what it charged</span></li>
+          </ul>
+          <p style="margin-top:1rem;">
+            Not recorded yet: a planner's full rejection list, because there is no planner yet. When
+            there is one, it belongs in exactly this place.
+          </p>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- Verify it yourself -->
+  <section class="section" id="verify">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Evidence</span>
+        <h2 class="section-title">Real Answers, Real Cost, Verified In Your Browser</h2>
+        <p class="section-desc">
+          Everything below came out of an actual run of the seven nodes: real questions, real
+          answers, real ed25519 signatures, real per-hop cost and latency. You do not have to take
+          that on faith. Your browser recovers each node's public key from its <code>did:key</code>,
+          checks every signature, and walks every hash chain, with no server involved.
+        </p>
+      </div>
+
+      <div class="net-ask-row" id="thread-picker" role="group" aria-label="Questions that were asked"></div>
+
+      <div class="net-layout">
+        <div id="thread-steps"></div>
+
+        <aside class="net-detail">
+          <h3>Check the ledgers</h3>
+          <p>
+            Seven chains, every record signed by the node that wrote it and hashed into the one
+            before it. Verification runs on your machine, over <code>network.json</code> as served.
+          </p>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin:1rem 0 0;">
+            <button id="verify-run" class="btn btn-primary" style="padding:0.55rem 0.9rem;">Verify all signatures</button>
+            <button id="verify-tamper" class="btn btn-secondary" style="padding:0.55rem 0.9rem;">Tamper with one byte</button>
+          </div>
+          <div id="verify-out" class="verify-out" aria-live="polite"></div>
+        </aside>
+      </div>
+
+      <p class="note" style="margin-top:1.5rem;">
+        <strong>What this does and does not prove.</strong> It proves these records were signed by
+        the keys behind those <code>did:key</code>s and that nobody has edited the history since:
+        change one byte and the check fails, which is what the tamper button does. It does not prove
+        a node was honest when it signed &mdash; a compromised node can sign false records going
+        forward. That needs a transparency log, and saying so is better than implying
+        tamper-proofing that isn't there.
+      </p>
+    </div>
+  </section>
+
+  <!-- Build it -->
+  <section class="section" id="build">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Runbook</span>
+        <h2 class="section-title">Build It Yourself</h2>
+        <p class="section-desc">
+          Seven nodes from one command, in under a second, from public data. Each is
+          <code>kourob init</code> plus its contracts, its rules, and the envelopes it holds &mdash;
+          no bespoke wiring.
+        </p>
+      </div>
+
+      <div class="cli-tab-content active" style="display:block;">
+        <div class="cli-command-block">
+          <code>uv run python examples/trooth-network/build.py</code>
+          <button class="btn-copy">Copy</button>
+        </div>
+        <p class="cli-explanation">
+          Initialises the five source nodes, puts each feed's envelope, its Modafied emblem and its
+          Trooth scorecard through the ingest gate, then creates the two routing nodes and connects
+          them. Prints each node's <code>did:key</code> and event count, and writes
+          <code>credits.md</code> from what the nodes actually hold.
+        </p>
+
+        <div class="cli-command-block">
+          <code>uv run kourob query 'largest earthquake in the last hour' --node examples/trooth-network/cells/trooth-desk</code>
+          <button class="btn-copy">Copy</button>
+        </div>
+        <p class="cli-explanation">
+          One hop instead of two: the front routing node sends seismic questions straight to the node
+          that holds them. Swap the question for a CPI one and it lands on <code>bls-node</code>.
+        </p>
+
+        <div class="cli-command-block">
+          <code>uv run python examples/trooth-network/export_web.py --out site/network.json</code>
+          <button class="btn-copy">Copy</button>
+        </div>
+        <p class="cli-explanation">
+          Regenerates everything in the section above: the questions are asked again for real, and
+          the ledgers, signatures, per-hop cost and cited events are written out exactly as the run
+          produced them. The page has no other source of truth.
+        </p>
+      </div>
+
+      <p class="note" style="margin-top: 1.5rem;">
+        <strong>Honest fixtures.</strong> The envelopes are snapshots of the real public sources
+        &mdash; fetched, hashed and time-stamped the way a snapshot job does it &mdash; but signed
+        by a local key with <code>key_id: kourob-local</code>. That id is the marker: they prove what
+        was fetched and when, <em>by this operator</em>, not by Trooth. They validate against the
+        same schemas, and nothing downstream changes the day real ones arrive.
+      </p>
+    </div>
+  </section>
+
+  <!-- Where this is -->
+  <section class="section" id="phases">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Honest Status</span>
+        <h2 class="section-title">What This Example Shows, And What It Doesn't</h2>
+        <p class="section-desc">
+          The plan this is built against gates each phase on a technical, a commercial and a
+          desirability test, and forbids building from a phase whose gate is unmet. So here is the
+          example measured against it, including the parts that are not built.
+        </p>
+      </div>
+
+      <div class="scroll-x">
+        <table class="phase-table">
+          <thead>
+            <tr><th>Capability</th><th>State</th><th>Where you can see it</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Provenance envelopes from public sources</td>
+              <td><span class="state state-live">running</span></td>
+              <td>Five source nodes; every answer cites the event the envelope became</td>
+            </tr>
+            <tr>
+              <td>A node answering from compiled rules, at no model cost</td>
+              <td><span class="state state-live">running</span></td>
+              <td>Every answered hop above, at tier T0</td>
+            </tr>
+            <tr>
+              <td>Referral, bridging, and a route handed back</td>
+              <td><span class="state state-live">running</span></td>
+              <td>The "asked again" thread: three hops become two, and the price falls</td>
+            </tr>
+            <tr>
+              <td>Signed, hash-chained records across separately keyed nodes</td>
+              <td><span class="state state-live">running</span></td>
+              <td>The verification panel, in your browser</td>
+            </tr>
+            <tr>
+              <td>Independent grades held as evidence, verified before acceptance</td>
+              <td><span class="state state-live">running</span></td>
+              <td>Each source node holds its Modafied emblem and its Trooth scorecard</td>
+            </tr>
+            <tr>
+              <td>A distilled local model taking traffic off the frontier</td>
+              <td><span class="state state-partial">built, not exercised here</span></td>
+              <td>This network answers from rules alone, so no student is needed yet</td>
+            </tr>
+            <tr>
+              <td>Budgeted planner, queued misses, a published rejection list</td>
+              <td><span class="state state-planned">planned</span></td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>Path collapse and codification</td>
+              <td><span class="state state-planned">planned</span></td>
+              <td>Needs a path that has served real traffic without changing</td>
+            </tr>
+            <tr>
+              <td>Independent grading replicas agreeing on a hash</td>
+              <td><span class="state state-planned">planned</span></td>
+              <td>&mdash;</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="note" style="margin-top:1.5rem;">
+        The single number that decides whether any of this was worth building is the repetition rate
+        of the first real workload: how often the same class of question comes back. Below roughly a
+        fifth, caching is the wrong bet and the honest move is to keep the pipe and the grader and
+        stop there. This example cannot answer that question. Only traffic can.
+      </p>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <div class="container">
+    <div class="cta-banner">
+      <h2>Attach an Agent to the Network</h2>
+      <p>
+        Every node here speaks MCP. Point Claude Code or Cursor at the front node and the agent gets
+        cited, receipted answers from all seven &mdash; without knowing any of them exist.
+      </p>
+      <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        <a href="index.html#agents" class="btn btn-primary">Agent Attach Guide &rarr;</a>
+        <a href="https://github.com/alexchouck-hash/kourob/tree/main/examples" class="btn btn-secondary" target="_blank" rel="noopener">
+          Browse examples/ on GitHub
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="brand">
+          <span class="brand-icon">K</span>
+          <span>KouroB</span>
+        </a>
+        <p>
+          An open-source architecture and protocol for metered, provenance-tracked, self-specializing nodes.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Architecture</h4>
+        <ul class="footer-links">
+          <li><a href="index.html#overview">Overview</a></li>
+          <li><a href="index.html#tiers">5-Tier Cascade</a></li>
+          <li><a href="index.html#protocols">KNP Protocols</a></li>
+          <li><a href="index.html#simulator">Live Simulator</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Examples</h4>
+        <ul class="footer-links">
+          <li><a href="examples.html#stack">The three layers</a></li>
+          <li><a href="examples.html#network">The seven-node network</a></li>
+          <li><a href="examples.html#verify">Verify the receipts</a></li>
+          <li><a href="examples.html#phases">What isn't built yet</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <ul class="footer-links">
+          <li><a href="press.html">Press &amp; pitch assets</a></li>
+          <li><a href="https://github.com/alexchouck-hash/kourob" target="_blank" rel="noopener">GitHub Repository</a></li>
+          <li><a href="llms.txt">llms.txt (AI Manifest)</a></li>
+          <li><a href="https://github.com/alexchouck-hash/kourob/blob/main/LICENSE" target="_blank" rel="noopener">Apache-2.0 License</a></li>
+          <li><a href="https://github.com/alexchouck-hash/kourob/blob/main/GOAL.md" target="_blank" rel="noopener">GOAL.md Metrics</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="container footer-bottom">
+      <div>&copy; 2026 KouroB Contributors. Licensed under Apache-2.0.</div>
+      <div>Designed for builders and autonomous agents.</div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+  <script src="network.js"></script>
+</body>
+</html>

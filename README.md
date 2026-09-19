@@ -37,6 +37,8 @@ Then attach an agent: `kourob attach claude-code`.
 - `GOAL.md` — the one paragraph and the v1.0 metrics
 - `AGENTS.md` — how agents work in this repo (read this first if you are an agent)
 - `docs/brief/07-kourob-development.md` — the full design brief
+- `docs/protocols/` — **KNP**: what actually crosses the boundary between two nodes
+- `docs/integration/` — how existing systems become nodes
 - `docs/DEFAULTS.md` — decide-do-not-ask policy
 - `docs/adr/` — architecture decision records
 

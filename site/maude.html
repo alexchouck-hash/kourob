@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Method Note — Counting Distinct MAUDE Events</title>
+  <meta name="description" content="A method note served by a live KouroB node: every claim answered at T0 from an event it cites, every answer charged to a signed receipt, and the whole chain verified in your browser.">
+  <meta name="theme-color" content="#080c14">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2300d2ff'/><text y='70' x='20' font-size='65' font-family='monospace' font-weight='bold' fill='white'>K</text></svg>">
+  <style>
+    /* ---- Page-scoped: the run header, the claim cards, the verification panel ---- */
+
+    .run-facts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 0.85rem 1.75rem;
+      margin: 0;
+      padding: 1.25rem 1.4rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-left: 3px solid var(--brand-cyan);
+      border-radius: 0 14px 14px 0;
+    }
+    .run-facts > div { display: grid; gap: 0.15rem; min-width: 0; }
+    .run-facts dt {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .run-facts dd { margin: 0; font-size: 0.9rem; color: var(--text-secondary); min-width: 0; }
+    .run-facts code { font-size: 0.82em; }
+    .run-facts .did { overflow-wrap: anywhere; }
+
+    .method-section { margin-top: 3rem; }
+    .section-head { margin-bottom: 1.1rem; }
+    .section-head h2 { margin: 0 0 0.3rem; font-size: 1.4rem; }
+    .section-head p { margin: 0; color: var(--text-muted); font-size: 0.95rem; }
+
+    .claims { display: grid; gap: 1rem; }
+
+    .claim {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 1.15rem 1.3rem;
+    }
+    .claim-topic {
+      margin: 0 0 0.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .claim-topic a { color: inherit; text-decoration: none; }
+    .claim-topic a:hover { color: var(--accent-color); }
+    .claim-body { margin: 0 0 0.9rem; color: var(--text-primary); line-height: 1.65; }
+
+    .claim-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.5rem 1.25rem;
+      margin: 0;
+      padding-top: 0.85rem;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .claim-meta > div { display: grid; gap: 0.1rem; min-width: 0; }
+    .claim-meta dt {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .claim-meta dd {
+      margin: 0;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      overflow-wrap: anywhere;
+    }
+    .claim-meta code { font-size: 0.92em; }
+
+    .tier-pill {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.05rem 0.4rem;
+      border-radius: 5px;
+      color: #fff;
+      background: var(--tier-t0);
+    }
+
+    .verify-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 1.25rem 1.4rem;
+    }
+    .verify-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 1rem; }
+    .verify-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 0.9rem;
+    }
+    .verify-row:last-child { border-bottom: none; }
+    .verify-ok { color: var(--tier-t0); font-family: var(--font-mono); font-weight: 700; }
+    .verify-bad { color: var(--brand-rose); font-family: var(--font-mono); font-weight: 700; }
+    .verify-note { color: var(--text-muted); font-size: 0.85rem; padding: 0.5rem 0; }
+
+    .gap-list { display: grid; gap: 0.6rem; margin: 0; padding-left: 1.2rem; color: var(--text-secondary); }
+
+    /* ---- 10xAnd document-control device. Their signature element, kept in their
+       own accent (signal amber) so it reads as an inset artefact from another
+       property rather than as KouroB chrome. ---- */
+    .doc-block {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.55;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-strong);
+      border-top: 3px solid var(--brand-amber);
+      border-radius: 0 0 10px 10px;
+      padding: 1rem 1.15rem;
+      overflow-x: auto;
+    }
+    .doc-id {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      padding-bottom: 0.5rem;
+      margin-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .doc-id .rev { color: var(--text-muted); font-weight: 500; }
+    .doc-block dl {
+      margin: 0;
+      display: grid;
+      grid-template-columns: 9rem minmax(0, 1fr);
+      gap: 0.35rem 1rem;
+    }
+    .doc-block dt {
+      color: var(--text-muted);
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding-top: 0.12rem;
+    }
+    .doc-block dd { margin: 0; color: var(--text-secondary); overflow-wrap: anywhere; }
+    @media (max-width: 560px) {
+      .doc-block dl { grid-template-columns: 1fr; gap: 0.1rem; }
+      .doc-block dd { margin-bottom: 0.5rem; }
+    }
+
+    .unset {
+      color: var(--brand-amber);
+      border: 1px dashed var(--brand-amber);
+      border-radius: 4px;
+      padding: 0 0.35em;
+      font-size: 0.92em;
+    }
+
+    .byline {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.5rem 0.9rem;
+      margin: 0 0 0.35rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    .byline .mark {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      font-size: 1rem;
+    }
+    .byline .mark span { color: var(--brand-amber); }
+
+    .pilot-note { color: var(--text-muted); font-size: 0.88rem; margin-top: 0.9rem; }
+
+    /* ---- the five cells ---- */
+    .cell-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+    .cell-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-top: 3px solid var(--brand-cyan);
+      border-radius: 0 0 12px 12px;
+      padding: 0.9rem 1rem;
+      display: grid;
+      gap: 0.35rem;
+      align-content: start;
+      min-width: 0;
+    }
+    .cell-card.cell-desk { border-top-color: var(--brand-amber); }
+    .cell-name {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--text-primary);
+    }
+    .cell-blurb { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.45; }
+    .cell-facts {
+      display: flex;
+      gap: 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .cell-did {
+      font-size: 0.62rem;
+      color: var(--text-muted);
+      overflow-wrap: anywhere;
+      line-height: 1.35;
+    }
+
+    /* ---- which cell answered, and how the question got there ---- */
+    .claim-topic { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem 0.7rem; }
+    .held-by {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      color: #fff;
+      background: var(--tier-t1);
+      text-transform: none;
+    }
+    .held-by-none { background: var(--brand-rose); }
+
+    .route { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600; }
+    .route-bridge { color: var(--brand-amber); }
+    .route-direct { color: var(--tier-t0); }
+    .route-reject { color: var(--brand-rose); }
+    .route-hops { color: var(--text-muted); font-size: 0.72rem; }
+
+    .claim-refused { border-left: 3px solid var(--brand-rose); }
+    .claim-asked { margin: 0 0 0.6rem; font-size: 0.85rem; }
+
+    .verify-total { border-top: 1px solid var(--border-strong); margin-top: 0.3rem; }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header class="site-nav">
+    <div class="container nav-inner">
+      <a href="index.html" class="brand">
+        <span class="brand-icon">K</span>
+        <span>KouroB</span>
+      </a>
+
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html#overview">Architecture</a></li>
+          <li><a href="index.html#simulator">Live Simulator</a></li>
+          <li><a href="index.html#tiers">5-Tier Cascade</a></li>
+          <li><a href="index.html#protocols">KNP Protocols</a></li>
+          <li><a href="examples.html">Examples</a></li>
+          <li><a href="maude.html" aria-current="page">Method Note</a></li>
+          <li><a href="index.html#cli">CLI Runbook</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <button id="theme-toggle" class="btn-icon" aria-label="Toggle theme" title="Toggle theme">🌙</button>
+        <a href="https://github.com/alexchouck-hash/kourob/tree/main/examples" class="btn btn-secondary" target="_blank" rel="noopener">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <section class="section">
+      <div class="container">
+        <p class="eyebrow">Worked example &middot; five cells, one document</p>
+        <p class="byline">
+          <span class="mark">10x<span>And</span></span>
+          <span>Method note, authored by the alliance and assembled by a KouroB network.</span>
+        </p>
+        <h1>A MAUDE report count is not an event count.</h1>
+        <p class="lead">
+          Every claim below was answered by a cell that owns it, cited to the event it came from,
+          and charged to a signed receipt. The questions went to a desk that holds nothing and
+          knows only who does. Which cell vouched for each sentence is on the sentence, the route
+          it travelled is beside it, and the whole thing is checkable at the bottom of this page.
+        </p>
+
+        <div class="cell-grid" id="cell-table"></div>
+
+        <div class="doc-block" id="doc-control" style="margin-top:1.25rem"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2>How this page was produced</h2>
+        <p class="lead">
+          Three commands, the same three in every KouroB node's README, plus an exporter that
+          asks the built node every question and writes down what it got.
+        </p>
+        <pre class="code-block"><code># build the node, ingest the document, compile a page per heading
+kourob init examples/maude-method-node --scope "the MAUDE distinct-event method and what its numbers may claim"
+kourob ingest examples/maude-method-node/source --from-markdown --node examples/maude-method-node
+kourob loop run compile --node examples/maude-method-node
+
+# ask it anything it holds
+kourob query "what is the-acceptance-floor" --node examples/maude-method-node
+
+# rebuild this page's data from a fresh node
+uv run python examples/maude-method-node/export_site.py --out site/maude.json</code></pre>
+        <p>
+          The exporter builds the node in a temporary directory every time, so nothing on this page
+          is read out of a stored build. If the source document changes and the export is not rerun,
+          the page does not quietly drift: it still shows the run it was generated from, timestamped,
+          with the event ids that run actually cited.
+        </p>
+      </div>
+    </section>
+
+    <div id="sections" class="container"></div>
+
+    <section class="section" id="refused">
+      <div class="container">
+        <h2>What the network refused</h2>
+        <p class="lead">
+          Two questions were put to the desk on purpose that no cell holds. Neither was answered,
+          both were receipted, and neither returned a citation. A network that cannot say no is a
+          network whose yes means nothing.
+        </p>
+        <div class="claims" id="refusals"></div>
+      </div>
+    </section>
+
+    <section class="section" id="who-wrote-this">
+      <div class="container">
+        <h2>Who wrote this</h2>
+        <p class="lead" id="prose-note">loading&hellip;</p>
+      </div>
+    </section>
+
+    <section class="section" id="verify">
+      <div class="container">
+        <h2>Verify it yourself</h2>
+        <p class="lead">
+          The export carries every cell's ledger records as the exact bytes each was signed over,
+          plus its signature. Your browser decodes each public key out of that cell's own
+          <code>did:key</code>, checks every signature with WebCrypto, and walks each record's
+          <code>prev</code> back to its genesis anchor. Five chains, each signed by a different
+          key. Then break one on purpose and watch only that cell fail.
+        </p>
+        <div class="verify-panel">
+          <div class="verify-actions">
+            <button id="verify-run" class="btn btn-primary" type="button">Verify the chain</button>
+            <button id="verify-tamper" class="btn btn-secondary" type="button">Tamper with one record</button>
+          </div>
+          <div id="verify-out"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pilot">
+      <div class="container">
+        <h2>If this is your product code</h2>
+        <p class="lead">
+          The method above is free and the node that serves it is open. What it produces is a
+          finding: an estimated duplicate rate and a quarter sitting above its own baseline. It is
+          not the post-market surveillance analysis, the complaint trend report, or the CAPA input
+          that a notified body or an FDA investigator will accept. That is the engagement, and it
+          runs the same method over your own data alongside the public data, with a named human
+          reviewer on every document.
+        </p>
+        <div class="doc-block" id="pilot-block"></div>
+        <p class="pilot-note">
+          Fixed price, named reviewers, and a founding cohort. No clearance is promised by anyone,
+          for anything: these are services, and nothing on this page claims or implies clinical or
+          technical performance for any device.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2>What this page does not do</h2>
+        <ul class="gap-list">
+          <li>
+            <strong>It is static.</strong> The five cells ran when the export ran. A static page
+            cannot answer a new question, so the questions are fixed and the answers are the ones
+            that run got. Live querying needs the HTTP transport; today cells talk only on disk.
+          </li>
+          <li>
+            <strong>Every answer here is T0.</strong> A rule binds <code>what is &lt;topic&gt;</code>
+            to a stored note, which is why each claim costs a scan, cites exactly one event, and can
+            be diffed against the line of source it came from. Nothing here exercises the distilled
+            model at T1 or a frontier model at T3.
+          </li>
+          <li>
+            <strong>No FDA data has been processed.</strong> The network holds the method, not a run
+            of it. The precision and recall figures under "whether it works" are design targets, and
+            the cell that owns them says so in the same sentence, because that is the only cell
+            allowed to answer the question at all.
+          </li>
+          <li>
+            <strong>The split is small on purpose.</strong> Four domains is enough to show a desk
+            routing, a bridge becoming a direct route, and a refusal with a receipt. It is not a
+            claim that four is the right number for anything else.
+          </li>
+        </ul>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="brand">
+          <span class="brand-icon">K</span>
+          <span>KouroB</span>
+        </a>
+        <p>
+          An open-source architecture and protocol for metered, provenance-tracked, self-specializing nodes.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Architecture</h4>
+        <ul class="footer-links">
+          <li><a href="index.html#overview">Overview</a></li>
+          <li><a href="index.html#tiers">5-Tier Cascade</a></li>
+          <li><a href="index.html#protocols">KNP Protocols</a></li>
+          <li><a href="index.html#simulator">Live Simulator</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Examples</h4>
+        <ul class="footer-links">
+          <li><a href="examples.html#stack">The three layers</a></li>
+          <li><a href="examples.html#network">The seven-node network</a></li>
+          <li><a href="maude.html">Method note: MAUDE</a></li>
+          <li><a href="maude.html#verify">Verify the receipts</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <ul class="footer-links">
+          <li><a href="press.html">Press &amp; pitch assets</a></li>
+          <li><a href="https://github.com/alexchouck-hash/kourob" target="_blank" rel="noopener">GitHub Repository</a></li>
+          <li><a href="llms.txt">llms.txt (AI Manifest)</a></li>
+          <li><a href="maude.json">maude.json (this run)</a></li>
+          <li><a href="https://github.com/alexchouck-hash/kourob/blob/main/LICENSE" target="_blank" rel="noopener">Apache-2.0 License</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="container footer-bottom">
+      <div>&copy; 2026 KouroB Contributors. Licensed under Apache-2.0.</div>
+      <div>Method by 10xAnd, applied to public FDA data. Services, not devices: no clinical or technical device performance is claimed. Nothing here is a regulatory submission or a surveillance report.</div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+  <script src="maude.js"></script>
+</body>
+</html>

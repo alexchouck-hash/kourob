@@ -11,7 +11,7 @@ identity:
 scope:
   # What this node answers. Rules first, T1 classifier second (brief section 2).
   summary: "{{ scope_summary }}"
-  schemas: []                  # ODCS contract ids this node owns, e.g. [shot.v1]
+  schemas: [note.v1, note_check.v1, node_change.v1]   # ODCS contract ids this node owns
   entities: []                 # entity kinds this node is authoritative for
   capabilities: []             # tool names this node offers
   max_hops: 4                  # loop prevention (brief section 7)
@@ -40,6 +40,47 @@ pricing:
   max_surge: 3.0
   quality_multiplier: 1.0
   free_allowance: 100          # requests per caller per window
+  q_floor: 0.8                 # a node below this cannot earn a quality premium
+  # Credits per 1000 tokens, resolved by model, then adapter, then default. Cost is
+  # measured from the counts an adapter reports, never estimated (KNP-3 section 1).
+  token_rates:
+    default:  { prompt: 0.001, completion: 0.003 }
+    local:    { prompt: 0.0,   completion: 0.0 }
+
+cell:
+  # The size ceiling (KNP-8 section 2.3). Exceeding it does not raise it: the cell sheds
+  # or divides. A PR that pushes any of these over budget fails CI.
+  max_context_tokens: 15000    # a task pack must fit. The binding constraint
+  max_source_files: 40
+  max_source_lines: 4000
+  max_schemas: 3
+  max_tiers: 4
+  max_hot_storage_mb: 500      # cold-stored partitions are exempt
+  max_tools: 8
+  on_exceed: propose_division
+
+autonomy:
+  # What this cell may change about itself without asking (KNP-7 section 2).
+  # Set by the operator's tooling from the ledger. A node cannot promote itself.
+  level: A0                    # A0 observe, A1 tune, A2 promote, A3 restructure, A4 fund
+  graduation_window: 4         # consecutive clean evolve cycles to earn the next level
+  settle_floor: 0.2
+  rollback_window: 30d
+  evolution_budget: 1.0        # credits per cycle
+  bootstrap_grant: 10.0        # operator's stake in a node with no revenue yet
+  bootstrap_window: 90d
+
+prune:
+  # Hebbian route dynamics and garbage collection (KNP-9 sections 3 and 4).
+  # Nothing here can collect an event, a receipt, or an outcome.
+  prune_floor: 0.05
+  prune_window: 30d
+  rule_window: 60d
+  page_window: 90d
+  shed_window: 90d
+  decay_per_window: 0.9
+  hebbian_alpha: 0.3
+  hebbian_beta: 0.5
 
 split:
   split_threshold: 0.5         # demand_factor above which a split is considered

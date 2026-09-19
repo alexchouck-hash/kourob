@@ -13,12 +13,14 @@ import would fail collection instead of producing an honest xfail.
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 
 import pytest
 from typer.testing import CliRunner
 
 from kourob.cli import app
+from kourob.store.parquet_duckdb import ParquetDuckDBStore
 
 pytestmark = pytest.mark.m1
 
@@ -29,26 +31,49 @@ FIXTURES = Path(__file__).resolve().parents[1] / "evals" / "gate_fixtures"
 M1 = "M1 not implemented"
 
 
-@pytest.mark.xfail(reason=M1)
-def test_init_then_ingest_produces_silver_and_quarantine(node_dir: Path) -> None:
-    """`kourob init demo && kourob ingest fixtures/events.jsonl` produces silver rows and
-    a quarantine file with reasons for the malformed fixtures."""
+def _cell_with_shot_contract(node_dir: Path) -> None:
+    """Init a cell and give it the fixture contract and its T0 rule.
+
+    A freshly-inited cell owns the template's starter contract, not `shot.v1`. These tests
+    are about the gate and the cascade, so they bring their own schema rather than leaning
+    on whatever the template happens to ship.
+    """
     assert runner.invoke(app, ["init", str(node_dir)]).exit_code == 0
-    result = runner.invoke(app, ["ingest", str(FIXTURES / "events.jsonl"), "--node", str(node_dir)])
-    assert result.exit_code == 0
-
-    silver = list((node_dir / "data" / "silver").rglob("*.parquet"))
-    assert silver, "ingest produced no silver rows"
-
-    quarantine = list((node_dir / "data" / "quarantine").rglob("*"))
-    quarantine = [p for p in quarantine if p.is_file() and p.name != ".gitkeep"]
-    assert quarantine, "malformed fixtures produced no quarantine file"
-
-    reasons = "\n".join(p.read_text(encoding="utf-8") for p in quarantine)
-    assert "reason" in reasons, "quarantine entries must carry a reason"
+    shutil.copy(FIXTURES / "schema.odcs.yaml", node_dir / "schemas" / "shot.odcs.yaml")
+    shutil.copy(
+        FIXTURES / "rules" / "shot-lookup.yaml",
+        node_dir / "tiers" / "t0" / "rules" / "shot-lookup.yaml",
+    )
 
 
-@pytest.mark.xfail(reason=M1)
+def test_init_then_ingest_produces_silver_and_quarantine(node_dir: Path) -> None:
+    """`kourob init demo && kourob ingest fixtures/events.jsonl` produces silver rows and a
+    quarantine file with reasons for the malformed fixtures.
+
+    Deliberately uses the fixtures `init` lays down rather than bringing its own: this is
+    the out-of-the-box path in GOAL.md metric 1, and if it needs outside help it is not
+    out-of-the-box.
+    """
+    assert runner.invoke(app, ["init", str(node_dir)]).exit_code == 0
+
+    result = runner.invoke(
+        app, ["ingest", str(node_dir / "fixtures" / "events.jsonl"), "--node", str(node_dir)]
+    )
+    assert result.exit_code == 0, result.output
+
+    store = ParquetDuckDBStore(node_dir)
+    assert store.stats("silver")["rows"] > 0, "ingest produced no silver rows"
+
+    quarantined = store.scan("quarantine")
+    assert quarantined, "the malformed fixtures produced no quarantine rows"
+    assert all(row["reason"] for row in quarantined), "every quarantine row carries a reason"
+    assert {row["gate_step"] for row in quarantined} >= {
+        "validate.pattern",
+        "validate.missing_required",
+        "stamp.unknown_schema",
+    }, "the starter fixtures should exercise several gate steps, not just one"
+
+
 def test_gate_rejection_precision_and_recall() -> None:
     """Precision and recall of rejections >= 0.95 on evals/gate_fixtures/."""
     from kourob.gate import Gate
@@ -73,7 +98,6 @@ def test_gate_rejection_precision_and_recall() -> None:
     assert recall >= 0.95, f"rejection recall {recall:.3f}"
 
 
-@pytest.mark.xfail(reason=M1)
 def test_malformed_lines_are_rejected_at_the_parse_step() -> None:
     from kourob.gate import Gate
 
@@ -86,34 +110,48 @@ def test_malformed_lines_are_rejected_at_the_parse_step() -> None:
         assert outcome.gate_step == "parse", f"{line[:40]!r} rejected at {outcome.gate_step}"
 
 
-@pytest.mark.xfail(reason=M1)
 def test_every_mcp_answer_carries_the_full_envelope(node_dir: Path) -> None:
-    """Every answer over MCP includes data, rendered, citations, receipt_id."""
-    from kourob.ports.mcp import handle
+    """Every answer over MCP includes data, rendered, citations, receipt_id.
 
-    runner.invoke(app, ["init", str(node_dir)])
+    Including refusals: `data` is legitimately None when a node declines, which is why the
+    invariant is about the envelope being complete, not about `data` being populated. What
+    is never optional is `receipt_id`.
+    """
+    from kourob.ports.mcp import TOOLS, handle
+
+    _cell_with_shot_contract(node_dir)
     runner.invoke(app, ["ingest", str(FIXTURES / "events.jsonl"), "--node", str(node_dir)])
 
-    for tool, args in [
-        ("query", {"question": "how many winners did A hit"}),
+    calls = [
+        ("query", {"question": "shot 1 of point p001 in match ao-2026-f-01"}),
+        ("query", {"question": "who will win wimbledon"}),  # a refusal is still an envelope
         ("get_page", {"page": "index"}),
         ("list_schemas", {}),
-    ]:
+        ("nonsense", {}),  # an unknown tool is a refusal, not an exception
+    ]
+    for tool, args in calls:
         answer = handle(node_dir, tool, args)
-        assert answer.data is not None
-        assert answer.rendered
-        assert answer.receipt_id.startswith("rcpt_")
+        assert answer.rendered, f"{tool} produced no rendered form"
         assert isinstance(answer.citations, list)
+        assert answer.receipt_id.startswith("rcpt_"), f"{tool} answered without a receipt"
+        assert answer.is_grounded(), f"{tool} made a claim it cannot source"
+
+    answered = handle(node_dir, "query", {"question": "shot 1 of point p001 in match ao-2026-f-01"})
+    assert answered.data is not None
+    assert answered.citations, "an in-scope answer cites the events behind it"
+
+    assert set(TOOLS) == {"query", "ingest", "get_page", "list_schemas", "submit_outcome"}
 
 
-@pytest.mark.xfail(reason=M1)
 def test_ledger_verify_passes_and_tampering_breaks_it(node_dir: Path) -> None:
     """`kourob ledger verify` passes; tampering with one receipt makes it fail."""
     from kourob.ledger.verify import tamper_for_test, verify
 
-    runner.invoke(app, ["init", str(node_dir)])
+    _cell_with_shot_contract(node_dir)
     runner.invoke(app, ["ingest", str(FIXTURES / "events.jsonl"), "--node", str(node_dir)])
-    runner.invoke(app, ["query", "how many winners", "--node", str(node_dir)])
+    runner.invoke(
+        app, ["query", "shot 1 of point p001 in match ao-2026-f-01", "--node", str(node_dir)]
+    )
 
     assert runner.invoke(app, ["ledger", "verify", "--node", str(node_dir)]).exit_code == 0
     assert verify(node_dir).ok
@@ -126,13 +164,12 @@ def test_ledger_verify_passes_and_tampering_breaks_it(node_dir: Path) -> None:
     assert report.first_break is not None
 
 
-@pytest.mark.xfail(reason=M1)
 def test_a_t0_answerable_question_never_reaches_t3(node_dir: Path) -> None:
     """Assert via the receipt's tier_used, not via timing or logs."""
     from kourob.ledger.verify import read_receipts
     from kourob.types import Tier
 
-    runner.invoke(app, ["init", str(node_dir)])
+    _cell_with_shot_contract(node_dir)
     runner.invoke(app, ["ingest", str(FIXTURES / "events.jsonl"), "--node", str(node_dir)])
 
     # An exact lookup the T0 SQL view answers: it must not spend a frontier token.

@@ -100,6 +100,8 @@ Revisit when:
 
 ```
 docs/brief/      the design documents, unchanged, as source material
+docs/protocols/  KNP: the wire contracts between nodes. Specs, not decisions
+docs/integration/ how existing systems become nodes, one file per set
 docs/adr/        decisions, numbered, with the template above
 docs/spikes/     time-boxed investigations that inform an ADR
 docs/experiments/ things tried and abandoned, with the reason
