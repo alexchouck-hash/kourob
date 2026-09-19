@@ -46,3 +46,7 @@ Thumbs.db
 *.db
 .beads-credential-key
 .beads/proxieddb/
+
+# Scratch nodes created by running the CLI in the repo root
+/demo/
+/tmp-node*/

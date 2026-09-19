@@ -1,0 +1,905 @@
+{
+ "generated_by": "examples/trooth-network/export_web.py",
+ "what_this_is": "One real run of the seven-cell trooth-network. Every `signed` string is the exact canonical JSON its node put through ed25519; every `sig` is that signature, base58. A reader recovers each public key from its did:key and checks both the signatures and the prev-chain without trusting this file.",
+ "nodes": [
+  {
+   "name": "nws-node",
+   "did": "did:key:z6Mkg5a5Lr629LDeK7CJ9aMoZRtwqFt2Z2dfMtkXafLhF5tq",
+   "kind": "source",
+   "events": 3,
+   "scope": {
+    "summary": "nws weather observations at KJFK from the national weather service: temperature, humidity, wind, conditions; the trooth scorecard and modafied emblem of nws",
+    "entities": [
+     "weather-station"
+    ],
+    "schemas": [
+     "observation.v1",
+     "scorecard.v1",
+     "emblem.v1",
+     "node_change.v1"
+    ],
+    "refers": []
+   }
+  },
+  {
+   "name": "open-meteo-node",
+   "did": "did:key:z6MkgaNAYGBqSb86ooXkRMkCGo9QsCD8DBFgzW1RkRckKk7W",
+   "kind": "source",
+   "events": 3,
+   "scope": {
+    "summary": "open-meteo model weather at KJFK: temperature, humidity, wind; the trooth scorecard and modafied emblem of open-meteo",
+    "entities": [
+     "weather-grid"
+    ],
+    "schemas": [
+     "observation.v1",
+     "scorecard.v1",
+     "emblem.v1",
+     "node_change.v1"
+    ],
+    "refers": []
+   }
+  },
+  {
+   "name": "usgs-node",
+   "did": "did:key:z6MkmoyHNQsHRQKUnBUgmXJmAJRcttSZUhZ6VbbwSe1AT3S1",
+   "kind": "source",
+   "events": 3,
+   "scope": {
+    "summary": "earthquakes from the usgs past-hour feed: largest quake, magnitude, count; the trooth scorecard and modafied emblem of usgs-earthquake",
+    "entities": [
+     "earthquake"
+    ],
+    "schemas": [
+     "observation.v1",
+     "scorecard.v1",
+     "emblem.v1",
+     "node_change.v1"
+    ],
+    "refers": []
+   }
+  },
+  {
+   "name": "bls-node",
+   "did": "did:key:z6MkgMAWiTjvXqEAoV6i6WEaDQi6vo4SYMuTA8eeV7jkkyzS",
+   "kind": "source",
+   "events": 3,
+   "scope": {
+    "summary": "the consumer price index (cpi, inflation) from bls; the trooth scorecard and modafied emblem of bls",
+    "entities": [
+     "price-index"
+    ],
+    "schemas": [
+     "observation.v1",
+     "scorecard.v1",
+     "emblem.v1",
+     "node_change.v1"
+    ],
+    "refers": []
+   }
+  },
+  {
+   "name": "fred-node",
+   "did": "did:key:z6MkjzWZs7QS4zKatQnsihmsuF7urWX8U4V4gX8ESsveA5Rv",
+   "kind": "source",
+   "events": 2,
+   "scope": {
+    "summary": "fred economic series from the st louis fed; the trooth scorecard and modafied emblem of fred (no envelope yet: fred needs an api key)",
+    "entities": [
+     "economic-series"
+    ],
+    "schemas": [
+     "observation.v1",
+     "scorecard.v1",
+     "emblem.v1",
+     "node_change.v1"
+    ],
+    "refers": []
+   }
+  },
+  {
+   "name": "weather-desk",
+   "did": "did:key:z6MkvVLnVuR87cxuVb4sYSpc5MV3q8GZSX7TSozpug3n2Nm6",
+   "kind": "desk",
+   "events": 0,
+   "scope": {
+    "summary": "a desk for weather at KJFK: refers to nws-node (station) and open-meteo-node (model)",
+    "entities": [],
+    "schemas": [
+     "note.v1",
+     "note_check.v1",
+     "node_change.v1"
+    ],
+    "refers": [
+     {
+      "pattern": "\\bnws\\b|national weather|station|conditions",
+      "to": "did:key:z6Mkg5a5Lr629LDeK7CJ9aMoZRtwqFt2Z2dfMtkXafLhF5tq"
+     },
+     {
+      "pattern": "open-meteo|model|grid",
+      "to": "did:key:z6MkgaNAYGBqSb86ooXkRMkCGo9QsCD8DBFgzW1RkRckKk7W"
+     }
+    ]
+   }
+  },
+  {
+   "name": "trooth-desk",
+   "did": "did:key:z6MkiZHwriZUTGBQczEkWa2ViHXv2o19LaHfRQq2qdf7kSeE",
+   "kind": "desk",
+   "events": 0,
+   "scope": {
+    "summary": "the front desk of a network of trooth-fed nodes: holds nothing, refers weather, earthquakes and the economy to the nodes that do",
+    "entities": [],
+    "schemas": [
+     "note.v1",
+     "note_check.v1",
+     "node_change.v1"
+    ],
+    "refers": [
+     {
+      "pattern": "weather|temperature|humidity|wind|observation|kjfk|nws|open-meteo",
+      "to": "did:key:z6MkvVLnVuR87cxuVb4sYSpc5MV3q8GZSX7TSozpug3n2Nm6"
+     },
+     {
+      "pattern": "earthquake|quake|seismic|magnitude|usgs",
+      "to": "did:key:z6MkmoyHNQsHRQKUnBUgmXJmAJRcttSZUhZ6VbbwSe1AT3S1"
+     },
+     {
+      "pattern": "cpi|inflation|price index|consumer price|bls",
+      "to": "did:key:z6MkgMAWiTjvXqEAoV6i6WEaDQi6vo4SYMuTA8eeV7jkkyzS"
+     },
+     {
+      "pattern": "fred|st louis|economic series",
+      "to": "did:key:z6MkjzWZs7QS4zKatQnsihmsuF7urWX8U4V4gX8ESsveA5Rv"
+     }
+    ]
+   }
+  }
+ ],
+ "threads": [
+  {
+   "key": "weather",
+   "question": "nws observation at KJFK",
+   "note": "Two referrals deep: the front desk holds nothing, and neither does the weather desk.",
+   "caller": "user:web-weather",
+   "steps": [
+    {
+     "asked": "trooth-desk",
+     "hops": [
+      {
+       "node": "trooth-desk",
+       "receipt": "rcpt_01M2HPF7RNWGZSC43K5R7YH2Q6",
+       "decided_by": "bridge:did:key:z6MkvVLnVuR87cxuVb4sYSpc5MV3q8GZSX7TSozpug3n2Nm6",
+       "tiers_tried": [],
+       "shape": "* at *",
+       "latency_ms": 292.35,
+       "cost_credits": 0.0,
+       "price_credits": 0.0001
+      },
+      {
+       "node": "weather-desk",
+       "receipt": "rcpt_01M2HPF7QVNBBA8JN7WHG0JXZX",
+       "decided_by": "bridge:did:key:z6Mkg5a5Lr629LDeK7CJ9aMoZRtwqFt2Z2dfMtkXafLhF5tq",
+       "tiers_tried": [],
+       "shape": "* at *",
+       "latency_ms": 185.85,
+       "cost_credits": 0.0,
+       "price_credits": 0.0001
+      },
+      {
+       "node": "nws-node",
+       "receipt": "rcpt_01M2HPF7PZ1YRBNTVX898EK6P6",
+       "decided_by": "rule:observation-by-source",
+       "tiers_tried": [
+        "T0"
+       ],
+       "shape": "* at *",
+       "latency_ms": 132.44,
+       "cost_credits": 1e-05,
+       "price_credits": 5e-05
+      }
+     ],
+     "cost_credits": 1e-05,
+     "price_credits": 0.00025,
+     "latency_ms": 610.64,
+     "rendered": "nws at KJFK, 2026-09-13T23:55:00+00:00: 23 C, humidity 94.105818040075%, wind 9.252 km/h (public-domain, 1345.6s behind the source). [evt_01M2HPF56M3X0655K72C11YYVB]",
+     "scope_result": "bridge",
+     "tier": "T0",
+     "determinism": "derived",
+     "citations": [
+      "evt_01M2HPF56M3X0655K72C11YYVB"
+     ],
+     "receipts": [
+      "rcpt_01M2HPF7RNWGZSC43K5R7YH2Q6",
+      "rcpt_01M2HPF7QVNBBA8JN7WHG0JXZX",
+      "rcpt_01M2HPF7PZ1YRBNTVX898EK6P6"
+     ],
+     "path": [
+      "trooth-desk",
+      "weather-desk",
+      "nws-node"
+     ],
+     "hints": [
+      {
+       "to": "weather-desk",
+       "did": "did:key:z6MkvVLnVuR87cxuVb4sYSpc5MV3q8GZSX7TSozpug3n2Nm6",
+       "scope": "a desk for weather at KJFK: refers to nws-node (station) and open-meteo-node (model)",
+       "evidence": "rcpt_01M2HPF7QVNBBA8JN7WHG0JXZX"
+      }
+     ]
+    }
+   ],
+   "totals": {
+    "asks": 1,
+    "hops": 3,
+    "cost_credits": 1e-05,
+    "price_credits": 0.00025,
+    "latency_ms": 610.64
+   }
+  },
+  {
+   "key": "quake",
+   "question": "largest earthquake in the last hour",
+   "note": "One hop. The front desk refers seismic questions straight to the node that holds them.",
+   "caller": "user:web-quake",
+   "steps": [
+    {
+     "asked": "trooth-desk",
+     "hops": [
+      {
+       "node": "trooth-desk",
+       "receipt": "rcpt_01M2HPF8BH824W1TM44TT816ZF",
+       "decided_by": "bridge:did:key:z6MkmoyHNQsHRQKUnBUgmXJmAJRcttSZUhZ6VbbwSe1AT3S1",
+       "tiers_tried": [],
+       "shape": "* in *",
+       "latency_ms": 140.0,
+       "cost_credits": 0.0,
+       "price_credits": 0.0001
+      },
+      {
+       "node": "usgs-node",
+       "receipt": "rcpt_01M2HPF8AQYQ3RZXDN61FJNGJ5",
+       "decided_by": "rule:seismic-largest",
+       "tiers_tried": [
+        "T0"
+       ],
+       "shape": "* in *",
+       "latency_ms": 84.84,
+       "cost_credits": 1e-05,
+       "price_credits": 5e-05
+      }
+     ],
+     "cost_credits": 1e-05,
+     "price_credits": 0.00015,
+     "latency_ms": 224.84,
+     "rendered": "Largest of 7 quakes in the hour to 2026-09-14T00:17:10Z: M2.41 5 km S of Indios, Puerto Rico at 2026-09-13T23:29:01Z, depth 11.05 km. Source usgs-earthquake (https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson). [evt_01M2HPF6AW6M3KTYAQ2SJR18RM]",
+     "scope_result": "bridge",
+     "tier": "T0",
+     "determinism": "derived",
+     "citations": [
+      "evt_01M2HPF6AW6M3KTYAQ2SJR18RM"
+     ],
+     "receipts": [
+      "rcpt_01M2HPF8BH824W1TM44TT816ZF",
+      "rcpt_01M2HPF8AQYQ3RZXDN61FJNGJ5"
+     ],
+     "path": [
+      "trooth-desk",
+      "usgs-node"
+     ],
+     "hints": [
+      {
+       "to": "usgs-node",
+       "did": "did:key:z6MkmoyHNQsHRQKUnBUgmXJmAJRcttSZUhZ6VbbwSe1AT3S1",
+       "scope": "earthquakes from the usgs past-hour feed: largest quake, magnitude, count; the trooth scorecard and modafied emblem of usgs-earthquake",
+       "evidence": "rcpt_01M2HPF8AQYQ3RZXDN61FJNGJ5"
+      }
+     ]
+    }
+   ],
+   "totals": {
+    "asks": 1,
+    "hops": 2,
+    "cost_credits": 1e-05,
+    "price_credits": 0.00015,
+    "latency_ms": 224.84
+   }
+  },
+  {
+   "key": "cpi",
+   "question": "what is the latest cpi",
+   "note": "One hop, to the node holding the BLS consumer price index.",
+   "caller": "user:web-cpi",
+   "steps": [
+    {
+     "asked": "trooth-desk",
+     "hops": [
+      {
+       "node": "trooth-desk",
+       "receipt": "rcpt_01M2HPF8XSMSH6JJ7ZKCYNMAMM",
+       "decided_by": "bridge:did:key:z6MkgMAWiTjvXqEAoV6i6WEaDQi6vo4SYMuTA8eeV7jkkyzS",
+       "tiers_tried": [],
+       "shape": "what is *",
+       "latency_ms": 163.55,
+       "cost_credits": 0.0,
+       "price_credits": 0.0001
+      },
+      {
+       "node": "bls-node",
+       "receipt": "rcpt_01M2HPF8WJ1PVNN91B8DW2EPHC",
+       "decided_by": "rule:economy-cpi",
+       "tiers_tried": [
+        "T0"
+       ],
+       "shape": "what is *",
+       "latency_ms": 89.75,
+       "cost_credits": 1e-05,
+       "price_credits": 5e-05
+      }
+     ],
+     "cost_credits": 1e-05,
+     "price_credits": 0.00015,
+     "latency_ms": 253.3,
+     "rendered": "CPI-U, all items, U.S. city average, not seasonally adjusted (CUUR0000SA0): 334.98 for August 2026. Source bls (https://api.bls.gov/publicAPI/v1/timeseries/data/CUUR0000SA0). [evt_01M2HPF6JN1P0ZAJM5247A7JPE]",
+     "scope_result": "bridge",
+     "tier": "T0",
+     "determinism": "derived",
+     "citations": [
+      "evt_01M2HPF6JN1P0ZAJM5247A7JPE"
+     ],
+     "receipts": [
+      "rcpt_01M2HPF8XSMSH6JJ7ZKCYNMAMM",
+      "rcpt_01M2HPF8WJ1PVNN91B8DW2EPHC"
+     ],
+     "path": [
+      "trooth-desk",
+      "bls-node"
+     ],
+     "hints": [
+      {
+       "to": "bls-node",
+       "did": "did:key:z6MkgMAWiTjvXqEAoV6i6WEaDQi6vo4SYMuTA8eeV7jkkyzS",
+       "scope": "the consumer price index (cpi, inflation) from bls; the trooth scorecard and modafied emblem of bls",
+       "evidence": "rcpt_01M2HPF8WJ1PVNN91B8DW2EPHC"
+      }
+     ]
+    }
+   ],
+   "totals": {
+    "asks": 1,
+    "hops": 2,
+    "cost_credits": 1e-05,
+    "price_credits": 0.00015,
+    "latency_ms": 253.3
+   }
+  },
+  {
+   "key": "model",
+   "question": "open-meteo observation at KJFK",
+   "note": "The weather desk has already spent its one introduction with the front desk, so nobody bridges this time. Watch the caller follow the hints instead - which is the point of handing them out.",
+   "caller": "user:web-model",
+   "steps": [
+    {
+     "asked": "trooth-desk",
+     "hops": [
+      {
+       "node": "trooth-desk",
+       "receipt": "rcpt_01M2HPF9R2T0QSA0A4HXZYRJYN",
+       "decided_by": "bridge:did:key:z6MkvVLnVuR87cxuVb4sYSpc5MV3q8GZSX7TSozpug3n2Nm6",
+       "tiers_tried": [],
+       "shape": "* at *",
+       "latency_ms": 270.4,
+       "cost_credits": 0.0,
+       "price_credits": 0.0001
+      },
+      {
+       "node": "weather-desk",
+       "receipt": "rcpt_01M2HPF9QAA1VZ9ATHAHS3V792",
+       "decided_by": "bridge:did:key:z6MkgaNAYGBqSb86ooXkRMkCGo9QsCD8DBFgzW1RkRckKk7W",
+       "tiers_tried": [],
+       "shape": "* at *",
+       "latency_ms": 168.1,
+       "cost_credits": 0.0,
+       "price_credits": 0.0001
+      },
+      {
+       "node": "open-meteo-node",
+       "receipt": "rcpt_01M2HPF9P9KDP9XV3Z7A1GC7R1",
+       "decided_by": "rule:observation-by-source",
+       "tiers_tried": [
+        "T0"
+       ],
+       "shape": "* at *",
+       "latency_ms": 89.07,
+       "cost_credits": 1e-05,
+       "price_credits": 5e-05
+      }
+     ],
+     "cost_credits": 1e-05,
+     "price_credits": 0.00025,
+     "latency_ms": 527.57,
+     "rendered": "open-meteo at KJFK, 2026-09-14T00:15:00Z: 22.9 C, humidity 91%, wind 6.9 km/h (CC-BY-4.0, 145.9s behind the source). [evt_01M2HPF64B9PB77TB14785HZ5M]",
+     "scope_result": "bridge",
+     "tier": "T0",
+     "determinism": "derived",
+     "citations": [
+      "evt_01M2HPF64B9PB77TB14785HZ5M"
+     ],
+     "receipts": [
+      "rcpt_01M2HPF9R2T0QSA0A4HXZYRJYN",
+      "rcpt_01M2HPF9QAA1VZ9ATHAHS3V792",
+      "rcpt_01M2HPF9P9KDP9XV3Z7A1GC7R1"
+     ],
+     "path": [
+      "trooth-desk",
+      "weather-desk",
+      "open-meteo-node"
+     ],
+     "hints": [
+      {
+       "to": "weather-desk",
+       "did": "did:key:z6MkvVLnVuR87cxuVb4sYSpc5MV3q8GZSX7TSozpug3n2Nm6",
+       "scope": "a desk for weather at KJFK: refers to nws-node (station) and open-meteo-node (model)",
+       "evidence": "rcpt_01M2HPF9QAA1VZ9ATHAHS3V792"
+      }
+     ]
+    }
+   ],
+   "totals": {
+    "asks": 1,
+    "hops": 3,
+    "cost_credits": 1e-05,
+    "price_credits": 0.00025,
+    "latency_ms": 527.57
+   }
+  },
+  {
+   "key": "weather-again",
+   "question": "nws observation at KJFK",
+   "note": "The same caller asks again. Its one introduction is spent, so the front node refers instead of bridging, and hands back the route it learned the first time. The caller follows it. That referral costs nothing, the bridge that remains is one level shallower, and the totals below say what the difference was worth.",
+   "caller": "user:web-weather",
+   "steps": [
+    {
+     "asked": "trooth-desk",
+     "hops": [
+      {
+       "node": "trooth-desk",
+       "receipt": "rcpt_01M2HPFACBAAJRD43C00NBECV1",
+       "decided_by": "rule:excl-000",
+       "tiers_tried": [],
+       "shape": "* at *",
+       "latency_ms": 55.99,
+       "cost_credits": 0.0,
+       "price_credits": 0.0
+      }
+     ],
+     "cost_credits": 0.0,
+     "price_credits": 0.0,
+     "latency_ms": 55.99,
+     "rendered": "Out of scope. the front desk of a network of trooth-fed nodes: holds nothing, refers weather, earthquakes and the economy to the nodes that do\nTry weather-desk (a desk for weather at KJFK: refers to nws-node (station) and open-meteo-node (model)).\nThis caller has used its 1 introductions to that node; go direct.",
+     "scope_result": "referral",
+     "tier": null,
+     "determinism": null,
+     "citations": [],
+     "receipts": [
+      "rcpt_01M2HPFACBAAJRD43C00NBECV1"
+     ],
+     "path": [
+      "trooth-desk"
+     ],
+     "hints": [
+      {
+       "to": "weather-desk",
+       "did": "did:key:z6MkvVLnVuR87cxuVb4sYSpc5MV3q8GZSX7TSozpug3n2Nm6",
+       "scope": "a desk for weather at KJFK: refers to nws-node (station) and open-meteo-node (model)",
+       "evidence": "rcpt_01M2HPF9QAA1VZ9ATHAHS3V792"
+      }
+     ]
+    },
+    {
+     "asked": "weather-desk",
+     "hops": [
+      {
+       "node": "weather-desk",
+       "receipt": "rcpt_01M2HPFB1P5KZE7KKS0XNZZD8K",
+       "decided_by": "bridge:did:key:z6Mkg5a5Lr629LDeK7CJ9aMoZRtwqFt2Z2dfMtkXafLhF5tq",
+       "tiers_tried": [],
+       "shape": "* at *",
+       "latency_ms": 220.82,
+       "cost_credits": 0.0,
+       "price_credits": 0.0001
+      },
+      {
+       "node": "nws-node",
+       "receipt": "rcpt_01M2HPFB0PQ88V1BC96X1EG2T5",
+       "decided_by": "rule:observation-by-source",
+       "tiers_tried": [
+        "T0"
+       ],
+       "shape": "* at *",
+       "latency_ms": 124.21,
+       "cost_credits": 1e-05,
+       "price_credits": 5e-05
+      }
+     ],
+     "cost_credits": 1e-05,
+     "price_credits": 0.00015,
+     "latency_ms": 345.03,
+     "rendered": "nws at KJFK, 2026-09-13T23:55:00+00:00: 23 C, humidity 94.105818040075%, wind 9.252 km/h (public-domain, 1345.6s behind the source). [evt_01M2HPF56M3X0655K72C11YYVB]",
+     "scope_result": "bridge",
+     "tier": "T0",
+     "determinism": "derived",
+     "citations": [
+      "evt_01M2HPF56M3X0655K72C11YYVB"
+     ],
+     "receipts": [
+      "rcpt_01M2HPFB1P5KZE7KKS0XNZZD8K",
+      "rcpt_01M2HPFB0PQ88V1BC96X1EG2T5"
+     ],
+     "path": [
+      "weather-desk",
+      "nws-node"
+     ],
+     "hints": [
+      {
+       "to": "nws-node",
+       "did": "did:key:z6Mkg5a5Lr629LDeK7CJ9aMoZRtwqFt2Z2dfMtkXafLhF5tq",
+       "scope": "nws weather observations at KJFK from the national weather service: temperature, humidity, wind, conditions; the trooth scorecard and modafied emblem of nws",
+       "evidence": "rcpt_01M2HPFB0PQ88V1BC96X1EG2T5"
+      }
+     ]
+    }
+   ],
+   "totals": {
+    "asks": 2,
+    "hops": 3,
+    "cost_credits": 1e-05,
+    "price_credits": 0.00015,
+    "latency_ms": 401.02
+   }
+  }
+ ],
+ "events": {
+  "evt_01M2HPF56M3X0655K72C11YYVB": {
+   "id": "evt_01M2HPF56M3X0655K72C11YYVB",
+   "schema_ref": "observation.v1",
+   "ts": "2026-09-13T23:55:00+00:00",
+   "source": "push",
+   "agent": "local",
+   "payload": {
+    "considered_and_rejected": [
+     {
+      "id": "open-meteo",
+      "reason": "derivative of nws"
+     }
+    ],
+    "content_hash": "sha256:d4ffa336e868ad1b99d813b4087b4516517145aecf4e710fdef73226ec20a198",
+    "data": {
+     "conditions": "Mostly Clear",
+     "location": "KJFK",
+     "relative_humidity_pct": 94.105818040075,
+     "temperature_c": 23,
+     "wind_speed_kmh": 9.252
+    },
+    "disagreements": [],
+    "fetched_at": "2026-09-14T00:17:25Z",
+    "freshness_lag_s": 1345.6,
+    "license": "public-domain",
+    "query": "weather/observations/KJFK",
+    "request_id": "req_d4ffa336e868ad1b99d813b4",
+    "served_from": "live",
+    "signature": "2HF8sJCdA5meZKAparUHTUznyB6uAr2XuWcCNU6LDc6trNRdYFrrzNNZvXcQgBPFrKiqkr6FsZd3kDJ1EeLD9Cbc",
+    "signature_alg": "ed25519",
+    "signature_key_id": "kourob-local",
+    "snapshot_id": "snap_20260914T001725Z_nws",
+    "source_id": "nws",
+    "source_timestamp": "2026-09-13T23:55:00+00:00",
+    "source_url": "https://api.weather.gov/stations/KJFK/observations/latest",
+    "ts": "2026-09-13T23:55:00+00:00",
+    "untrusted_text_dropped": 1
+   }
+  },
+  "evt_01M2HPF6AW6M3KTYAQ2SJR18RM": {
+   "id": "evt_01M2HPF6AW6M3KTYAQ2SJR18RM",
+   "schema_ref": "observation.v1",
+   "ts": "2026-09-14T00:17:10+00:00",
+   "source": "push",
+   "agent": "local",
+   "payload": {
+    "considered_and_rejected": [],
+    "content_hash": "sha256:d464a57e8ac930980db9226ce9a6865651ec3c6cdfd58bbd8b7b410361733bf0",
+    "data": {
+     "count": 7,
+     "largest": {
+      "depth_km": 11.05,
+      "id": "pr71531758",
+      "mag": 2.41,
+      "place": "5 km S of Indios, Puerto Rico",
+      "time": "2026-09-13T23:29:01Z"
+     },
+     "quakes": [
+      {
+       "depth_km": 9.65999984741211,
+       "id": "nc75435292",
+       "mag": 1.52,
+       "place": "5 km NNW of Hollister, CA",
+       "time": "2026-09-13T23:45:54Z"
+      },
+      {
+       "depth_km": 2.6359,
+       "id": "tx2026sbxfop",
+       "mag": 1.1,
+       "place": "12 km W of Stanton, Texas",
+       "time": "2026-09-13T23:39:38Z"
+      },
+      {
+       "depth_km": 3.39000010490417,
+       "id": "nc75435272",
+       "mag": 0.77,
+       "place": "6 km WNW of The Geysers, CA",
+       "time": "2026-09-13T23:32:42Z"
+      },
+      {
+       "depth_km": 11.05,
+       "id": "pr71531758",
+       "mag": 2.41,
+       "place": "5 km S of Indios, Puerto Rico",
+       "time": "2026-09-13T23:29:01Z"
+      },
+      {
+       "depth_km": 7.73999977111816,
+       "id": "nc75435262",
+       "mag": 0.57,
+       "place": "3 km NNW of The Geysers, CA",
+       "time": "2026-09-13T23:26:42Z"
+      },
+      {
+       "depth_km": 14.6,
+       "id": "aka2026seujbr",
+       "mag": 1.8,
+       "place": "92 km SSE of Port Graham, Alaska",
+       "time": "2026-09-13T23:22:46Z"
+      },
+      {
+       "depth_km": -0.33,
+       "id": "ci41546840",
+       "mag": 1.49,
+       "place": "5 km NNW of Boron, CA",
+       "time": "2026-09-13T23:18:51Z"
+      }
+     ],
+     "window": "past_hour"
+    },
+    "disagreements": [],
+    "fetched_at": "2026-09-14T00:17:26Z",
+    "freshness_lag_s": 16.0,
+    "license": "public-domain",
+    "query": "seismic/earthquakes/past_hour",
+    "request_id": "req_d464a57e8ac930980db9226c",
+    "served_from": "live",
+    "signature": "56onkCduosr6cqycrGpkmfc8z89C5KCtXQmxNcWhtLDBi9vxhQizsv8MDzerq7nHXnhkXx9qXKXjU5qDN6DHkXXJ",
+    "signature_alg": "ed25519",
+    "signature_key_id": "kourob-local",
+    "snapshot_id": "snap_20260914T001726Z_usgs-earthquake",
+    "source_id": "usgs-earthquake",
+    "source_timestamp": "2026-09-14T00:17:10Z",
+    "source_url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson",
+    "ts": "2026-09-14T00:17:10Z",
+    "untrusted_text_dropped": 0
+   }
+  },
+  "evt_01M2HPF6JN1P0ZAJM5247A7JPE": {
+   "id": "evt_01M2HPF6JN1P0ZAJM5247A7JPE",
+   "schema_ref": "observation.v1",
+   "ts": "2026-08-01T00:00:00+00:00",
+   "source": "push",
+   "agent": "local",
+   "payload": {
+    "considered_and_rejected": [
+     {
+      "id": "fred",
+      "reason": "derivative of bls for CPI"
+     }
+    ],
+    "content_hash": "sha256:2e0dba68109cefa67720b19d60c322da69ef6d81b7061ba970d79e6ef2a3abe9",
+    "data": {
+     "period": "M08",
+     "period_name": "August",
+     "series_id": "CUUR0000SA0",
+     "series_name": "CPI-U, all items, U.S. city average, not seasonally adjusted",
+     "value": 334.98,
+     "year": 2026
+    },
+    "disagreements": [],
+    "fetched_at": "2026-09-14T00:17:26Z",
+    "freshness_lag_s": 3802646.3,
+    "license": "public-domain",
+    "query": "economy/cpi/CUUR0000SA0",
+    "request_id": "req_2e0dba68109cefa67720b19d",
+    "served_from": "live",
+    "signature": "2v1RAFqtZ2F6kgbpb2F3TioTQKxJhzdLyhNCiMbsLmi1RSpvBFyrTZ7TDGJF4ZJ3KGo74e111LHjwQQv34fkLkkM",
+    "signature_alg": "ed25519",
+    "signature_key_id": "kourob-local",
+    "snapshot_id": "snap_20260914T001726Z_bls",
+    "source_id": "bls",
+    "source_timestamp": "2026-08-01T00:00:00Z",
+    "source_url": "https://api.bls.gov/publicAPI/v1/timeseries/data/CUUR0000SA0",
+    "ts": "2026-08-01T00:00:00Z",
+    "untrusted_text_dropped": 0
+   }
+  },
+  "evt_01M2HPF64B9PB77TB14785HZ5M": {
+   "id": "evt_01M2HPF64B9PB77TB14785HZ5M",
+   "schema_ref": "observation.v1",
+   "ts": "2026-09-14T00:15:00+00:00",
+   "source": "push",
+   "agent": "local",
+   "payload": {
+    "considered_and_rejected": [
+     {
+      "id": "nws",
+      "reason": "primary; asked for the model grid"
+     }
+    ],
+    "content_hash": "sha256:8e54ac3090dc044b41bba75ef4129cff052c598fce1e40b6903ee8ebe6bb7aaf",
+    "data": {
+     "conditions": "",
+     "location": "KJFK",
+     "relative_humidity_pct": 91,
+     "temperature_c": 22.9,
+     "wind_speed_kmh": 6.9
+    },
+    "disagreements": [],
+    "fetched_at": "2026-09-14T00:17:25Z",
+    "freshness_lag_s": 145.9,
+    "license": "CC-BY-4.0",
+    "query": "weather/current/40.64,-73.78",
+    "request_id": "req_8e54ac3090dc044b41bba75e",
+    "served_from": "live",
+    "signature": "5x7QUVrzfyN7QNQeXZkEAG11XpQnBZcb3cN2fnKdd3Tdmku6vHzq8UWo4i85tmzNrvqpw5LhAfgh4WXj4ePWwq7d",
+    "signature_alg": "ed25519",
+    "signature_key_id": "kourob-local",
+    "snapshot_id": "snap_20260914T001725Z_open-meteo",
+    "source_id": "open-meteo",
+    "source_timestamp": "2026-09-14T00:15:00Z",
+    "source_url": "https://api.open-meteo.com/v1/forecast?latitude=40.64&longitude=-73.78&current=temperature_2m%2Crelative_humidity_2m%2Cwind_speed_10m",
+    "ts": "2026-09-14T00:15:00Z",
+    "untrusted_text_dropped": 0
+   }
+  }
+ },
+ "ledgers": {
+  "nws-node": {
+   "did": "did:key:z6Mkg5a5Lr629LDeK7CJ9aMoZRtwqFt2Z2dfMtkXafLhF5tq",
+   "genesis_prev": "sha256:8532c776ce9e5463b8b8d5efe7304bb8aa4061d569a06a044be109868384659b",
+   "records": [
+    {
+     "id": "rcpt_01M2HPF7PZ1YRBNTVX898EK6P6",
+     "kind": "receipt",
+     "seq": 0,
+     "signed": "{\"caller\":\"did:key:z6MkvVLnVuR87cxuVb4sYSpc5MV3q8GZSX7TSozpug3n2Nm6\",\"citations\":[\"evt_01M2HPF56M3X0655K72C11YYVB\"],\"cost_credits\":1e-05,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkiZHwriZUTGBQczEkWa2ViHXv2o19LaHfRQq2qdf7kSeE\",\"did:key:z6MkvVLnVuR87cxuVb4sYSpc5MV3q8GZSX7TSozpug3n2Nm6\",\"did:key:z6Mkg5a5Lr629LDeK7CJ9aMoZRtwqFt2Z2dfMtkXafLhF5tq\"],\"id\":\"rcpt_01M2HPF7PZ1YRBNTVX898EK6P6\",\"model_version\":\"rule:observation-by-source\",\"node\":\"did:key:z6Mkg5a5Lr629LDeK7CJ9aMoZRtwqFt2Z2dfMtkXafLhF5tq\",\"prev\":\"sha256:8532c776ce9e5463b8b8d5efe7304bb8aa4061d569a06a044be109868384659b\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:dc1a650036328236d9579a7d0cd73d94738ee5a6833a0c237823840195682caf\",\"response_hash\":\"sha256:c4b958daeb06e9f4cf113d4657b19f671bbb7a15ddd188b8a696cb738c1843aa\",\"scope_result\":\"in_scope\",\"settle_key\":null,\"tier_used\":\"T0\",\"ts\":\"2026-09-15T04:51:12.223022+00:00\",\"upstream\":[]}",
+     "sig": "oNXajVSQHs5PpEQ8zcho2D2AD3KyveMRqzNxoeyohVxZExYHDFumLdJVuFk55qb7pCvGq7HLKSbFSdjJFi1tKNd"
+    },
+    {
+     "id": "rcpt_01M2HPFB0PQ88V1BC96X1EG2T5",
+     "kind": "receipt",
+     "seq": 1,
+     "signed": "{\"caller\":\"did:key:z6MkvVLnVuR87cxuVb4sYSpc5MV3q8GZSX7TSozpug3n2Nm6\",\"citations\":[\"evt_01M2HPF56M3X0655K72C11YYVB\"],\"cost_credits\":1e-05,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkvVLnVuR87cxuVb4sYSpc5MV3q8GZSX7TSozpug3n2Nm6\",\"did:key:z6Mkg5a5Lr629LDeK7CJ9aMoZRtwqFt2Z2dfMtkXafLhF5tq\"],\"id\":\"rcpt_01M2HPFB0PQ88V1BC96X1EG2T5\",\"model_version\":\"rule:observation-by-source\",\"node\":\"did:key:z6Mkg5a5Lr629LDeK7CJ9aMoZRtwqFt2Z2dfMtkXafLhF5tq\",\"prev\":\"sha256:bff199ab166951997453779dd6e9e50fd7305bde248ede68f4a18066340af8f9\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:dc1a650036328236d9579a7d0cd73d94738ee5a6833a0c237823840195682caf\",\"response_hash\":\"sha256:c4b958daeb06e9f4cf113d4657b19f671bbb7a15ddd188b8a696cb738c1843aa\",\"scope_result\":\"in_scope\",\"settle_key\":null,\"tier_used\":\"T0\",\"ts\":\"2026-09-15T04:51:15.606794+00:00\",\"upstream\":[]}",
+     "sig": "5gEb6YmpVisLxbnZkEppqQGZ311THTgfGoeGUhCa5Zrkzqzh9vqooDvJ1t2KrisrruGzhJ5iEUMSJpg3DZKANv38"
+    }
+   ]
+  },
+  "open-meteo-node": {
+   "did": "did:key:z6MkgaNAYGBqSb86ooXkRMkCGo9QsCD8DBFgzW1RkRckKk7W",
+   "genesis_prev": "sha256:b380aed1ea9c825fcceb4983b6dbabfd6557c00301da889df31c5928c0b940cd",
+   "records": [
+    {
+     "id": "rcpt_01M2HPF9P9KDP9XV3Z7A1GC7R1",
+     "kind": "receipt",
+     "seq": 0,
+     "signed": "{\"caller\":\"did:key:z6MkvVLnVuR87cxuVb4sYSpc5MV3q8GZSX7TSozpug3n2Nm6\",\"citations\":[\"evt_01M2HPF64B9PB77TB14785HZ5M\"],\"cost_credits\":1e-05,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkiZHwriZUTGBQczEkWa2ViHXv2o19LaHfRQq2qdf7kSeE\",\"did:key:z6MkvVLnVuR87cxuVb4sYSpc5MV3q8GZSX7TSozpug3n2Nm6\",\"did:key:z6MkgaNAYGBqSb86ooXkRMkCGo9QsCD8DBFgzW1RkRckKk7W\"],\"id\":\"rcpt_01M2HPF9P9KDP9XV3Z7A1GC7R1\",\"model_version\":\"rule:observation-by-source\",\"node\":\"did:key:z6MkgaNAYGBqSb86ooXkRMkCGo9QsCD8DBFgzW1RkRckKk7W\",\"prev\":\"sha256:b380aed1ea9c825fcceb4983b6dbabfd6557c00301da889df31c5928c0b940cd\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:9913e0fd6f0f7d3cbdb4aa41f21a62d6ed7019ae4769980955d7c3968c77b4b3\",\"response_hash\":\"sha256:cb3487d1e00fafd7569289293463a8de09bc4208b295e2becbebc43b25f58e80\",\"scope_result\":\"in_scope\",\"settle_key\":null,\"tier_used\":\"T0\",\"ts\":\"2026-09-15T04:51:14.249146+00:00\",\"upstream\":[]}",
+     "sig": "5PN63aDBL1jZY9rr5eWxpEvZeHE5nrWqcCgakiChxLw8Y2oobbVj7WvibQyKdTacnjSSQvzy2DXrGSR3HsXhpLdS"
+    }
+   ]
+  },
+  "usgs-node": {
+   "did": "did:key:z6MkmoyHNQsHRQKUnBUgmXJmAJRcttSZUhZ6VbbwSe1AT3S1",
+   "genesis_prev": "sha256:bd693b86ab919844ff693f947f1700b5525ee8935e87e17c660744f7c51e66f3",
+   "records": [
+    {
+     "id": "rcpt_01M2HPF8AQYQ3RZXDN61FJNGJ5",
+     "kind": "receipt",
+     "seq": 0,
+     "signed": "{\"caller\":\"did:key:z6MkiZHwriZUTGBQczEkWa2ViHXv2o19LaHfRQq2qdf7kSeE\",\"citations\":[\"evt_01M2HPF6AW6M3KTYAQ2SJR18RM\"],\"cost_credits\":1e-05,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkiZHwriZUTGBQczEkWa2ViHXv2o19LaHfRQq2qdf7kSeE\",\"did:key:z6MkmoyHNQsHRQKUnBUgmXJmAJRcttSZUhZ6VbbwSe1AT3S1\"],\"id\":\"rcpt_01M2HPF8AQYQ3RZXDN61FJNGJ5\",\"model_version\":\"rule:seismic-largest\",\"node\":\"did:key:z6MkmoyHNQsHRQKUnBUgmXJmAJRcttSZUhZ6VbbwSe1AT3S1\",\"prev\":\"sha256:bd693b86ab919844ff693f947f1700b5525ee8935e87e17c660744f7c51e66f3\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:4deee3efb3dc78ff5e812efcab018f75c68d8e2879c41eb307e0f2c239ee5f96\",\"response_hash\":\"sha256:1be68b722030f9f644c3a943622843de3fdb93a41666ca6c653a1796f308f5b4\",\"scope_result\":\"in_scope\",\"settle_key\":null,\"tier_used\":\"T0\",\"ts\":\"2026-09-15T04:51:12.855254+00:00\",\"upstream\":[]}",
+     "sig": "25vbX1ovCh7jAeGdAWiCfey1eTiqqwt7tpKKtbsU6XQy9nTL9a8SZqWBqM71fqra2iLXZ6wUJGryBEU3Sg1z47c1"
+    }
+   ]
+  },
+  "bls-node": {
+   "did": "did:key:z6MkgMAWiTjvXqEAoV6i6WEaDQi6vo4SYMuTA8eeV7jkkyzS",
+   "genesis_prev": "sha256:6d225abda4dd287323961a27bcd0e08f4bd852c77cc078bc836e96ed6ae16c08",
+   "records": [
+    {
+     "id": "rcpt_01M2HPF8WJ1PVNN91B8DW2EPHC",
+     "kind": "receipt",
+     "seq": 0,
+     "signed": "{\"caller\":\"did:key:z6MkiZHwriZUTGBQczEkWa2ViHXv2o19LaHfRQq2qdf7kSeE\",\"citations\":[\"evt_01M2HPF6JN1P0ZAJM5247A7JPE\"],\"cost_credits\":1e-05,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkiZHwriZUTGBQczEkWa2ViHXv2o19LaHfRQq2qdf7kSeE\",\"did:key:z6MkgMAWiTjvXqEAoV6i6WEaDQi6vo4SYMuTA8eeV7jkkyzS\"],\"id\":\"rcpt_01M2HPF8WJ1PVNN91B8DW2EPHC\",\"model_version\":\"rule:economy-cpi\",\"node\":\"did:key:z6MkgMAWiTjvXqEAoV6i6WEaDQi6vo4SYMuTA8eeV7jkkyzS\",\"prev\":\"sha256:6d225abda4dd287323961a27bcd0e08f4bd852c77cc078bc836e96ed6ae16c08\",\"price_credits\":5e-05,\"reason\":null,\"request_hash\":\"sha256:3abc95e82a68f6c02de0a49c1f45ebb68041699587658dfe2467691a81bb223c\",\"response_hash\":\"sha256:fcbec2aa6e9bba5e4ae15a5f4e0ceffd457f7707c13f4a9b1d565a88ee4401d8\",\"scope_result\":\"in_scope\",\"settle_key\":null,\"tier_used\":\"T0\",\"ts\":\"2026-09-15T04:51:13.426113+00:00\",\"upstream\":[]}",
+     "sig": "2uFwktgGK5TyEkcJ9juqFfyMmT8E8Kh6HmoxkVLm39ujJLLJDiXcJAtSrYZ65Q1FAV1B5L3Tk1XVAh1WHHobD1wF"
+    }
+   ]
+  },
+  "fred-node": {
+   "did": "did:key:z6MkjzWZs7QS4zKatQnsihmsuF7urWX8U4V4gX8ESsveA5Rv",
+   "genesis_prev": "sha256:7fdc676260be5c4a4c2e69224ffd945de77a9ad935d409e3ca0c5e604fac2cbe",
+   "records": []
+  },
+  "weather-desk": {
+   "did": "did:key:z6MkvVLnVuR87cxuVb4sYSpc5MV3q8GZSX7TSozpug3n2Nm6",
+   "genesis_prev": "sha256:fdce513074fe893f23c553cbad0b2fc00eb7671ae8a6ef6dbfd1d4546d0faf3b",
+   "records": [
+    {
+     "id": "rcpt_01M2HPF7QVNBBA8JN7WHG0JXZX",
+     "kind": "receipt",
+     "seq": 0,
+     "signed": "{\"caller\":\"did:key:z6MkiZHwriZUTGBQczEkWa2ViHXv2o19LaHfRQq2qdf7kSeE\",\"citations\":[\"evt_01M2HPF56M3X0655K72C11YYVB\"],\"cost_credits\":0.0,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkiZHwriZUTGBQczEkWa2ViHXv2o19LaHfRQq2qdf7kSeE\",\"did:key:z6MkvVLnVuR87cxuVb4sYSpc5MV3q8GZSX7TSozpug3n2Nm6\"],\"id\":\"rcpt_01M2HPF7QVNBBA8JN7WHG0JXZX\",\"model_version\":\"bridge:did:key:z6Mkg5a5Lr629LDeK7CJ9aMoZRtwqFt2Z2dfMtkXafLhF5tq\",\"node\":\"did:key:z6MkvVLnVuR87cxuVb4sYSpc5MV3q8GZSX7TSozpug3n2Nm6\",\"prev\":\"sha256:fdce513074fe893f23c553cbad0b2fc00eb7671ae8a6ef6dbfd1d4546d0faf3b\",\"price_credits\":0.0001,\"reason\":null,\"request_hash\":\"sha256:dc1a650036328236d9579a7d0cd73d94738ee5a6833a0c237823840195682caf\",\"response_hash\":\"sha256:c4b958daeb06e9f4cf113d4657b19f671bbb7a15ddd188b8a696cb738c1843aa\",\"scope_result\":\"bridge\",\"settle_key\":null,\"tier_used\":\"T0\",\"ts\":\"2026-09-15T04:51:12.251444+00:00\",\"upstream\":[\"rcpt_01M2HPF7PZ1YRBNTVX898EK6P6\"]}",
+     "sig": "31vhPjX21yaqXNABT1SdgvDYTY7H74zRh5dEaZQZjgetvAfBtv68oHRXAdzMa5S9Pio8NBv6xCA9uvkp4QdGM6oN"
+    },
+    {
+     "id": "rcpt_01M2HPF9QAA1VZ9ATHAHS3V792",
+     "kind": "receipt",
+     "seq": 1,
+     "signed": "{\"caller\":\"did:key:z6MkiZHwriZUTGBQczEkWa2ViHXv2o19LaHfRQq2qdf7kSeE\",\"citations\":[\"evt_01M2HPF64B9PB77TB14785HZ5M\"],\"cost_credits\":0.0,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkiZHwriZUTGBQczEkWa2ViHXv2o19LaHfRQq2qdf7kSeE\",\"did:key:z6MkvVLnVuR87cxuVb4sYSpc5MV3q8GZSX7TSozpug3n2Nm6\"],\"id\":\"rcpt_01M2HPF9QAA1VZ9ATHAHS3V792\",\"model_version\":\"bridge:did:key:z6MkgaNAYGBqSb86ooXkRMkCGo9QsCD8DBFgzW1RkRckKk7W\",\"node\":\"did:key:z6MkvVLnVuR87cxuVb4sYSpc5MV3q8GZSX7TSozpug3n2Nm6\",\"prev\":\"sha256:84336796743588aa563da2c75e2dece9c8044ced0d0422142950b845dcb9fe7a\",\"price_credits\":0.0001,\"reason\":null,\"request_hash\":\"sha256:9913e0fd6f0f7d3cbdb4aa41f21a62d6ed7019ae4769980955d7c3968c77b4b3\",\"response_hash\":\"sha256:cb3487d1e00fafd7569289293463a8de09bc4208b295e2becbebc43b25f58e80\",\"scope_result\":\"bridge\",\"settle_key\":null,\"tier_used\":\"T0\",\"ts\":\"2026-09-15T04:51:14.282290+00:00\",\"upstream\":[\"rcpt_01M2HPF9P9KDP9XV3Z7A1GC7R1\"]}",
+     "sig": "4hXji58cyBGXFQ1K9vaNcckibeSCsKxAZhiFnEhkC3HuTzfwhEcyryCvUW6qsoGvVfpCj1ZD2C5Fqn9EBTY3Sv3y"
+    },
+    {
+     "id": "rcpt_01M2HPFB1P5KZE7KKS0XNZZD8K",
+     "kind": "receipt",
+     "seq": 2,
+     "signed": "{\"caller\":\"user:web-weather\",\"citations\":[\"evt_01M2HPF56M3X0655K72C11YYVB\"],\"cost_credits\":0.0,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkvVLnVuR87cxuVb4sYSpc5MV3q8GZSX7TSozpug3n2Nm6\"],\"id\":\"rcpt_01M2HPFB1P5KZE7KKS0XNZZD8K\",\"model_version\":\"bridge:did:key:z6Mkg5a5Lr629LDeK7CJ9aMoZRtwqFt2Z2dfMtkXafLhF5tq\",\"node\":\"did:key:z6MkvVLnVuR87cxuVb4sYSpc5MV3q8GZSX7TSozpug3n2Nm6\",\"prev\":\"sha256:1e37a0e6dad8748173d5c4d2d1500ad64d51ba48b34df08967b1a7d8cd16d7a7\",\"price_credits\":0.0001,\"reason\":null,\"request_hash\":\"sha256:dc1a650036328236d9579a7d0cd73d94738ee5a6833a0c237823840195682caf\",\"response_hash\":\"sha256:c4b958daeb06e9f4cf113d4657b19f671bbb7a15ddd188b8a696cb738c1843aa\",\"scope_result\":\"bridge\",\"settle_key\":null,\"tier_used\":\"T0\",\"ts\":\"2026-09-15T04:51:15.638357+00:00\",\"upstream\":[\"rcpt_01M2HPFB0PQ88V1BC96X1EG2T5\"]}",
+     "sig": "9STLaWGUgUayhBVbeQJgzXnySAfGdEDQmAFkjMcqCnCYez6UEkLbJ5A4YLXJ3W5qSSc4jPyhmi7d624fh1Ti1TT"
+    }
+   ]
+  },
+  "trooth-desk": {
+   "did": "did:key:z6MkiZHwriZUTGBQczEkWa2ViHXv2o19LaHfRQq2qdf7kSeE",
+   "genesis_prev": "sha256:762f4ad14b2c7e88847c298e74e7a21bbd05d4b6ab5bd3f5abf5357a7a59bfb0",
+   "records": [
+    {
+     "id": "rcpt_01M2HPF7RNWGZSC43K5R7YH2Q6",
+     "kind": "receipt",
+     "seq": 0,
+     "signed": "{\"caller\":\"user:web-weather\",\"citations\":[\"evt_01M2HPF56M3X0655K72C11YYVB\"],\"cost_credits\":0.0,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkiZHwriZUTGBQczEkWa2ViHXv2o19LaHfRQq2qdf7kSeE\"],\"id\":\"rcpt_01M2HPF7RNWGZSC43K5R7YH2Q6\",\"model_version\":\"bridge:did:key:z6MkvVLnVuR87cxuVb4sYSpc5MV3q8GZSX7TSozpug3n2Nm6\",\"node\":\"did:key:z6MkiZHwriZUTGBQczEkWa2ViHXv2o19LaHfRQq2qdf7kSeE\",\"prev\":\"sha256:762f4ad14b2c7e88847c298e74e7a21bbd05d4b6ab5bd3f5abf5357a7a59bfb0\",\"price_credits\":0.0001,\"reason\":null,\"request_hash\":\"sha256:dc1a650036328236d9579a7d0cd73d94738ee5a6833a0c237823840195682caf\",\"response_hash\":\"sha256:c4b958daeb06e9f4cf113d4657b19f671bbb7a15ddd188b8a696cb738c1843aa\",\"scope_result\":\"bridge\",\"settle_key\":null,\"tier_used\":\"T0\",\"ts\":\"2026-09-15T04:51:12.277684+00:00\",\"upstream\":[\"rcpt_01M2HPF7QVNBBA8JN7WHG0JXZX\"]}",
+     "sig": "2cQ2AmSKLkqcuWFSfTzRAUHrgfYHNde67Ui7TcLtEU153g3LsbD65PtSRA8qsqACKLRTLrz78DFpZ6CsCG4wwErb"
+    },
+    {
+     "id": "rcpt_01M2HPF8BH824W1TM44TT816ZF",
+     "kind": "receipt",
+     "seq": 1,
+     "signed": "{\"caller\":\"user:web-quake\",\"citations\":[\"evt_01M2HPF6AW6M3KTYAQ2SJR18RM\"],\"cost_credits\":0.0,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkiZHwriZUTGBQczEkWa2ViHXv2o19LaHfRQq2qdf7kSeE\"],\"id\":\"rcpt_01M2HPF8BH824W1TM44TT816ZF\",\"model_version\":\"bridge:did:key:z6MkmoyHNQsHRQKUnBUgmXJmAJRcttSZUhZ6VbbwSe1AT3S1\",\"node\":\"did:key:z6MkiZHwriZUTGBQczEkWa2ViHXv2o19LaHfRQq2qdf7kSeE\",\"prev\":\"sha256:c71f52988dbee3ff0662de4b7f9f5923810cca75211fa5993a2b4d605333c211\",\"price_credits\":0.0001,\"reason\":null,\"request_hash\":\"sha256:4deee3efb3dc78ff5e812efcab018f75c68d8e2879c41eb307e0f2c239ee5f96\",\"response_hash\":\"sha256:1be68b722030f9f644c3a943622843de3fdb93a41666ca6c653a1796f308f5b4\",\"scope_result\":\"bridge\",\"settle_key\":null,\"tier_used\":\"T0\",\"ts\":\"2026-09-15T04:51:12.881882+00:00\",\"upstream\":[\"rcpt_01M2HPF8AQYQ3RZXDN61FJNGJ5\"]}",
+     "sig": "3V1gicNUqSLsvQ61wgVzdh5xSBB67NdVhoNSUh3vPhnGHUUWaHv5epSjdj1Dt2khCFwwNsFviGoriwns4xjnGHcs"
+    },
+    {
+     "id": "rcpt_01M2HPF8XSMSH6JJ7ZKCYNMAMM",
+     "kind": "receipt",
+     "seq": 2,
+     "signed": "{\"caller\":\"user:web-cpi\",\"citations\":[\"evt_01M2HPF6JN1P0ZAJM5247A7JPE\"],\"cost_credits\":0.0,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkiZHwriZUTGBQczEkWa2ViHXv2o19LaHfRQq2qdf7kSeE\"],\"id\":\"rcpt_01M2HPF8XSMSH6JJ7ZKCYNMAMM\",\"model_version\":\"bridge:did:key:z6MkgMAWiTjvXqEAoV6i6WEaDQi6vo4SYMuTA8eeV7jkkyzS\",\"node\":\"did:key:z6MkiZHwriZUTGBQczEkWa2ViHXv2o19LaHfRQq2qdf7kSeE\",\"prev\":\"sha256:14dd97a0564f0ee84082056ee511cb4eb15791f0d605f18a337ef58e3425646a\",\"price_credits\":0.0001,\"reason\":null,\"request_hash\":\"sha256:3abc95e82a68f6c02de0a49c1f45ebb68041699587658dfe2467691a81bb223c\",\"response_hash\":\"sha256:fcbec2aa6e9bba5e4ae15a5f4e0ceffd457f7707c13f4a9b1d565a88ee4401d8\",\"scope_result\":\"bridge\",\"settle_key\":null,\"tier_used\":\"T0\",\"ts\":\"2026-09-15T04:51:13.465404+00:00\",\"upstream\":[\"rcpt_01M2HPF8WJ1PVNN91B8DW2EPHC\"]}",
+     "sig": "4H4ATyVWt85siBWyzvCASr7bPhvzUfgbAimNowdvMN3bRQrUM9giK29g372b2ghaASamwWZTf3QpuUU8LFbaoxfq"
+    },
+    {
+     "id": "rcpt_01M2HPF9R2T0QSA0A4HXZYRJYN",
+     "kind": "receipt",
+     "seq": 3,
+     "signed": "{\"caller\":\"user:web-model\",\"citations\":[\"evt_01M2HPF64B9PB77TB14785HZ5M\"],\"cost_credits\":0.0,\"determinism\":\"derived\",\"hops\":[\"did:key:z6MkiZHwriZUTGBQczEkWa2ViHXv2o19LaHfRQq2qdf7kSeE\"],\"id\":\"rcpt_01M2HPF9R2T0QSA0A4HXZYRJYN\",\"model_version\":\"bridge:did:key:z6MkvVLnVuR87cxuVb4sYSpc5MV3q8GZSX7TSozpug3n2Nm6\",\"node\":\"did:key:z6MkiZHwriZUTGBQczEkWa2ViHXv2o19LaHfRQq2qdf7kSeE\",\"prev\":\"sha256:1cdd01bce012c5a66ed0eef5e5140275950e95101616f5f7a758514aa4c90b2e\",\"price_credits\":0.0001,\"reason\":null,\"request_hash\":\"sha256:9913e0fd6f0f7d3cbdb4aa41f21a62d6ed7019ae4769980955d7c3968c77b4b3\",\"response_hash\":\"sha256:cb3487d1e00fafd7569289293463a8de09bc4208b295e2becbebc43b25f58e80\",\"scope_result\":\"bridge\",\"settle_key\":null,\"tier_used\":\"T0\",\"ts\":\"2026-09-15T04:51:14.306707+00:00\",\"upstream\":[\"rcpt_01M2HPF9QAA1VZ9ATHAHS3V792\"]}",
+     "sig": "5mYYYLoyY3kgccmvd16Jtb3H8ZLVnbY4Rt76TX6EJEfEVK9EkGcrADENH3BYoeCchFBo9DAZiTzjEaSThM8QjjDD"
+    },
+    {
+     "id": "rcpt_01M2HPFACBAAJRD43C00NBECV1",
+     "kind": "receipt",
+     "seq": 4,
+     "signed": "{\"caller\":\"user:web-weather\",\"citations\":[],\"cost_credits\":0.0,\"determinism\":null,\"hops\":[\"did:key:z6MkiZHwriZUTGBQczEkWa2ViHXv2o19LaHfRQq2qdf7kSeE\"],\"id\":\"rcpt_01M2HPFACBAAJRD43C00NBECV1\",\"model_version\":\"none\",\"node\":\"did:key:z6MkiZHwriZUTGBQczEkWa2ViHXv2o19LaHfRQq2qdf7kSeE\",\"prev\":\"sha256:e4c31a483ad070f032848d3403d71c260554236cf9215001f9ea54859a077199\",\"price_credits\":0.0,\"reason\":null,\"request_hash\":\"sha256:dc1a650036328236d9579a7d0cd73d94738ee5a6833a0c237823840195682caf\",\"response_hash\":\"sha256:93258b794a1765dd277f6c0c74a0afcf728e6310b5ba91a9d4ab0cf8a15094ee\",\"scope_result\":\"referral\",\"settle_key\":null,\"tier_used\":null,\"ts\":\"2026-09-15T04:51:14.956578+00:00\",\"upstream\":[]}",
+     "sig": "5xuDCHDU5219ZvxH3SiH3hWm4crRf8XBsYeSjD7eFST5wbsgo4SXWNPKYcHfpYD4zsQDHPYPtgWfue4cBijqE3QA"
+    }
+   ]
+  }
+ }
+}
