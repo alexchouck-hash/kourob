@@ -15,6 +15,7 @@ option may be rejected without a spike in `docs/spikes/` or an explicit
 | [0006](0006-a2a-extensions-over-namespaced-fields.md) | A2A extensions, not a `kourob.*` namespace | accepted | M3 |
 | [0007](0007-outcomes-and-the-settled-request-objective.md) | Outcomes as a ledger record; cost per *settled* request | accepted | M4 |
 | [0008](0008-t0-promotion-by-exact-replay.md) | T0 promotion requires exact replay | accepted | M5 |
+| [0010](0010-settle-key-from-citations.md) | A model-tier answer takes its settle_key from its citations | accepted | M4 |
 
 A protocol draft in `docs/protocols/` is not an ADR. The drafts state what the wire looks
 like; the ADRs above record why, with the rejected options. 0003 to 0005 are still owed

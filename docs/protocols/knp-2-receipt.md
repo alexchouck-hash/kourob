@@ -60,9 +60,11 @@ JCS (RFC 8785), so two implementations agree byte-for-byte.
   settlement is the whole labelling mechanism. Hashed rather than stored in the clear
   because a receipt may be published and its subject may not be publishable; two parties
   computing it from the same fields agree without either learning the other's data.
-  A tier with no structured subject — a T3 answer to a free-text question — leaves it null,
-  and those receipts are simply never settled. That is a real limit of the design, and it
-  is why a domain that settles itself is a better node candidate than one that does not.
+  A tier with no structured subject of its own (T2 or T3 answering a free-text question)
+  takes the key from what it cited. When its cited events' settling contracts name exactly
+  one subject, the receipt carries that subject's key (ADR-0010). When they name several,
+  or none, the key is null and the receipt is never settled by reality. That limit is why a
+  domain that settles itself is a better node candidate than one that does not.
 
 ## 3. The hash chain
 

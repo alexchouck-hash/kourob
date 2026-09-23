@@ -70,8 +70,9 @@ Honest list, in the order they bite:
    culprits (`kb-0sl`); the fix is per-request work that is O(receipts) or O(examples).
 4. **`answer_entropy` is computed across all history**, so a legitimately updated answer
    reads as non-deterministic and blocks a promotion that should happen.
-5. **T3 answers have no `settle_key`**, so the tier most in need of correction is the one
-   that never gets settled.
+5. ~~**T3 answers have no `settle_key`**~~. Fixed by ADR-0010: a model-tier answer takes
+   its key from its citations when they name one subject. Answers that span subjects still
+   never settle from reality.
 6. **Cluster keys are unreadable** and are about to appear in commit messages.
 7. **Keyword retrieval** for T3 will stop scaling, and no measurement says when.
 8. **Only MCP has a transport.** A2A and REST are stubs, so nothing outside this machine can

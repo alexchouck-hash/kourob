@@ -48,6 +48,32 @@ def settle_key(schema_ref: str, subject: dict[str, Any]) -> str:
     return ev.sha256({"schema_ref": schema_ref, "subject": subject})
 
 
+def settle_key_from_citations(
+    contracts: dict[str, Contract], store: Any, citations: list[str]
+) -> str | None:
+    """The subject of an answer that names none itself, read off what it cited (ADR-0010).
+
+    A model tier cannot bind its question the way a rule does, but every event it cites has
+    a contract, and a settling contract says which fields a later fact is keyed on. When the
+    settleable citations name exactly one subject, that is what the answer was about. When
+    they name several, a fact about one of them does not say whether the answer held up, so
+    the key stays null rather than letting a partial fact settle the whole answer.
+    """
+    keys: set[str] = set()
+    for event_id in citations:
+        row = store.get("silver", event_id)
+        if row is None:
+            continue
+        contract = contracts.get(str(row.get("schema_ref")))
+        if contract is None or not contract.settles:
+            continue
+        payload = row.get("payload") or {}
+        if any(f not in payload for f in contract.settle_key):
+            continue
+        keys.add(settle_key(contract.id, {f: payload[f] for f in contract.settle_key}))
+    return keys.pop() if len(keys) == 1 else None
+
+
 class OutcomeError(ValueError):
     """A submission that cannot be recorded, as opposed to one that is merely unwelcome."""
 
@@ -289,6 +315,7 @@ __all__ = [
     "read_outcomes",
     "settle_from_event",
     "settle_key",
+    "settle_key_from_citations",
     "settlement_status",
     "submit",
 ]

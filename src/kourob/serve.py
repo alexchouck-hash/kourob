@@ -17,6 +17,7 @@ from kourob import events as ev
 from kourob import scope as scope_mod
 from kourob.ledger.accounts import Accounts
 from kourob.ledger.chain import RECORD_RECEIPT
+from kourob.ledger.outcomes import settle_key_from_citations
 from kourob.ledger.pricing import Pricer
 from kourob.node import Node
 from kourob.ports.local import UnreachableNeighbourError, resolve
@@ -405,6 +406,11 @@ def _receipt(
     """Hash the request and response; never store them (KNP-2 section 1)."""
     tier = tier or (result.tier if result else None)
     determinism = determinism or (result.determinism if result else None)
+    cited = citations if citations is not None else (list(result.citations) if result else [])
+    subject = result.settle_key if result else None
+    if result is not None and subject is None:
+        # A model tier names no subject; its citations do (ADR-0010).
+        subject = settle_key_from_citations(node.contracts, node.store, cited)
     return node.ledger.append(
         RECORD_RECEIPT,
         {
@@ -417,12 +423,10 @@ def _receipt(
             "tier_used": tier.value if tier else None,
             "determinism": determinism.value if determinism else None,
             "model_version": model_version or (result.model_version if result else "none"),
-            "citations": citations
-            if citations is not None
-            else (list(result.citations) if result else []),
+            "citations": cited,
             "upstream": list(upstream or []),
             "hops": [*request.hops, node.did],
-            "settle_key": result.settle_key if result else None,
+            "settle_key": subject,
             "cost_credits": cost,
             "price_credits": price,
             "ts": ev.now().isoformat(),

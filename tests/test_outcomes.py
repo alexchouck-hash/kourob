@@ -189,10 +189,11 @@ def test_the_same_fact_arriving_twice_is_not_two_outcomes(cell) -> None:
 
 
 def test_a_receipt_with_no_subject_is_never_settled(cell) -> None:
-    """A T3 answer to a free-text question has no subject the node can name.
+    """An answer with no subject the node can name stays pending.
 
-    That is a real limit of the design, not an oversight, and the receipt simply stays
-    pending rather than being settled by something that happens to share a topic.
+    It is never settled by something that happens to share a topic. A model-tier answer
+    names its subject through its citations (ADR-0010, `test_settle_key_citations.py`).
+    With nothing to cite, it has none.
     """
     node = node_mod.open_node(cell.dir)
     answer = serve.answer(node, "what is a bridge")
