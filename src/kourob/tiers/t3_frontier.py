@@ -61,12 +61,16 @@ class T3Frontier(TierHandler):
         manifest: Manifest,
         *,
         adapter: str = "local",
+        purpose: str = "answer",
     ) -> None:
         self.node_dir = Path(node_dir)
         self.store = store
         self.runner = runner
         self.manifest = manifest
         self.adapter = adapter
+        #: What the call log records the spend as. The shadow teacher passes `shadow`, so
+        #: auditing is metered apart from serving and its cost can be charged to the loop.
+        self.purpose = purpose
 
     def available(self) -> bool:
         try:
@@ -112,7 +116,7 @@ class T3Frontier(TierHandler):
                     Message("user", self._prompt(request.question, events)),
                 ],
                 tier=Tier.T3,
-                purpose="answer",
+                purpose=self.purpose,
                 adapter=self.adapter,
             )
         except AdapterError as exc:

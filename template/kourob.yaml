@@ -98,6 +98,7 @@ loops:
   compile: { trigger: "on_event", budget_credits: 1.0 }
   lint:    { trigger: "nightly", budget_credits: 1.0 }
   evolve:  { trigger: "weekly", budget_credits: 10.0 }
+  shadow:  { trigger: "nightly", budget_credits: 0.5 }   # ADR-0011: T3 audits cheap tiers
   prune:   { trigger: "weekly", budget_credits: 1.0 }
   reflect: { trigger: "weekly", budget_credits: 2.0 }
 

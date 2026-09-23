@@ -58,6 +58,7 @@ TABLE_PATHS = {
     "routes": "routes",
     "calls": "logs/calls",
     "accounts": "ledger/accounts",
+    "shadow": "logs/shadow",
 }
 
 #: Parts per table before an append folds them. Each append writes one Parquet part; a

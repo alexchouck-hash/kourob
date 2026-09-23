@@ -35,6 +35,7 @@ class OutcomeSource(StrEnum):
     """Who says so. Ordered by how much the node should believe them."""
 
     CALLER = "caller"  # self-reported, may be strategic
+    TEACHER = "teacher"  # the node's own T3 disputing a cheap tier; a signal, never a settlement
     DOWNSTREAM = "downstream"  # a node that used this answer; has skin in it
     HUMAN = "human"  # T4 review or a correction pushed through the gate
     REALITY = "reality"  # a later event settles it; nobody's opinion
@@ -44,6 +45,7 @@ class OutcomeSource(StrEnum):
 #: multiplier. Policy, not protocol (ADR-0007, Consequences) — expect to tune these.
 SOURCE_WEIGHT = {
     OutcomeSource.CALLER: 0.25,
+    OutcomeSource.TEACHER: 0.0,  # ADR-0011: blocks promotion, never labels an example
     OutcomeSource.DOWNSTREAM: 0.5,
     OutcomeSource.HUMAN: 1.0,
     OutcomeSource.REALITY: 1.0,

@@ -173,7 +173,7 @@ def evolve(node_dir: Any, *, window: str = "30d", now: datetime | None = None) -
     never a change. Applying a proposal is `kourob tend`'s job, and only within the node's
     autonomy level (KNP-7 section 2).
     """
-    from kourob.ledger.outcomes import parse_window, read_outcomes, settlement_status
+    from kourob.ledger.outcomes import parse_window, settlement_status, settling_outcomes
     from kourob.loops.clustering import REFUSED, build_clusters
     from kourob.node import open_node
     from kourob.types import Determinism
@@ -190,7 +190,7 @@ def evolve(node_dir: Any, *, window: str = "30d", now: datetime | None = None) -
 
     records = node.ledger.records()
     receipts = [r for r in records if r.get("kind", "receipt") == "receipt"]
-    verdicts = {o.about: o.verdict for o in read_outcomes(node.ledger)}
+    verdicts = {o.about: o.verdict for o in settling_outcomes(node.ledger)}
     status = settlement_status(node.ledger, node.contracts, now=stamp)
 
     clusters = build_clusters(in_window, outcomes_by_receipt=verdicts)
@@ -211,7 +211,9 @@ def evolve(node_dir: Any, *, window: str = "30d", now: datetime | None = None) -
 
     served = [c for c in clusters if not c.key.startswith(REFUSED)]
     _propose_demotions(report, node, verdicts)
-    _propose_promotions(report, served, node=node, verdicts=verdicts)
+    _propose_promotions(
+        report, served, node=node, verdicts=verdicts, disputed=_disputed_clusters(node, in_window)
+    )
     _propose_shed(report, node, in_window)
     _propose_split(report, node, served, len(in_window))
     _propose_from_quarantine(report, node)
@@ -230,6 +232,7 @@ def _propose_promotions(
     *,
     node: Any = None,
     verdicts: dict[str, Any] | None = None,
+    disputed: dict[str, int] | None = None,
 ) -> None:
     """Move work down the ladder as evidence accumulates (KNP-5 section 3).
 
@@ -243,6 +246,23 @@ def _propose_promotions(
     for cluster in clusters:
         current = _dominant_tier(cluster)
         if current is None:
+            continue
+
+        disputes = (disputed or {}).get(cluster.key, 0)
+        if disputes:
+            # ADR-0011: the teacher and a cheap tier disagreed and nothing has said which was
+            # right. Making the cluster cheaper now would bet on the one that is cheaper.
+            report.declined.append(
+                DeclinedProposal(
+                    kind=ProposalKind.PROMOTE,
+                    cluster=cluster.key,
+                    why=(
+                        f"the teacher disputed {disputes} answer(s) in this cluster and "
+                        "nothing has settled them: promotion waits for reality or a human "
+                        "(ADR-0011)"
+                    ),
+                )
+            )
             continue
 
         if (
@@ -681,6 +701,23 @@ def _derived_share(receipts: list[dict[str, Any]], derived: str) -> float:
     if not answered:
         return 0.0
     return sum(1 for r in answered if r.get("determinism") == derived) / len(answered)
+
+
+def _disputed_clusters(node: Any, rows: list[dict[str, Any]]) -> dict[str, int]:
+    """Open teacher disputes per cluster, over the requests in the window."""
+    from kourob.loops.clustering import cluster_key
+    from kourob.loops.shadow import disputed_receipts
+    from kourob.request_log import RequestRecord
+
+    disputed = disputed_receipts(node)
+    counts: dict[str, int] = {}
+    if not disputed:
+        return counts
+    for row in rows:
+        if str(row.get("receipt_id") or "") in disputed:
+            key = cluster_key(RequestRecord.from_row(row))
+            counts[key] = counts.get(key, 0) + 1
+    return counts
 
 
 def _dominant_tier(cluster: ClusterStats) -> Tier | None:

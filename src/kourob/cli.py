@@ -542,9 +542,11 @@ def keys_show(node: Annotated[Path, typer.Option()] = Path(".")) -> None:
 
 @loop_app.command("run")
 def loop_run(
-    name: Annotated[str, typer.Argument(help="ingest|compile|lint|evolve|prune|reflect")],
+    name: Annotated[str, typer.Argument(help="ingest|compile|lint|evolve|shadow|prune|reflect")],
     node: Annotated[Path, typer.Option()] = Path("."),
-    budget: Annotated[float, typer.Option(help="Credit budget for this run.")] = 1.0,
+    budget: Annotated[
+        float | None, typer.Option(help="Credit budget for this run. Default: the manifest's.")
+    ] = None,
 ) -> None:
     """Run one loop once. Each loop outputs a PR or an event, nothing else."""
     if name == "compile":
@@ -563,6 +565,11 @@ def loop_run(
         typer.secho(str(lint_report), fg=colour)
         if not lint_report.ok:
             raise typer.Exit(1)
+        return
+    if name == "shadow":
+        from kourob.loops.shadow import run_shadow
+
+        typer.echo(str(run_shadow(node, budget_credits=budget)))
         return
     if name != "evolve":
         _todo(f"loop run {name}", "M2", "section 6.1")
@@ -592,7 +599,7 @@ def loop_list(node: Annotated[Path, typer.Option()] = Path(".")) -> None:
     for loop_name, config in manifest.loops.items():
         trigger = (config or {}).get("trigger", "-")
         budget = (config or {}).get("budget_credits", "-")
-        status = "implemented" if loop_name == "evolve" else "stub (M2)"
+        status = "implemented" if loop_name in ("evolve", "shadow") else "stub (M2)"
         typer.echo(
             f"{loop_name:<9} {trigger:<10} budget {budget!s:<6} "
             f"runs {runs.get(loop_name, 0):<4} {status}"

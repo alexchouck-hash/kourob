@@ -143,7 +143,7 @@ id: outc_01JBQ8...
 node: did:key:z6MkShot...
 about: rcpt_01JBQ7ZK4M8XN2WQ0V7RTYE3PA   # the receipt being judged
 verdict: accepted | corrected | rejected | superseded | unresolved
-source: caller | human | downstream | reality
+source: caller | teacher | human | downstream | reality
 detail:
   corrected_to: evt_01J...      # for `corrected`: the event that says what was true
   by: did:key:z6MkAsk... | user:8f3a...
@@ -162,6 +162,7 @@ sig: <ed25519>
 | `downstream` | A node that used this answer reports whether its own answer held up | free | medium — the reporter has skin in it |
 | `human` | T4 review, or a correction event pushed through the gate | expensive | high |
 | `reality` | A later event contradicts or confirms the answer | free, but delayed | **highest** — nobody's opinion |
+| `teacher` | The node's own T3, re-answering off the hot path, cited nothing the cheap tier cited (ADR-0011). Always `rejected`; agreement is never recorded | a budgeted T3 call per audit | **none as a label** — it settles nothing and trains nothing, but blocks promotion until a settling source speaks |
 
 `reality` is the one worth building for. A prediction node that says *"Alcaraz 0.77"* gets
 an unarguable label when the match finishes. A shot-charting node that says *"41-shot

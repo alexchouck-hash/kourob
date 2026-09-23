@@ -17,7 +17,7 @@ from typing import Any
 
 from kourob import events as ev
 from kourob.ledger.outcome import Verdict
-from kourob.ledger.outcomes import read_outcomes
+from kourob.ledger.outcomes import settling_outcomes
 from kourob.request_log import RequestRecord
 from kourob.tiers.t1_student import (
     DEFAULT_BAR,
@@ -42,7 +42,7 @@ def settled_examples(node: Any) -> list[dict[str, Any]]:
     """
     from kourob.loops.distill.calibrate import teacher_label
 
-    verdicts = {o.about: o.verdict for o in read_outcomes(node.ledger)}
+    verdicts = {o.about: o.verdict for o in settling_outcomes(node.ledger)}
     if node.store.stats("requests")["rows"] == 0:
         return []
     examples: list[dict[str, Any]] = []

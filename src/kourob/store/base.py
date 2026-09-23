@@ -28,6 +28,7 @@ LOGICAL_TABLES = (
     "routes",
     "calls",
     "accounts",
+    "shadow",
 )
 
 

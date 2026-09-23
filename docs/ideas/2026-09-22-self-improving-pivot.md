@@ -51,13 +51,15 @@ What changes:
 Ordered by how much each one unblocks.
 
 1. **Shadow teacher (the missing label source).** Under a budget, send a sample of
-   T0/T1/T2 answers back to T3 off the hot path. If T3 agrees, that settles the answer. If
-   it disagrees, that counts as a correction and runs the existing one-correction demotion.
-   The sample rate falls as a cluster's agreement rises, so the grading cost shrinks too.
-   This gives every tier a label, T3 included through cross-model agreement, with no human
-   in the loop. It is a small extension of `outcomes` plus `tend`.
+   T0/T1/T2 answers back to T3 off the hot path. If the two cite nothing in common, the
+   teacher records a dispute. A dispute settles nothing, but it blocks promotion of that
+   cluster until reality or a human speaks. Agreement is **not** recorded as a label,
+   because ADR-0007 already rejected tier agreement as correctness. It only lowers the
+   cluster's sample rate. Built as ADR-0011; this replaces the first sketch, where
+   agreement settled the answer.
 2. **`settle_key` on every answer, T3 included.** If there is no key, the answer can't
-   improve. Fix STATUS weakness #5 first, since #1 depends on it.
+   improve. Done as ADR-0010: a model-tier answer takes its key from its citations when
+   they name one subject.
 3. **Improvement ledger.** Every `node_change.v1` records the cluster, before and after
    cost per settled answer, before and after accuracy on gold, and the replay that proved
    it. `kourob improvements` prints the node's signed changelog. That changelog is the

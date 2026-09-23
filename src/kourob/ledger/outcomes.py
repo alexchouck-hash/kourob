@@ -147,6 +147,17 @@ def outcomes_for(ledger: Ledger, receipt_id: str) -> list[Outcome]:
     return [o for o in read_outcomes(ledger) if o.about == receipt_id]
 
 
+def settling_outcomes(ledger: Ledger) -> list[Outcome]:
+    """Every outcome except a teacher's dispute, which is a signal and not a label.
+
+    ADR-0007 rejected tier agreement as a source of labels because it cannot catch a mistake
+    both tiers make. ADR-0011 keeps the teacher on that side of the line: its disputes are
+    on the chain for provenance and block promotion, but they settle nothing, train nothing
+    and never stop a later fact from settling the same receipt.
+    """
+    return [o for o in read_outcomes(ledger) if o.source is not OutcomeSource.TEACHER]
+
+
 def _parse_ts(value: Any) -> datetime | None:
     if isinstance(value, datetime):
         return value
@@ -192,10 +203,12 @@ def settle_from_event(
             continue
 
         key = settle_key(contract.id, {f: payload[f] for f in contract.settle_key})
+        # A teacher's dispute does not count: reality may still settle what it disputed.
+        already = {o.about for o in settling_outcomes(ledger)}
         for receipt in ledger.records():
             if receipt.get("kind", "receipt") != "receipt" or receipt.get("settle_key") != key:
                 continue
-            if outcomes_for(ledger, receipt["id"]):
+            if receipt["id"] in already:
                 continue  # already settled; a fact arriving twice is not two outcomes
             outcome = submit(
                 ledger,
@@ -280,7 +293,7 @@ def settlement_status(
     for record in ledger.records():
         if record.get("kind", "receipt") == "receipt":
             receipts.append(record)
-        else:
+        elif record.get("source") != OutcomeSource.TEACHER.value:
             by_receipt.setdefault(str(record.get("about")), []).append(
                 Outcome.model_validate(record)
             )
@@ -317,5 +330,6 @@ __all__ = [
     "settle_key",
     "settle_key_from_citations",
     "settlement_status",
+    "settling_outcomes",
     "submit",
 ]
